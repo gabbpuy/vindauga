@@ -5,7 +5,7 @@ setup(
     name='vindauga',
     version='0.0.5',
     packages=find_packages(exclude=('test', 'build', 'dist')),
-    url='',
+    url='https://github.com/gabbpuy/vindauga',
     license='BSD',
     author='Andrew Milton',
     author_email='vindauga@unyx.net',
