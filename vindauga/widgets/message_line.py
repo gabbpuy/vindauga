@@ -1,0 +1,29 @@
+# -*- coding: utf-8 -*-
+from vindauga.types.draw_buffer import DrawBuffer
+from vindauga.types.palette import Palette
+from vindauga.types.view import View
+
+
+class MessageLine(View):
+
+    cpMessageLine = "\x02\x04"
+
+    def __init__(self, bounds, s):
+        super().__init__(bounds)
+        self.width = bounds.bottomRight.x - bounds.topLeft.x
+        self.text = s[:self.width]
+
+    def getPalette(self):
+        return Palette(self.cpMessageLine)
+
+    def setText(self, s):
+        self.text = s[:self.width]
+        self.drawView()
+
+    def draw(self):
+        b = DrawBuffer()
+        color = self.getColor(0x0201)
+
+        b.moveChar(0, ' ', color, self.size.x)
+        b.moveCStr(1, self.text, color)
+        self.writeLine(0, 0, self.size.x, 1, b)
