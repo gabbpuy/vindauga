@@ -5,7 +5,9 @@
     <bookmark url="file://$PROJECT_DIR$/examples/desktop-logo.py" line="86" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="f39dc2c0-e2fd-4e9d-92e0-59cb5e7dd815" name="Default Changelist" comment="" />
+    <list default="true" id="f39dc2c0-e2fd-4e9d-92e0-59cb5e7dd815" name="Default Changelist" comment="">
+      <change beforePath="$PROJECT_DIR$/.gitignore" beforeDir="false" afterPath="$PROJECT_DIR$/.gitignore" afterDir="false" />
+    </list>
     <option name="EXCLUDED_CONVERTED_TO_IGNORED" value="true" />
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -14,6 +16,15 @@
   </component>
   <component name="FileEditorManager">
     <leaf SIDE_TABS_SIZE_LIMIT_KEY="375">
+      <file pinned="false" current-in-tab="true">
+        <entry file="file://$PROJECT_DIR$/.gitignore">
+          <provider selected="true" editor-type-id="text-editor">
+            <state relative-caret-position="832">
+              <caret line="64" column="7" lean-forward="true" selection-start-line="64" selection-start-column="7" selection-end-line="64" selection-end-column="7" />
+            </state>
+          </provider>
+        </entry>
+      </file>
       <file pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/vindauga/types/draw_buffer.py">
           <provider selected="true" editor-type-id="text-editor">
@@ -32,11 +43,11 @@
           </provider>
         </entry>
       </file>
-      <file pinned="false" current-in-tab="true">
+      <file pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/README.md">
           <provider selected="true" editor-type-id="split-provider[text-editor;markdown-preview-editor]">
             <state split_layout="SPLIT">
-              <first_editor relative-caret-position="102">
+              <first_editor relative-caret-position="-356">
                 <caret line="6" lean-forward="true" selection-start-line="6" selection-end-line="6" />
               </first_editor>
               <second_editor />
@@ -156,12 +167,11 @@
     </dirStrings>
   </component>
   <component name="Git.Settings">
-    <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$/stuff/tvision_examples" />
+    <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$" />
   </component>
   <component name="IdeDocumentHistory">
     <option name="CHANGED_PATHS">
       <list>
-        <option value="$PROJECT_DIR$/vindauga/gadgets/puzzle.py" />
         <option value="$PROJECT_DIR$/vindauga/misc/clipboard/clipboard.py" />
         <option value="$PROJECT_DIR$/vindauga/misc/prefix/prefixes.py" />
         <option value="$PROJECT_DIR$/vindauga/misc/character_codes.py" />
@@ -212,6 +222,7 @@
         <option value="$PROJECT_DIR$/setup.py" />
         <option value="$PROJECT_DIR$/vindauga/types/screen.py" />
         <option value="$PROJECT_DIR$/README.md" />
+        <option value="$PROJECT_DIR$/.gitignore" />
       </list>
     </option>
   </component>
@@ -247,6 +258,7 @@
     </panes>
   </component>
   <component name="PropertiesComponent">
+    <property name="SHARE_PROJECT_CONFIGURATION_FILES" value="true" />
     <property name="WebServerToolWindowFactoryState" value="false" />
     <property name="last_opened_file_path" value="$PROJECT_DIR$/../GreenWave" />
     <property name="nodejs_interpreter_path.stuck_in_default_project" value="undefined stuck path" />
@@ -311,7 +323,7 @@
       <workItem from="1561589408207" duration="6175000" />
       <workItem from="1561732808533" duration="42576000" />
       <workItem from="1561940961042" duration="7000" />
-      <workItem from="1561987209275" duration="2941000" />
+      <workItem from="1561987209275" duration="3134000" />
     </task>
     <servers />
   </component>
@@ -321,7 +333,7 @@
     </history-entry>
   </component>
   <component name="TimeTrackingManager">
-    <option name="totallyTimeSpent" value="105461000" />
+    <option name="totallyTimeSpent" value="105654000" />
   </component>
   <component name="ToolWindowManager">
     <frame x="290" y="43" width="2936" height="1979" extended-state="0" />
@@ -357,11 +369,6 @@
     <SUITE FILE_PATH="coverage/vindauga$Unittests_for_test_Point_Test_Point.coverage" NAME="Unittests for test_Point.Test_Point Coverage Results" MODIFIED="1561940403938" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/test" />
   </component>
   <component name="editorHistoryManager">
-    <entry file="file://$PROJECT_DIR$/../tvision/contrib/tvision/examples/demo/fileview.h">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="-111" />
-      </provider>
-    </entry>
     <entry file="file://$PROJECT_DIR$/../tvision/contrib/tvision/examples/demo/diffs.cc">
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="-1870">
@@ -667,6 +674,16 @@
         </state>
       </provider>
     </entry>
+    <entry file="file://$PROJECT_DIR$/README.md">
+      <provider selected="true" editor-type-id="split-provider[text-editor;markdown-preview-editor]">
+        <state split_layout="SPLIT">
+          <first_editor relative-caret-position="-356">
+            <caret line="6" lean-forward="true" selection-start-line="6" selection-end-line="6" />
+          </first_editor>
+          <second_editor />
+        </state>
+      </provider>
+    </entry>
     <entry file="file://$PROJECT_DIR$/setup.py">
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="221">
@@ -674,13 +691,10 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/README.md">
-      <provider selected="true" editor-type-id="split-provider[text-editor;markdown-preview-editor]">
-        <state split_layout="SPLIT">
-          <first_editor relative-caret-position="102">
-            <caret line="6" lean-forward="true" selection-start-line="6" selection-end-line="6" />
-          </first_editor>
-          <second_editor />
+    <entry file="file://$PROJECT_DIR$/.gitignore">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="832">
+          <caret line="64" column="7" lean-forward="true" selection-start-line="64" selection-start-column="7" selection-end-line="64" selection-end-column="7" />
         </state>
       </provider>
     </entry>
