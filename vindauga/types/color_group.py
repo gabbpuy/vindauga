@@ -13,7 +13,7 @@ class ColorGroup:
     The `ColorGroup` class defines a list of `ColorItem` objects. Each member
     of a color group consists of a set of color names and their associated color codes.
     """
-    def __init__(self, name: object) -> object:
+    def __init__(self, name: object):
         self.items = []
         self.groups = [self]
         self.name = name

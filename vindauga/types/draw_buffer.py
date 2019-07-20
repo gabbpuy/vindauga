@@ -58,7 +58,7 @@ class DrawBuffer:
     def moveCStr(self, indent: int, strn: str, attrs: int):
         """
         Move a string with colors
-        TODO: __change attrs to a tuple
+        TODO: change attrs to a tuple
 
         :param indent: offset into the buffer
         :param strn: string to move

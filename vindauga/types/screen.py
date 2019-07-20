@@ -153,9 +153,7 @@ class TScreen:
             if arg & 1:
                 shift |= kbLeftShift | kbRightShift
         except OSError:
-            logger.exception('TIOCLINUX')
-            pass
-        logger.info('kbReadShiftState() -> %s', shift)
+            return 0
         return shift
 
     @staticmethod

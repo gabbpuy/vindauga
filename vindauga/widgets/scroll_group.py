@@ -36,6 +36,12 @@ class ScrollGroup(Group):
     def initBackground(r):
         return Background(r, ' ')
 
+    @staticmethod
+    def doScroll(view, info):
+        if view is not info.ignore:
+            dest = view.origin + info.delta
+            view.moveTo(dest.x, dest.y)
+
     def changeBounds(self, bounds):
         self.lock()
         try:
@@ -51,19 +57,15 @@ class ScrollGroup(Group):
             if (event.message.command == cmScrollBarChanged and
                     (event.message.infoPtr in {self.hScrollBar, self.vScrollBar})):
                 self.scrollDraw()
+                self.clearEvent(event)
             elif (event.message.command == cmReceivedFocus and
                   self.firstThat(lambda view, args: view is args, event.message.infoPtr)):
                 self.focusSubView(event.message.infoPtr)
+                self.clearEvent(event)
 
     class ScrollInfo:
         delta: Point
         ignore: View
-
-    @staticmethod
-    def doScroll(view, info):
-        if view is not info.ignore:
-            dest = view.origin + info.delta
-            view.moveTo(dest.x, dest.y)
 
     def scrollDraw(self):
         d = Point(0, 0)

@@ -31,6 +31,8 @@ class MessageListViewer(ListViewer):
     def insert(self, message):
         self.items.append(message)
         self.setRange(len(self.items))
+        textLen = max(len(s) for s in self.items)
+        self.hScrollBar.setRange(0, textLen)
         self.focusItemNum(len(self.items) - 1)
         self.drawView()
 
