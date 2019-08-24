@@ -2,7 +2,7 @@
 from enum import Enum
 import string
 from vindauga.constants.event_codes import evKeyDown
-from vindauga.constants.keys import kbShiftTab, kbTab, kbBackSpace, kbEnter, kbEsc, kbUp, kbDown
+from vindauga.constants.keys import kbShiftTab, kbTab, kbBackSpace, kbEnter, kbEsc, kbUp, kbDown, kbDel
 from vindauga.types.records.data_record import DataRecord
 
 from .input_line import InputLine
@@ -33,8 +33,8 @@ class NumericInputLine(InputLine):
                 v = self._toNumber()
                 v += 1
                 super().setData(str(v))
-
-            if keyCode not in {kbShiftTab, kbTab, kbBackSpace, kbEnter, kbEsc}:
+                self.clearEvent(event)
+            elif keyCode not in {kbShiftTab, kbTab, kbBackSpace, kbEnter, kbEsc, kbDel}:
                 if event.keyDown.charScan.charCode:
                     if not self.isValidChar(event):
                         self.clearEvent(event)

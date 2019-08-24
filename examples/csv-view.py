@@ -7,13 +7,13 @@ from vindauga.constants.command_codes import hcNoContext
 from vindauga.constants.window_flags import wfGrow
 from vindauga.constants.event_codes import evCommand
 from vindauga.constants.keys import kbAltF
+from vindauga.dialogs.grid_view_dialog import GridViewDialog
 from vindauga.events.event import Event
 from vindauga.menus.menu import Menu
 from vindauga.menus.menu_bar import MenuBar
 from vindauga.menus.sub_menu import SubMenu
 from vindauga.widgets.application import Application
 from vindauga.widgets.grid_view_box import ListRec
-from vindauga.widgets.grid_view_dialog import GridViewDialog
 
 ListData = {}
 

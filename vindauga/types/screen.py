@@ -403,6 +403,7 @@ class TScreen:
                 self.attributeMap[i] = curses.color_pair((7 - colorMap[fore]) * 8 + colorMap[back])
                 if bold:
                     self.attributeMap[i] |= curses.A_BOLD
+
         else:
             self.screenMode = Display.smMono
             self.attributeMap[0x07] = curses.A_NORMAL
