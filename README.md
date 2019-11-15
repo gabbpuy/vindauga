@@ -12,6 +12,7 @@ The benefits of this version;
 
 * No dependencies other than curses (See Windows below to have it work in a cmd/powershell window)
   * Will try in Windows Terminal when it arrives (it should work fine)
+    * It does not work fine. Rendering has issues. Mouse doesn't work.
 * A lot of refactoring to make the code-base somewhat consistent.
 * It uses unicode by default, (so no CP437)
   * See [UTF-Demo](UTF-8-demo.txt) and [Cyrillic Test](examples/cyrillic-test.py)
