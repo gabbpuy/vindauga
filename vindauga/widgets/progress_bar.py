@@ -38,7 +38,7 @@ class ProgressBar(View):
         nBuf.moveStr(self.numOffset, text, colorNormal)
         nBuf.moveStr(self.numOffset + 3, ' %', colorNormal)
         for i in range(self.curWidth):
-           nBuf.putAttribute(i, hi)
+            nBuf.putAttribute(i, hi)
         self.writeLine(0, 0, self.size.x, 1, nBuf)
 
     def getPalette(self):

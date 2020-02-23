@@ -1,21 +1,38 @@
 # -*- coding: utf-8 -*-
-import ctypes
 import sys
-from contextlib import contextmanager
+
 
 if sys.platform == 'cygwin':
     import subprocess
 
+    class Clipboard:
+
+        @staticmethod
+        def sendToClipboard(data):
+            subprocess.Popen(['clip'], stdin=subprocess.PIPE).communicate(data)
+
+        @staticmethod
+        def receiveFromClipboard():
+            return open('/dev/clipboard', 'rb').read()
+
+elif sys.platform == 'darwin':
+    import pasteboard
 
     class Clipboard:
 
-        def sendToClipboard(self, data):
-            subprocess.Popen(['clip'], stdin=subprocess.PIPE).communicate(data)
+        @staticmethod
+        def sendToClipboard(data):
+            pb = pasteboard.Pasteboard()
+            pb.set_contents(data)
 
-        def receiveFromClipboard(self):
-            return open('/dev/clipboard', 'rb').read()
+        @staticmethod
+        def receiveFromClipboard():
+            pb = pasteboard.Pasteboard()
+            return pb.get_contents(type=pasteboard.String)
 
-elif sys.platform == 'Windows':
+else:  # windows
+    from contextlib import contextmanager
+    import ctypes
 
     class Clipboard:
         """
@@ -67,30 +84,7 @@ elif sys.platform == 'Windows':
                 self.strcpy(ctypes.c_char_p(lockedData), data)
                 self.GlobalUnlock(handle)
                 self.SetClipboardData(1, handle)
-elif sys.platform == 'Darwin':
-    import subprocess
 
-
-    class Clipboard:
-        def sendToClipboard(self, data):
-            subprocess.Popen(['pbcopy', ], stdin=subprocess.PIPE).communicate(data)
-
-        def receiveFromClipboard(self):
-            status = subprocess.run(['pbpaste'], capture_output=True)
-            return status.stdout.decode('utf-8')
-
-else:
-    import subprocess
-
-
-    # Try xclip?
-    class Clipboard:
-        def sendToClipboard(self, data):
-            subprocess.Popen(['xclip', '-selection', 'c', '-o'], stdin=subprocess.PIPE).communicate(data)
-
-        def receiveFromClipboard(self):
-            status = subprocess.run(['xclip', '-selection', 'c', '-i'], capture_output=True)
-            return status.stdout.decode('utf-8')
 
 if __name__ == "__main__":
     clipboard = Clipboard()

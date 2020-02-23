@@ -102,7 +102,9 @@ class TScreen:
 
         self.evIn = None
         self.evOut = None
+        kbEscTimer.start(1)
         kbEscTimer.stop()
+        msAutoTimer.start(1)
         msAutoTimer.stop()
         self.msOldButtons = self.msWhere.x = self.msWhere.y = 0
         wakeupTimer.start(DELAY_WAKEUP)
@@ -216,7 +218,8 @@ class TScreen:
             print('\x1b[8;{};{}t'.format(height, width))
         self.doResize += 1
 
-    def msPutEvent(self, event, buttons, flags, what):
+    @staticmethod
+    def msPutEvent(event, buttons, flags, what):
         event.mouse.buttons = 0
         event.mouse.eventFlags = flags
         event.what = what
@@ -536,7 +539,6 @@ class TScreen:
                 # msReady = (msFd >= 0 and msFd in reads)
                 msReady = False
             except select.error as e:
-                logger.error('select caused error %s', e)
                 pass
         else:
             msReady = False
@@ -552,11 +554,10 @@ class TScreen:
 Screen = None
 
 
-def setScreen():
+def _setScreen():
     global Screen
     if not Screen:
         Screen = TScreen()
 
 
-if Screen is None:
-    setScreen()
+_setScreen()

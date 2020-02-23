@@ -48,6 +48,9 @@ You'll also need to install the `pywin32` libraries.
 
 Running it in Cygwin doesn't require anything, just use the cygwin python in a mintty window.
 
+### Mac
+
+You'll want to install `pasteboard` for some clipboard support.
 
 ## Using it
 Look in the [examples](examples) directory for small samples of how to use widgets. 

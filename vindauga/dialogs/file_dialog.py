@@ -101,10 +101,8 @@ class FileDialog(Dialog):
 
     def getFilename(self):
         buf = self.filename.getDataString().strip()
-        logger.info('::getFilename() -> %s', buf)
         if relativePath(buf):
             buf = os.path.join(self.directory, buf)
-            logger.info('::getFilename() relative -> %s', buf)
         return fexpand(buf)
 
     def handleEvent(self, event):
