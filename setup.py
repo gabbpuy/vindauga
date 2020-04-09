@@ -7,7 +7,7 @@ with open('README.md', 'r') as fh:
 
 setup(
     name='vindauga',
-    version='0.0.6',
+    version='0.0.7',
     packages=find_packages(exclude=('test', 'build', 'dist')),
     long_description=long_description,
     long_description_content_type='text/markdown',
@@ -22,3 +22,9 @@ setup(
         "Operating System :: OS Independent",
     ],
 )
+
+# Note to self
+# python3 -m pip install --upgrade twine
+# rm -rf dist/*
+# python3 setup.py sdist bdist_wheel
+# twine upload dist/*

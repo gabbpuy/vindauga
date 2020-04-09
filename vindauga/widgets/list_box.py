@@ -40,7 +40,10 @@ class ListBox(ListViewer):
 
     def newList(self, collection):
         self._items = collection
+        self.update()
 
+    def update(self):
+        collection = self._items
         if collection:
             if self.hScrollBar:
                 self.hScrollBar.setParams(
