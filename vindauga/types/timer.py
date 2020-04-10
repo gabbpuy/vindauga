@@ -10,11 +10,11 @@ class Timer:
     Basic timers to handle things like waiting for Escape keys
     """
     def __init__(self):
-        self._timer = None
-        self._running = False
-        self._expired = True
+        self._timer: _Timer = None
+        self._running: bool = False
+        self._expired: bool = True
 
-    def start(self, timeout):
+    def start(self, timeout) -> None:
         if self._timer:
             self._timer.cancel()
         self._timer = _Timer(timeout, self.expire)
@@ -22,7 +22,7 @@ class Timer:
         self._running = True
         self._expired = False
 
-    def stop(self):
+    def stop(self) -> None:
         if self._timer:
             self._timer.cancel()
             self._timer = None
@@ -32,8 +32,8 @@ class Timer:
     def expire(self):
         self._expired = True
 
-    def isRunning(self):
+    def isRunning(self) -> bool:
         return self._running
 
-    def isExpired(self):
+    def isExpired(self) -> bool:
         return self._expired

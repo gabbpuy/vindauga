@@ -7,6 +7,7 @@ import itertools
 import logging
 import os
 import platform
+import queue
 import select
 import struct
 import subprocess
@@ -80,8 +81,8 @@ BUTTON4 = (curses.BUTTON4_PRESSED |
 
 # noinspection PyUnresolvedReferences,PyUnresolvedReferences
 class TScreen:
-    evQueue = []
     eventQ_Size = 16
+    evQueue = queue.Queue(eventQ_Size)
 
     def __init__(self):
         self.msWhere = Point(0, 0)
@@ -135,7 +136,8 @@ class TScreen:
 
     @staticmethod
     def evLength():
-        return len(TScreen.evQueue)
+        # return len(TScreen.evQueue)
+        return TScreen.evQueue.qsize()
 
     @staticmethod
     def kbReadShiftState():
@@ -428,7 +430,7 @@ class TScreen:
             event.message.command = cmSysResize
             event.what = evCommand
         elif TScreen.evLength() > 0:
-            event.setFrom(TScreen.evQueue.pop(0))
+            event.setFrom(TScreen.evQueue.get())
         elif msAutoTimer.isExpired():
             msAutoTimer.start(DELAY_AUTOCLICK_NEXT)
             event.mouse.buttons = self.msOldButtons
@@ -448,8 +450,10 @@ class TScreen:
 
     @staticmethod
     def putEvent(event):
-        if TScreen.evLength() < TScreen.eventQ_Size:
-            TScreen.evQueue.append(event)
+        try:
+            TScreen.evQueue.put(event)
+        except queue.Full:
+            pass
 
     def resume(self):
         self.doRepaint += 1
@@ -543,7 +547,7 @@ class TScreen:
         else:
             msReady = False
             kbReady = msvcrt.kbhit()
-        if kbReady or kbEscTimer.isRunning():
+        if kbReady or kbEscTimer.isRunning() or PLATFORM_IS_WINDOWS:
             self.handleKeyboard()
         if not (kbReady or msReady):
             wakeupTimer.start(DELAY_WAKEUP)
