@@ -1,7 +1,8 @@
 # -*- coding: utf-8 -*-
 import time
-from collections import deque
+# from collections import deque
 import logging
+import queue
 
 from vindauga.constants.command_codes import (cmReleasedFocus, cmCancel, cmSysRepaint, cmSysResize, cmSysWakeup,
                                               cmSelectWindowNum, cmQuit, cmCommandSetChanged, cmMenu, cmClose, cmZoom,
@@ -112,7 +113,7 @@ class Program(Group):
         h = Screen.screenHeight
         super().__init__(Rect(0, 0, w, h))
 
-        self.pending = deque(maxlen=1)  # Event(evNothing)
+        self.pending = queue.Queue()
         Program.application = self
         self.appPalette = self.apColor
         self.initScreen()
@@ -201,8 +202,8 @@ class Program(Group):
 
         :param event: Event object to be modified
         """
-        if self.pending:
-            event.setFrom(self.pending.pop())
+        if self.pending.qsize():
+            event.setFrom(self.pending.get())
         else:
             Screen.getEvent(event)
             if event.what == evCommand:
@@ -243,7 +244,7 @@ class Program(Group):
         """
         e = Event(evNothing)
         e.setFrom(event)
-        self.pending.append(e)
+        self.pending.put(e)
 
     def handleEvent(self, event):
         """
