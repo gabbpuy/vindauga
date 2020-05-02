@@ -98,7 +98,8 @@ class ListViewer(View):
         focusedColor = 0
         b = DrawBuffer()
 
-        if (self.state & (sfSelected | sfActive)) == (sfSelected | sfActive):
+        active_ = (self.state & sfSelected | sfActive) == (sfSelected | sfActive)
+        if active_:
             normalColor = self.getColor(1)
             focusedColor = self.getColor(3)
             selectedColor = self.getColor(4)
@@ -118,9 +119,7 @@ class ListViewer(View):
                 item = j * self.size.y + i + self.topItem
                 curCol = j * colWidth
 
-                if ((self.state & sfSelected | sfActive) == (sfSelected | sfActive) and
-                        (self.focused == item) and
-                        (self._range > 0)):
+                if active_ and (self.focused == item) and (self._range > 0):
                     color = focusedColor
                     self.setCursor(curCol + 1, i)
                     scOff = 2

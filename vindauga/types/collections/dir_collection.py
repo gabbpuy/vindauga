@@ -13,6 +13,9 @@ class DirEntry:
     def text(self):
         return self.displayText
 
+    def __repr__(self):
+        return '<DirEntry: {}>'.format(self.directory)
+
 
 class DirCollection(Collection):
     name = 'DirCollection'

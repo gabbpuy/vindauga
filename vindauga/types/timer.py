@@ -21,6 +21,7 @@ class Timer:
         self._timer.start()
         self._running = True
         self._expired = False
+        return timeout
 
     def stop(self) -> None:
         if self._timer:

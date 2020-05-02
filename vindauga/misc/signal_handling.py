@@ -1,9 +1,13 @@
 # -*- coding: utf-8 -*-
+import inspect
+import logging
 import platform
 import sys
 from signal import *
 
 from .confirm_exit import confirmExit
+
+logger = logging.getLogger('vindauga.misc.signal_handling')
 
 PLATFORM_IS_WINDOWS = platform.system().lower() == 'windows'
 
@@ -34,6 +38,8 @@ def signalHandler(signo, _frame):
         if PLATFORM_IS_WINDOWS:
             signal(SIGBREAK, SIG_IGN)
         if confirmExit(Screen.stdscr):
+            # logger.info(inspect.getframeinfo(_frame))
+            logger.info(inspect.stack())
             sys.exit(1)
         signal(SIGINT, signalHandler)
         signal(SIGQUIT, signalHandler)

@@ -306,6 +306,7 @@ class TScreen:
                 msAutoTimer.stop()
                 self.msPutEvent(event, buttons, 0, evMouseUp)
                 self.msOldButtons &= ~buttons
+        return True
 
     def handleKeyboard(self):
         keyType = 0
@@ -422,10 +423,10 @@ class TScreen:
             event.message.command = cmSysRepaint
             event.what = evCommand
         elif self.doResize > 0:
+            self.doResize = 0
             # If there was a SIGWINCH, this will redraw based on the window size
             curses.endwin()
             self.stdscr.refresh()
-            self.doResize = 0
             self._setScreenSize()
             event.message.command = cmSysResize
             event.what = evCommand
@@ -453,6 +454,7 @@ class TScreen:
         try:
             TScreen.evQueue.put(event)
         except queue.Full:
+            logger.error('evQueue hit event limit')
             pass
 
     def resume(self):
@@ -547,8 +549,10 @@ class TScreen:
         else:
             msReady = False
             kbReady = msvcrt.kbhit()
+
         if kbReady or kbEscTimer.isRunning() or PLATFORM_IS_WINDOWS:
             self.handleKeyboard()
+
         if not (kbReady or msReady):
             wakeupTimer.start(DELAY_WAKEUP)
             event.message.command = cmSysWakeup

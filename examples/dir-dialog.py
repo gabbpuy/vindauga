@@ -8,6 +8,8 @@ from vindauga.dialogs.message_box import messageBox
 from vindauga.types.records.data_record import DataRecord
 from vindauga.widgets.application import Application
 
+logger = logging.getLogger('vindauga.examples.dir-dialog')
+
 
 class MyApp(Application):
 
@@ -25,6 +27,9 @@ class MyApp(Application):
         del pd
         return demoDialogData.value
 
+    def initMenuBar(self, bounds):
+        return []
+
 
 def setupLogging():
     vLogger = logging.getLogger('vindauga')
@@ -39,4 +44,8 @@ def setupLogging():
 if __name__ == '__main__':
     setupLogging()
     app = MyApp()
-    app.doWork()
+    try:
+        app.doWork()
+    except:
+        logger.exception('dir-dialog')
+

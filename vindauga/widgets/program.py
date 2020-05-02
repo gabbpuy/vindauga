@@ -113,7 +113,7 @@ class Program(Group):
         h = Screen.screenHeight
         super().__init__(Rect(0, 0, w, h))
 
-        self.pending = queue.Queue()
+        self.pending = queue.Queue(1)
         Program.application = self
         self.appPalette = self.apColor
         self.initScreen()
@@ -131,7 +131,7 @@ class Program(Group):
 
         self.menuBar = self.initMenuBar(self.getExtent())
         self.insert(self.menuBar)
-
+        self.userEvents = 0
         Screen.doRepaint += 1
 
     def shutdown(self):
@@ -174,7 +174,11 @@ class Program(Group):
         if self.validView(pD):
             if data:
                 pD.setData(data)
-            c = Program.desktop.execView(pD)
+            try:
+                c = Program.desktop.execView(pD)
+            except:
+                logger.exception('Dialog failed.')
+                c = cmCancel
             if c != cmCancel:
                 data = pD.getData()
             self.destroy(pD)
@@ -202,9 +206,11 @@ class Program(Group):
 
         :param event: Event object to be modified
         """
-        if self.pending.qsize():
+        if self.pending.qsize() and self.userEvents < 10:
+            self.userEvents += 1
             event.setFrom(self.pending.get())
         else:
+            self.userEvents = 0
             Screen.getEvent(event)
             if event.what == evCommand:
                 c = event.message.command
@@ -223,12 +229,12 @@ class Program(Group):
                     self.redraw()
                     self.clearEvent(event)
                 elif c == cmSysWakeup:
-                    then = time.time() + 0.016  # 1/60th
+                    #then = time.time() + 0.033  # 1/30th
                     self.idle()
                     self.clearEvent(event)
-                    now = time.time()
-                    if now < then:
-                        time.sleep(then - time.time())
+                    #now = time.time()
+                    #if now < then:
+                    #    time.sleep(then - time.time())
 
     def putEvent(self, event):
         """
