@@ -79,7 +79,7 @@ class GridApp(Application):
 
 
 if __name__ == '__main__':
-    logging.basicConfig(level = logging.DEBUG)
+    logging.basicConfig(level=logging.DEBUG)
     for i in range(NUM_ROWS):
         ListData[i, 0] = ListRec(i, True)
         for j in range(1, NUM_COLUMNS):

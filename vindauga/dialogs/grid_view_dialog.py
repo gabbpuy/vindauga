@@ -25,13 +25,14 @@ class GridViewDialog(Dialog):
 
         self.hScrollBar = ScrollBar(Rect(r.topLeft.x, r.bottomRight.y, r.bottomRight.x, r.bottomRight.y + 1))
         self.vScrollBar = ScrollBar(Rect(r.bottomRight.x, r.topLeft.y, r.bottomRight.x + 1, r.bottomRight.y))
-        self.headingBox = GridHeadingView(Rect(r.topLeft.x, r.topLeft.y - headRows, r.bottomRight.x, r.topLeft.y),
-                                          self.hScrollBar, self.vScrollBar, columnWidth, headings, columns, headRows)
-        self.headingBox.growMode = gfGrowHiX
 
         self.listBox = GridViewBox(r, self.hScrollBar, self.vScrollBar, columnWidth, gridData, columns, rows,
                                    decimalPoint)
         self.listBox.growMode = gfGrowHiX | gfGrowHiY
+        self.headingBox = GridHeadingView(Rect(r.topLeft.x, r.topLeft.y - headRows, r.bottomRight.x, r.topLeft.y),
+                                          self.hScrollBar, self.vScrollBar, columnWidth, headings, columns, headRows,
+                                          self.listBox)
+        self.headingBox.growMode = gfGrowHiX
 
         self.inputLine = InputLine(Rect(r.topLeft.x, r.topLeft.y, r.topLeft.x + columnWidth[0] - 1,
                                         r.topLeft.y + 1), maxStr)
