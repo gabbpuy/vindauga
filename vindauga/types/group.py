@@ -166,6 +166,8 @@ class Group(View):
 
         try:
             return v.execute()
+        except:
+            logger.exception('exec view failed.')
         finally:
             if not saveOwner:
                 self.remove(v)

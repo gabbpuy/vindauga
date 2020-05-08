@@ -107,13 +107,14 @@ class Program(Group):
     apColor = 0
     apBlackWhite = 1
     apMonochrome = 2
+    pending = queue.Queue()
 
     def __init__(self):
         w = Screen.screenWidth
         h = Screen.screenHeight
         super().__init__(Rect(0, 0, w, h))
 
-        self.pending = queue.Queue(1)
+
         Program.application = self
         self.appPalette = self.apColor
         self.initScreen()
@@ -206,9 +207,9 @@ class Program(Group):
 
         :param event: Event object to be modified
         """
-        if self.pending.qsize() and self.userEvents < 10:
+        if Program.pending.qsize() and self.userEvents < 10:
             self.userEvents += 1
-            event.setFrom(self.pending.get())
+            event.setFrom(Program.pending.get())
         else:
             self.userEvents = 0
             Screen.getEvent(event)
@@ -250,7 +251,7 @@ class Program(Group):
         """
         e = Event(evNothing)
         e.setFrom(event)
-        self.pending.put(e)
+        Program.pending.put(e)
 
     def handleEvent(self, event):
         """
@@ -384,7 +385,7 @@ class Program(Group):
         :return: A MenuBar object.
         """
         bounds.bottomRight.y = bounds.topLeft.y + 1
-        return MenuBar(bounds, None)
+        return MenuBar(bounds, [])
 
     def initStatusLine(self, bounds):
         """

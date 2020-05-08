@@ -9,6 +9,8 @@ class GenCollection(StringCollection):
         return self[index]
 
     def getTextLength(self):
+        if not len(self):
+            return 0
         return max(len(s) for s in self)
 
     getCount = StringCollection.__len__

@@ -1,4 +1,5 @@
 # -*- coding: utf-8 -*-
+from gettext import gettext as _
 import logging
 import traceback
 
@@ -23,7 +24,7 @@ cmUpdateItemNumber = 901
 class GridView(View):
     cpGridView = '\x1A\x1A\x1B\x1C\x1D\x06'
 
-    def __init__(self, bounds, hScrollBar, vScrollBar, columnWidth):
+    def __init__(self, bounds, hScrollBar, vScrollBar, columnWidths):
         super().__init__(bounds)
         self.leftColumn = 0
         self.topRow = 0
@@ -33,7 +34,7 @@ class GridView(View):
         self.numRows = 0
         self.headingMode = False
 
-        self.columnWidth = columnWidth
+        self.columnWidth = columnWidths
         self.options |= (ofFirstClick | ofSelectable)
         self.eventMask |= evBroadcast
 
@@ -61,14 +62,13 @@ class GridView(View):
             normalColor = self.getColor(2)
 
         posColumn = 0
-        for column in range(self.leftColumn, self.size.x + 1):
+        for column in range(self.leftColumn, self.numColumns + 1):
             if posColumn > self.size.x:
                 break
             if column < self.numColumns:
                 thisWidth = self.columnWidth[column]
             else:
                 thisWidth = self.size.x - posColumn + 1
-
             for i in range(self.size.y):
                 row = i + self.topRow
                 color = normalColor
@@ -118,7 +118,7 @@ class GridView(View):
         if row < self.topRow:
             self.topRow = row
         elif row >= self.topRow + self.size.y:
-            self.topRow = row - self.size.x + 1
+            self.topRow = row - self.size.y + 1
 
         if not self.headingMode:
             message(self.owner, evBroadcast, cmUpdateItemNumber, self)
@@ -280,7 +280,7 @@ class GridView(View):
 
     def getColumnPosition(self, column):
         position = 0
-        # position = sum(self.columnWidth[self.leftColumn:max(self.numColumns, __column - 1)])
+        # position = sum(self.columnWidths[self.leftColumn:max(self.numColumns, __column - 1)])
         for i in range(self.leftColumn, max(self.numColumns, column)):
             if i == column:
                 break

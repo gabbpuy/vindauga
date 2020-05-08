@@ -19,8 +19,8 @@ class ListRec:
 
 class GridViewBox(GridView):
 
-    def __init__(self, bounds, hScrollBar, vScrollBar, columnWidth, cellData, columns, rows, decimalPoint):
-        super().__init__(bounds, hScrollBar, vScrollBar, columnWidth)
+    def __init__(self, bounds, hScrollBar, vScrollBar, columnWidths, cellData, columns, rows, decimalPoint):
+        super().__init__(bounds, hScrollBar, vScrollBar, columnWidths)
         self.cellData = cellData or {}
         self.decimalPoint = decimalPoint
         self.setRange(columns, rows)
