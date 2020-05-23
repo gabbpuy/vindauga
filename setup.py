@@ -7,7 +7,7 @@ with open('README.md', 'r') as fh:
 
 setup(
     name='vindauga',
-    version='0.0.12',
+    version='0.0.14',
     packages=find_packages(exclude=('test', 'build', 'dist')),
     long_description=long_description,
     long_description_content_type='text/markdown',
