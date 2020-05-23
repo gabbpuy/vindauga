@@ -29,6 +29,7 @@ class Application(Program):
 
     def __init__(self):
         super().__init__()
+        Program.application = self
         initHistory()
 
     def __del__(self):

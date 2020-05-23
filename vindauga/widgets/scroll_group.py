@@ -139,5 +139,19 @@ class ScrollGroup(Group):
                 dy = self.delta.y + view.origin.y
             elif view.origin.y + view.size.y > self.size.y:
                 dy = self.delta.y + view.origin.y + view.size.y - self.size.y
-
             self.scrollTo(dx, dy)
+
+    def selectNext(self, forward):
+        # This logic should probably live in group so that groups of groups work.
+        if self.current and isinstance(self.current, Group):
+            # If current child is itself a group then focus its next
+            child = self.current.current
+            first = self.current.first
+            last = self.current.last
+            self.current.selectNext(forward)
+            # If we weren't on the boundary child then don't focus the next group item
+            if (child and ((child is not first and not forward) or
+                           (child is not last and forward))):
+                return
+            # Fall through. We're on the edge and rather than go in a circle, focus the next item in the scroll group
+        super().selectNext(forward)

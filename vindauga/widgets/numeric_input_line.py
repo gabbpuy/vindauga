@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 from enum import Enum
 import string
+
 from vindauga.constants.event_codes import evKeyDown
 from vindauga.constants.keys import kbShiftTab, kbTab, kbBackSpace, kbEnter, kbEsc, kbUp, kbDown, kbDel
 from vindauga.types.records.data_record import DataRecord
@@ -22,17 +23,24 @@ class NumericInputLine(InputLine):
     def handleEvent(self, event):
         if event.what == evKeyDown:
             keyCode = event.keyDown.keyCode
-            if keyCode == kbUp:
+            if keyCode == kbDown:
                 v = self._toNumber()
-                v -= 1
+
+                if self.inputType == NumericInputType.FloatingPoint:
+                    v -= .1
+                else:
+                    v -= 1
                 if self.inputType == NumericInputType.UnsignedInteger and v < 0:
                     v = 0
-                super().setData(str(v))
+                self.setData(v)
                 self.clearEvent(event)
-            elif keyCode == kbDown:
+            elif keyCode == kbUp:
                 v = self._toNumber()
-                v += 1
-                super().setData(str(v))
+                if self.inputType == NumericInputType.FloatingPoint:
+                    v += .1
+                else:
+                    v += 1
+                self.setData(v)
                 self.clearEvent(event)
             elif keyCode not in {kbShiftTab, kbTab, kbBackSpace, kbEnter, kbEsc, kbDel}:
                 if event.keyDown.charScan.charCode:
@@ -55,7 +63,7 @@ class NumericInputLine(InputLine):
                 return True
             if currPos > 0:
                 return False
-            if self.current.data[0] == '-':
+            if self.current.data and self.current.data[0] == '-':
                 return False
             return True
 
@@ -73,12 +81,17 @@ class NumericInputLine(InputLine):
         return False
 
     def setData(self, value):
-        super().setData(str(value))
+        if self.inputType == NumericInputType.FloatingPoint:
+            v = '{:.2f}'.format(value)
+        else:
+            v = str(value)
+        super().setData(v)
 
     def _toNumber(self):
+        s = self.getDataString() or '0'
         if self.inputType == NumericInputType.FloatingPoint:
-            return float(self.getDataString())
-        return int(self.getDataString())
+            return float(s)
+        return int(s)
 
     def getData(self):
         return DataRecord(value=self._toNumber())

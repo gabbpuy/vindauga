@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
+from gettext import gettext as _
 import time
-# from collections import deque
+from collections import deque
 import logging
 import queue
 
@@ -114,8 +115,6 @@ class Program(Group):
         h = Screen.screenHeight
         super().__init__(Rect(0, 0, w, h))
 
-
-        Program.application = self
         self.appPalette = self.apColor
         self.initScreen()
         self.state = sfVisible | sfSelected | sfFocused | sfModal | sfExposed
@@ -132,7 +131,6 @@ class Program(Group):
 
         self.menuBar = self.initMenuBar(self.getExtent())
         self.insert(self.menuBar)
-        self.userEvents = 0
         Screen.doRepaint += 1
 
     def shutdown(self):
@@ -170,6 +168,7 @@ class Program(Group):
         :param data: Data to set on dialog
         :return: tuple of `executeDate()` call and the data
         """
+        logger.info('executeDialog(%s)', pD)
         c = cmCancel
 
         if self.validView(pD):
@@ -207,11 +206,9 @@ class Program(Group):
 
         :param event: Event object to be modified
         """
-        if Program.pending.qsize() and self.userEvents < 10:
-            self.userEvents += 1
+        if Program.pending.qsize():
             event.setFrom(Program.pending.get())
         else:
-            self.userEvents = 0
             Screen.getEvent(event)
             if event.what == evCommand:
                 c = event.message.command
@@ -230,12 +227,14 @@ class Program(Group):
                     self.redraw()
                     self.clearEvent(event)
                 elif c == cmSysWakeup:
-                    #then = time.time() + 0.033  # 1/30th
                     self.idle()
                     self.clearEvent(event)
-                    #now = time.time()
-                    #if now < then:
-                    #    time.sleep(then - time.time())
+
+        if self.statusLine:
+            if ((event.what & evKeyDown) or
+                (event.what & evMouseDown) and self.firstThat(self.hasMouse, event) is self.statusLine
+            ):
+                self.statusLine.handleEvent(event)
 
     def putEvent(self, event):
         """

@@ -14,6 +14,7 @@ from vindauga.types.draw_buffer import DrawBuffer
 from vindauga.types.palette import Palette
 from vindauga.types.point import Point
 from vindauga.types.view import View
+from vindauga.widgets.scroll_group import ScrollGroup
 
 logger = logging.getLogger('vindauga.widgets.frame')
 
@@ -195,38 +196,39 @@ class Frame(View):
         frameMask = [self.initFrame[n]] + [self.initFrame[n + 1]] * (self.size.x - 2) + [self.initFrame[n + 2]]
         frameMask = [ord(f) for f in frameMask]
 
-        for child in self.owner.children:
+        children = (c for c in self.owner.children if c.options & ofFramed and c.state & sfVisible)
+
+        for child in children:
+
             if child is self:
                 break
 
-            if (child.options & ofFramed) and (child.state & sfVisible):
+            if y + 1 < child.origin.y:
+                continue
+            elif y + 1 == child.origin.y:
+                mask1 = 0x0A
+                mask2 = 0x06
+            elif y == child.origin.y + child.size.y:
+                mask1 = 0x0A
+                mask2 = 0x03
+            elif y < child.origin.y + child.size.y:
+                mask1 = 0
+                mask2 = 0x05
+            else:
+                continue
 
-                if y + 1 < child.origin.y:
-                    continue
-                elif y + 1 == child.origin.y:
-                    mask1 = 0x0A
-                    mask2 = 0x06
-                elif y == child.origin.y + child.size.y:
-                    mask1 = 0x0A
-                    mask2 = 0x03
-                elif y < child.origin.y + child.size.y:
-                    mask1 = 0
-                    mask2 = 0x05
+            xMin = max(1, child.origin.x)
+            xMax = min(self.size.x - 1, child.origin.x + child.size.x)
+
+            if xMax > xMin:
+                if mask1 == 0:
+                    frameMask[xMin - 1] |= mask2
+                    frameMask[xMax] |= mask2
                 else:
-                    continue
-
-                xMin = max(1, child.origin.x)
-                xMax = min(self.size.x - 1, child.origin.x + child.size.x)
-
-                if xMax > xMin:
-                    if mask1 == 0:
-                        frameMask[xMin - 1] |= mask2
-                        frameMask[xMax] |= mask2
-                    else:
-                        frameMask[xMin - 1] |= mask2
-                        frameMask[xMax] |= (mask2 ^ mask1)
-                        for i in range(xMin, xMax):
-                            frameMask[i] |= mask1
+                    frameMask[xMin - 1] |= mask2
+                    frameMask[xMax] |= (mask2 ^ mask1)
+                    for i in range(xMin, xMax):
+                        frameMask[i] |= mask1
 
         line = ''.join(self.frameChars[frameMask[i]] for i in range(self.size.x))
         frameBuf.moveStr(0, line, color)

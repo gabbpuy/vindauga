@@ -216,8 +216,9 @@ class View(VindaugaObject):
     def doRefresh(self):
         if Screen.lockRefresh:
             return
-        if self.owner and not self.owner.lockFlag:
-            Screen.refresh()
+        if self.owner and self.owner.lockFlag:
+            return
+        Screen.refresh()
 
     def shutdown(self):
         self.hide()
@@ -1082,11 +1083,11 @@ class View(VindaugaObject):
         :param mask: Mouse masks to wait for
         :return: Boolean indicating mouse up
         """
-        mouseIsDown = True
+        mouseIsMasked = True
         mask |= evMouseUp
-        while mouseIsDown:
+        while mouseIsMasked:
             self.getEvent(event)
-            mouseIsDown = not (event.what & mask)
+            mouseIsMasked = not (event.what & mask)
         return event.what != evMouseUp
 
     def makeGlobal(self, source):

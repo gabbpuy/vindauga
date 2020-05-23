@@ -184,15 +184,14 @@ class TScreen:
         curses.curs_set(1)
 
     def refresh(self):
-        if not self.lockRefresh:
-            self.stdscr.refresh()
+        self.stdscr.refresh()
 
     # noinspection PyUnresolvedReferences
     def initialiseScreen(self):
         stdscr = curses.initscr()
         curses.noecho()
         curses.cbreak()
-        stdscr.keypad(1)
+        stdscr.keypad(True)
         try:
             curses.start_color()
             curses.use_default_colors()
@@ -205,7 +204,7 @@ class TScreen:
 
     def shutdown(self):
         sys.stderr = sys.__stderr__
-        self.stdscr.keypad(0)
+        self.stdscr.keypad(False)
         curses.echo()
         curses.nocbreak()
         curses.endwin()
@@ -221,7 +220,7 @@ class TScreen:
         self.doResize += 1
 
     @staticmethod
-    def msPutEvent(event, buttons, flags, what):
+    def putMouseEvent(event, buttons, flags, what):
         event.mouse.buttons = 0
         event.mouse.eventFlags = flags
         event.what = what
@@ -266,45 +265,45 @@ class TScreen:
 
         # Check clicks.
         if me.bstate & BUTTON_CLICKED:
-            self.msPutEvent(event, buttons, 0, evMouseDown)
+            self.putMouseEvent(event, buttons, 0, evMouseDown)
             self.msOldButtons = buttons
 
             msAutoTimer.stop()
-            self.msPutEvent(event, buttons, 0, evMouseUp)
+            self.putMouseEvent(event, buttons, 0, evMouseUp)
             self.msOldButtons &= ~buttons
 
         # Double clicked...
         if me.bstate & BUTTON_DOUBLE_CLICKED:
             msAutoTimer.stop()
-            self.msPutEvent(event, buttons, meDoubleClick, evMouseDown)
+            self.putMouseEvent(event, buttons, meDoubleClick, evMouseDown)
             self.msOldButtons &= ~buttons
 
         if event.mouse.where != self.msWhere:
             # Undraw the mouse
             self.drawMouse(False)
             if me.bstate & BUTTON_PRESSED:
-                self.msPutEvent(event, buttons, meMouseMoved, evMouseMove)
+                self.putMouseEvent(event, buttons, meMouseMoved, evMouseMove)
                 self.msWhere.x = event.mouse.where.x
                 self.msWhere.y = event.mouse.where.y
                 msAutoTimer.start(DELAY_AUTOCLICK_FIRST)
-                self.msPutEvent(event, buttons, 0, evMouseDown)
+                self.putMouseEvent(event, buttons, 0, evMouseDown)
                 self.msOldButtons = buttons
 
             if me.bstate & BUTTON_RELEASED:
-                self.msPutEvent(event, buttons, meMouseMoved, evMouseMove)
+                self.putMouseEvent(event, buttons, meMouseMoved, evMouseMove)
                 self.msWhere.x = event.mouse.where.x
                 self.msWhere.y = event.mouse.where.y
                 msAutoTimer.stop()
-                self.msPutEvent(event, buttons, 0, evMouseUp)
+                self.putMouseEvent(event, buttons, 0, evMouseUp)
                 self.msOldButtons &= ~buttons
         else:
             if me.bstate & BUTTON_PRESSED:
                 msAutoTimer.start(DELAY_AUTOCLICK_FIRST)
-                self.msPutEvent(event, buttons, 0, evMouseDown)
+                self.putMouseEvent(event, buttons, 0, evMouseDown)
                 self.msOldButtons = buttons
             if me.bstate & BUTTON_RELEASED:
                 msAutoTimer.stop()
-                self.msPutEvent(event, buttons, 0, evMouseUp)
+                self.putMouseEvent(event, buttons, 0, evMouseUp)
                 self.msOldButtons &= ~buttons
         return True
 
@@ -540,7 +539,7 @@ class TScreen:
                 reads, write, excepts = select.select(fdActualRead,
                                                       fdActualWrite,
                                                       fdActualExcept,
-                                                      .001)
+                                                      .01)
                 kbReady = sys.stdin.fileno() in reads
                 # msReady = (msFd >= 0 and msFd in reads)
                 msReady = False

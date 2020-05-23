@@ -10,7 +10,7 @@ class ParamText(StaticText):
     name = 'ParamText'
 
     def __init__(self, bounds):
-        super().__init__(bounds, 0)
+        super().__init__(bounds, ' ')
         self._str = ''
 
     def getText(self):
@@ -20,14 +20,12 @@ class ParamText(StaticText):
         return len(self._str)
 
     def getTextLen(self):
-        return len(self)
+        return len(self._str)
 
     def setText(self, fmt, *args):
         self._str = fmt % args
-        logger.info('Text is "%s" from %s, %s', self._str, fmt, args)
         self.drawView()
 
     def setFormatText(self, fmt, *args, **kwargs):
         self._str = fmt.format(*args, **kwargs)
-        logger.info('Text is "%s" from %s, %s, %s', self._str, fmt, args, kwargs)
         self.drawView()

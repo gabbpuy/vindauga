@@ -9,6 +9,6 @@ cmDirSelection = 1007  # Used by TChDirDialog internally
 cmFileFocused = 102  # A new file was focused in the FileList
 cmFileDoubleClicked = 103  # A file was selected in the FileList
 
-cdNormal = 0x0000      # Option to use dialog immediately
-cdNoLoadDir  = 0x0001  # Option to init the dialog to store on a stream
-cdHelpButton = 0x0002   #Put a help button in the dialog
+cdNormal = 0x0000  # Option to use dialog immediately
+cdNoLoadDir = 0x0001  # Option to init the dialog to store on a stream
+cdHelpButton = 0x0002  # Put a help button in the dialog

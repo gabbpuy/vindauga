@@ -48,6 +48,7 @@ class StatusLine(View):
         self.eventMask |= evBroadcast
         self.growMode = gfGrowLoY | gfGrowHiX | gfGrowHiY
         self._items = []
+        self._itemCodes = {}
         self._defs = defs
         self.__findItems()
 
@@ -106,19 +107,22 @@ class StatusLine(View):
                 processing = self.mouseEvent(event, evMouseMove)
 
             if item and self.commandEnabled(item.command):
-                event.what = evCommand
-                event.message.command = item.command
-                event.message.infoPtr = None
-                self.putEvent(event)
+                e = Event(evCommand)
+                e.message.command = item.command
+                e.message.infoPtr = None
+                self.putEvent(e)
+                logger.info(event)
+                self.drawView()
+                return
             self.clearEvent(event)
             self.drawView()
         elif what == evKeyDown:
-            for item in self._items:
-                if event.keyDown.keyCode == item.keyCode and self.commandEnabled(item.command):
-                    event.what = evCommand
-                    event.message.command = item.command
-                    event.message.infoPtr = None
-                    return
+            item = self._itemCodes.get(event.keyDown.keyCode)
+            if item and self.commandEnabled(item.command):
+                event.what = evCommand
+                event.message.command = item.command
+                event.message.infoPtr = None
+                return
         elif what == evBroadcast:
             if event.message.command == cmCommandSetChanged:
                 self.drawView()
@@ -163,25 +167,25 @@ class StatusLine(View):
         b.moveChar(0, ' ', cNormal, self.size.x)
         i = 0
 
-        for item in self._items:
-            if item.text:
-                textLen = nameLength(item.text)
-                if i + textLen < self.size.x:
-                    if self.commandEnabled(item.command):
-                        if item is selected:
-                            color = cSelect
-                        else:
-                            color = cNormal
+        textItems = (item for item in self._items if item.text)
+        for item in textItems:
+            textLen = nameLength(item.text)
+            if i + textLen < self.size.x:
+                if self.commandEnabled(item.command):
+                    if item is selected:
+                        color = cSelect
                     else:
-                        if item is selected:
-                            color = cSelDisabled
-                        else:
-                            color = cNormDisabled
+                        color = cNormal
+                else:
+                    if item is selected:
+                        color = cSelDisabled
+                    else:
+                        color = cNormDisabled
 
-                    b.moveChar(i, ' ', color, 1)
-                    b.moveCStr(i + 1, item.text, color)
-                    b.moveChar(i + textLen + 1, ' ', color, 1)
-                i += textLen + 2
+                b.moveChar(i, ' ', color, 1)
+                b.moveCStr(i + 1, item.text, color)
+                b.moveChar(i + textLen + 1, ' ', color, 1)
+            i += textLen + 2
 
         if i < self.size.x - 2:
             hintBuf = self.hint(self.helpCtx)
@@ -201,3 +205,5 @@ class StatusLine(View):
         while p and (self.helpCtx < p.min or self.helpCtx > p.max):
             p = p.next
         self._items = list(p) if p else None
+        self._itemCodes = {p.keyCode:p for p in self._items}
+

@@ -3,6 +3,7 @@ import logging
 import os
 import pathlib
 import platform
+import re
 
 from vindauga.types.collections.dir_collection import DirCollection, DirEntry
 from vindauga.constants.std_dialog_commands import cmChangeDir, cmDirSelection
@@ -12,6 +13,8 @@ from vindauga.misc.message import message
 from .list_box import ListBox
 
 PLATFORM_IS_WINDOWS = platform.system().lower() == 'windows'
+PLATFORM_IS_CYGWIN = platform.system().lower() == 'cygwin'
+
 if PLATFORM_IS_WINDOWS:
     import ctypes
     from ctypes import windll
@@ -45,11 +48,15 @@ class DirListBox(ListBox):
         return item is self.cur
 
     def selectItem(self, item):
-        logger.info('selectItem: %s, %s', item, len(self.dirList))
         message(self.owner, evCommand, cmChangeDir, self.dirList[item])
 
+    def __absolute(self, directory):
+        if PLATFORM_IS_CYGWIN:
+            directory = re.sub(r'^([A-Za-z]):', r'/cygdrive/\1', directory)
+        return pathlib.Path(directory).absolute()
+
     def newDirectory(self, directory):
-        self.dir = pathlib.Path(directory).absolute()
+        self.dir = self.__absolute(directory)
         self.dirList = DirCollection()
         self.showDrives(self.dirList)
         self.showDirs(self.dirList)

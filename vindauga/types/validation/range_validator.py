@@ -32,7 +32,6 @@ class RangeValidator(Validator):
         messageBox(self.errorMsg.format(self.min, self.max), mfError, (mfOKButton,))
 
     def isValid(self, s) -> bool:
-        logger.info('isValid(%s)', s)
         try:
             value = int(s)
             return self.min <= value <= self.max

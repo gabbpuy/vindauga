@@ -1,6 +1,7 @@
 # -*- coding: utf-8-*-
 import copy
 from dataclasses import dataclass
+import datetime
 import logging
 from itertools import cycle
 
@@ -20,16 +21,10 @@ from .view import View
 logger = logging.getLogger('vindauga.types.group')
 
 
+@dataclass
 class HandleStruct:
-    __slots__ = ('__event', 'group')
-
-    def __init__(self, event, group):
-        self.__event = event
-        self.group = group
-
-    @property
-    def event(self):
-        return self.__event
+    event: Event
+    group: 'Group'
 
     def __repr__(self):
         return '<HandleStruct event={} :: group={}>'.format(self.event, self.group)
@@ -186,7 +181,8 @@ class Group(View):
             while not alsoDone:
                 e = Event(evNothing)
                 self.getEvent(e)
-                self.handleEvent(e)
+                if e.what != evNothing:
+                    self.handleEvent(e)
                 if e.what != evNothing:
                     self.eventError(e)
                 alsoDone = (self.endState != 0)
@@ -217,6 +213,8 @@ class Group(View):
             if view and self.state & sfFocused:
                 view.setState(sfFocused, True)
             self.current = view
+        except Exception as e:
+            logger.exception('focus failed: %s', e)
         finally:
             self.unlock()
 
@@ -242,7 +240,7 @@ class Group(View):
         if not self.children:
             return None
 
-        for c in self.children:
+        for c in reversed(self.children):
             if (c.state & state) == state and (c.options & options) == options:
                 return c
         return None
@@ -301,7 +299,7 @@ class Group(View):
         if start is bottom:
             return
         i = self.children.index(start)
-        for c in self.children[i:]:
+        for c in reversed(self.children[i:]):
             if c is bottom:
                 break
             c.drawView()
@@ -345,8 +343,10 @@ class Group(View):
             self.getBuffer()
             if self.buffer:
                 self.lockFlag += 1
-                self.redraw()
-                self.lockFlag -= 1
+                try:
+                    self.redraw()
+                finally:
+                    self.lockFlag -= 1
 
         if self.buffer:
             self.writeBuf(0, 0, self.size.x, self.size.y, self.buffer)
