@@ -44,6 +44,8 @@ kbBackSpace = 0x0e08
 kbCtrlBackSpace = 0x0e7f
 kbShiftTab = 0x0f00
 kbTab = 0x0f09
+kbCtrlTab = 0x0F0a
+
 
 kbAltQ = 0x1000
 kbAltW = 0x1100
@@ -91,14 +93,22 @@ kbF12 = 0x4600
 
 kbHome = 0x4700
 kbUp = 0x4800
+kbShiftUp = 0X4801
+kbCtrlUp = 0x4810
 kbPgUp = 0x4900
 kbGrayMinus = 0x4a2d
 kbLeft = 0x4b00
+kbShiftLeft = 0x4b01
 kbRight = 0x4d00
+kbShiftRight = 0x4d01
+
 kbGrayPlus = 0x4e2b
 kbEnd = 0x4f00
 
 kbDown = 0x5000
+kbShiftDown = 0x5001
+kbCtrlDown = 0x5010
+
 kbPgDn = 0x5100
 kbIns = 0x5200
 kbDel = 0x5300
@@ -146,8 +156,10 @@ kbCtrlPrtSc = 0x7200
 kbCtrlLeft = 0x7300
 kbCtrlRight = 0x7400
 kbCtrlEnd = 0x7500
+kbShiftEnd = 0x7501
 kbCtrlPgDn = 0x7600
 kbCtrlHome = 0x7700
+kbShiftHome = 0x7701
 
 kbAlt1 = 0x7800
 kbAlt2 = 0x7900

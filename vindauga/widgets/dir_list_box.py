@@ -13,7 +13,7 @@ from vindauga.misc.message import message
 from .list_box import ListBox
 
 PLATFORM_IS_WINDOWS = platform.system().lower() == 'windows'
-PLATFORM_IS_CYGWIN = platform.system().lower() == 'cygwin'
+PLATFORM_IS_CYGWIN = platform.system().lower().startswith('cygwin')
 
 if PLATFORM_IS_WINDOWS:
     import ctypes

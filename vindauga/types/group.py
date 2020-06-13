@@ -3,7 +3,7 @@ import copy
 from dataclasses import dataclass
 import datetime
 import logging
-from itertools import cycle
+from itertools import cycle, islice
 
 from vindauga.constants.command_codes import cmCancel, hcNoContext, cmReleasedFocus, cmLoseFocus
 from vindauga.constants.event_codes import positionalEvents, focusedEvents, evNothing, evMouseDown
@@ -240,7 +240,7 @@ class Group(View):
         if not self.children:
             return None
 
-        for c in reversed(self.children):
+        for c in [self.children[-1]] + self.children[:-1]:
             if (c.state & state) == state and (c.options & options) == options:
                 return c
         return None
@@ -296,13 +296,9 @@ class Group(View):
                 self.forEach(self.doHandleEvent, hs)
 
     def drawSubViews(self, start, bottom=None):
-        if start is bottom:
-            return
-        i = self.children.index(start)
-        for c in reversed(self.children[i:]):
-            if c is bottom:
-                break
-            c.drawView()
+        while start and start is not bottom:
+            start.drawView()
+            start = start.nextView()
 
     def changeBounds(self, bounds):
         d = Point()
@@ -327,14 +323,14 @@ class Group(View):
         return any(c.consumesData() for c in self.children)
 
     def getData(self):
-        children = (c for c in reversed(self.children) if c.consumesData())
+        children = (c for c in self.children if c.consumesData())
         data = []
         for c in children:
             data.append(c.getData())
         return data
 
     def setData(self, data):
-        elements = zip((c for c in reversed(self.children) if c.consumesData()), data)
+        elements = zip((c for c in self.children if c.consumesData()), data)
         for c, data in elements:
             c.setData(data)
 
@@ -455,12 +451,8 @@ class Group(View):
             view.show()
 
     def forEach(self, func, *args):
-        for c in reversed(self.children):
+        for c in self.children:
             func(c, *args)
-
-    @staticmethod
-    def __selectView(p, enable):
-        p.setState(sfSelected, enable)
 
     @staticmethod
     def __isInvalid(view, command):
@@ -473,12 +465,10 @@ class Group(View):
         idx = self.children.index(self.current)
         if forwards:
             kids = cycle(self.children)
-            for _ in range(idx + 1):
-                next(kids)
+            kids = islice(kids, idx + 1, idx + 1 + len(self.children))
         else:
             kids = cycle(reversed(self.children))
-            for _ in range(len(self.children) - idx):
-                next(kids)
+            kids = islice(kids, len(self.children) - idx, 2 * len(self.children) - idx)
 
         for p in kids:
             if p is self.current or ((p.state & (sfVisible | sfDisabled)) == sfVisible) and (p.options & ofSelectable):
@@ -488,6 +478,5 @@ class Group(View):
         return None
 
     def __focusView(self, p, enable):
-        # if p and self.state & sfFocused:
         if self.state & sfFocused and p and (not self.current or self.current.valid(cmLoseFocus)):
             p.setState(sfFocused, enable)

@@ -48,7 +48,7 @@ class ComboViewer(ListViewer):
         return rec
 
     def getText(self, item, maxLen):
-        return self.collection[item][:maxLen]
+        return self.collection.getText(item)[:maxLen]
 
     def handleEvent(self, event: Event):
         if ((event.what == evMouseDown and event.mouse.eventFlags & meDoubleClick) or

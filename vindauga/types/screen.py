@@ -29,6 +29,7 @@ from .draw_buffer import BufferArray, DrawBuffer
 from .display import Display
 from .mouse_event import MouseEvent
 from .point import Point
+from .key_mapping import get_key_mapping
 
 PLATFORM_IS_WINDOWS = platform.system().lower() == 'windows'
 
@@ -140,9 +141,10 @@ class TScreen:
         return TScreen.evQueue.qsize()
 
     @staticmethod
-    def kbReadShiftState():
+    def kbReadShiftState(ch):
+        shift = 0
         if not HAS_IOCTL:
-            return 0
+            return get_key_mapping(ch)
         arg = 6
         shift = 0
         try:
@@ -157,8 +159,8 @@ class TScreen:
             if arg & 1:
                 shift |= kbLeftShift | kbRightShift
         except OSError:
-            return 0
-        return shift
+            return get_key_mapping(ch)
+        return ch, shift
 
     @staticmethod
     def kbMapKey(code, eventType, modifiers):
@@ -192,6 +194,7 @@ class TScreen:
         curses.noecho()
         curses.cbreak()
         stdscr.keypad(True)
+        stdscr.nodelay(True)
         try:
             curses.start_color()
             curses.use_default_colors()
@@ -204,6 +207,7 @@ class TScreen:
 
     def shutdown(self):
         sys.stderr = sys.__stderr__
+        self.stdscr.nodelay(False)
         self.stdscr.keypad(False)
         curses.echo()
         curses.nocbreak()
@@ -349,8 +353,10 @@ class TScreen:
                 keyType = TALT
                 modifiers = 0
         else:
-            modifiers = self.kbReadShiftState()
+            code, modifiers = self.kbReadShiftState(code)
+
         code = self.kbMapKey(code, keyType, modifiers)
+
         if code != kbNoKey:
             event = Event(evKeyDown)
             event.keyDown.keyCode = code

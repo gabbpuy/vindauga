@@ -16,7 +16,6 @@ class VindaugaObject:
         super().__init_subclass__()
         try:
             VindaugaObject._registry[cls.name] = cls
-            logger.info('New Type: %s', cls.name)
         except AttributeError:
             logger.info('A class has no name: %s', cls)
             pass

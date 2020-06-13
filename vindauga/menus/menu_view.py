@@ -132,7 +132,7 @@ class MenuView(View):
 
     def findItem(self, ch):
         """
-        Returns a pointer to the menu item that has ch.upper() as its hot key
+        Returns a pointer to the menu item that has code.upper() as its hot key
         (the highlighted character). Returns None if no such menu item is found or
         if the menu item is disabled. Note that `findItem()` is case insensitive.
 

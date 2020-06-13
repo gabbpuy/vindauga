@@ -60,7 +60,7 @@ class FlexBox(Group):
         x = 0
         y = 0
         gap = min(1, gap)
-        for c in reversed(self.children[:-1]):
+        for c in self.children[:-1]:
             bounds = c.getBounds()
             bounds.topLeft.x = x
             bounds.topLeft.y = y

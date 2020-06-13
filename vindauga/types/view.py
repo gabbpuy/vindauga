@@ -1172,6 +1172,7 @@ class View(VindaugaObject):
 
         :param target: Target view to place in front of
         """
+
         if (self.owner and target is not self and target is not self.nextView() and
                 (not target or target.owner is self.owner)):
 
@@ -1180,10 +1181,8 @@ class View(VindaugaObject):
                 self.owner.insertView(self, target)
             else:
                 lastView = self.nextView()
-                index = self.owner.children.index
-                if (not (self in self.owner.children)) or index(target) < index(self):
-                    lastView = target
-
+                while lastView and lastView is not self:
+                    lastView = lastView.nextView()
                 self.state &= ~sfVisible
 
                 if lastView is target:

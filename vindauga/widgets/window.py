@@ -97,13 +97,13 @@ class Window(Group):
         """
         super().handleEvent(event)
 
-        minBounds = Point()
-        maxBounds = Point()
         if event.what == evCommand:
             emc = event.message.command
 
             if emc == cmResize:
                 if self.flags & (wfMove | wfGrow):
+                    minBounds = Point()
+                    maxBounds = Point()
                     limits = self.owner.getExtent()
                     self.sizeLimits(minBounds, maxBounds)
                     self.dragView(event, self.dragMode | (self.flags & (wfMove | wfGrow)), limits, minBounds, maxBounds)
@@ -160,9 +160,9 @@ class Window(Group):
         :param state: State to modify
         :param enable: Enable or disable
         """
-        windowCommands = CommandSet()
-
         super().setState(state, enable)
+
+        windowCommands = CommandSet()
 
         if state & sfSelected:
             self.setState(sfActive, enable)

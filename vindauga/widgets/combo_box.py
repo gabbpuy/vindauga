@@ -24,6 +24,7 @@ class ComboBox(View):
         self.inputLine = None
         self.collection = None
         self.initBox(inputLine, collection)
+        self.__focused = None
 
     def initBox(self, inputLine, collection):
         self.options |= ofPostProcess
@@ -31,8 +32,12 @@ class ComboBox(View):
         self.inputLine = inputLine
         self.collection = collection
 
+    @property
+    def focused(self):
+        return self.__focused
+
     def consumesData(self):
-        return True
+        return False
 
     def draw(self):
         b = DrawBuffer()
@@ -79,6 +84,7 @@ class ComboBox(View):
 
             if c == cmOK and not self.inputLine.state & sfDisabled:
                 result = comboWindow.getSelection()
+                self.__focused = comboWindow.viewer.focused
                 self.inputLine.setData(result)
                 self.inputLine.selectAll(True)
                 self.inputLine.drawView()
