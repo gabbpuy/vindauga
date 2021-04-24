@@ -35,6 +35,7 @@ class Timer:
     def expire(self):
         with self.__lock:
             self._expired = True
+            self._timer = None
 
     def isRunning(self) -> bool:
         with self.__lock:

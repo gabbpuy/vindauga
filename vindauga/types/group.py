@@ -165,7 +165,11 @@ class Group(View):
             logger.exception('exec view failed.')
         finally:
             if not saveOwner:
-                self.remove(v)
+                try:
+                    self.remove(v)
+                except ValueError:
+                    # Removed itself
+                    pass
 
             self.setCurrent(saveCurrent, self.leaveSelect)
             v.setState(sfModal, False)

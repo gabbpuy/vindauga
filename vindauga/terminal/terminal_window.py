@@ -5,6 +5,8 @@ from vindauga.widgets.window import Window
 
 from .terminal_view import TerminalView
 
+logger = logging.getLogger(__name__)
+
 
 class TerminalWindow(Window):
     MIN_WIDTH = 28
@@ -35,3 +37,12 @@ class TerminalWindow(Window):
     def setTitle(self, title):
         self.title = title
         self.frame.drawView()
+
+    def shutdown(self):
+        try:
+            logger.info('Removing %s from active terminals', self.window)
+            TerminalView.ActiveTerminals.remove(self.window)
+        except ValueError:
+            # Terminal is not in the list
+            pass
+        super().shutdown()

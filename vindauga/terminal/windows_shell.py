@@ -37,7 +37,8 @@ class WindowsShell:
     BUFFER_SIZE = 1024
 
     def __init__(self, cmdline):
-        self.cmdline = ' '.join(shlex.quote(c) for c in cmdline)
+        #self.cmdline = ' '.join(shlex.quote(c) for c in cmdline)
+        self.cmdline = ' '.join(cmdline)
         self.hChildStdinWr = None
         self.hChildStdoutRd = None
         self.hChildStderrRd = None
@@ -140,7 +141,8 @@ class WindowsShell:
                 None,  # current directory
                 StartupInfo)  # STARTUPINFO pointer
         except pywintypes.error as e:
-            messageBox(e.strerror, mfError, (mfOKButton,))
+            logger.exception('%s\n%s\n', self.cmdline, e.strerror)
+            messageBox(f'{self.cmdline}\n{e.strerror}', mfError, (mfOKButton,))
             return None
 
         win32file.CloseHandle(processHandle)
@@ -170,7 +172,11 @@ class WindowsShell:
 
     @staticmethod
     def __readPipe(handle):
-        (buffer, available, result) = win32pipe.PeekNamedPipe(handle, 0)
+        try:
+            (buffer, available, result) = win32pipe.PeekNamedPipe(handle, 0)
+        except pywintypes.error as e:
+            raise BrokenPipeError
+
         if result == -1:
             raise BrokenPipeError
         if available > 0:

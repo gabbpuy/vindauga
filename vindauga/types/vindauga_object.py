@@ -20,8 +20,7 @@ class VindaugaObject:
             logger.info('A class has no name: %s', cls)
             pass
 
-    @staticmethod
-    def destroy(o):
+    def destroy(self, o):
         if o:
             o.shutdown()
         del o

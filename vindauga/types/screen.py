@@ -202,7 +202,7 @@ class TScreen:
             pass
         atexit.register(self.shutdown)
         curses.mousemask(curses.ALL_MOUSE_EVENTS)
-        sys.stderr = os.devnull
+        sys.stderr = open(os.devnull, 'wt')
         return stdscr
 
     def shutdown(self):
@@ -366,15 +366,16 @@ class TScreen:
     def selectPalette(self):
         if curses.can_change_color():
             # TODO: Put the palette back the way it was
+            colorLevel = 650
             # Your powershell window is going to look pink after you exit... d8)
             curses.init_color(curses.COLOR_BLACK, 0, 0, 0)
-            curses.init_color(curses.COLOR_BLUE, 0, 0, 750)
-            curses.init_color(curses.COLOR_GREEN, 0, 750, 0)
-            curses.init_color(curses.COLOR_RED, 750, 0, 0)
-            curses.init_color(curses.COLOR_YELLOW, 750, 750, 0)
-            curses.init_color(curses.COLOR_MAGENTA, 750, 0, 750)
-            curses.init_color(curses.COLOR_CYAN, 0, 750, 750)
-            curses.init_color(curses.COLOR_WHITE, 750, 750, 750)
+            curses.init_color(curses.COLOR_BLUE, 0, 0, colorLevel)
+            curses.init_color(curses.COLOR_GREEN, 0, colorLevel, 0)
+            curses.init_color(curses.COLOR_RED, colorLevel, 0, 0)
+            curses.init_color(curses.COLOR_YELLOW, colorLevel, colorLevel, 0)
+            curses.init_color(curses.COLOR_MAGENTA, colorLevel, 0, colorLevel)
+            curses.init_color(curses.COLOR_CYAN, 0, colorLevel, colorLevel)
+            curses.init_color(curses.COLOR_WHITE, colorLevel, colorLevel, colorLevel)
 
         # The color ordering is different between a CMD / Powershell window and everything else...
         if not PLATFORM_IS_WINDOWS:

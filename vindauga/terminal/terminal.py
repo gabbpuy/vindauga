@@ -123,10 +123,12 @@ class Terminal:
                 raise RuntimeError
     else:
         def executeCommand(self):
-            command = [self.command] + self.commandArgs
+            command = [self.command] + self.commandArgs[1:]
             self.__childPid = WindowsShell(command)
             self.__ptyFd = self.__childPid()
             logger.info('handles: %s', self.__ptyFd)
+            if self.__ptyFd is None:
+                raise RuntimeError
 
     def destroy(self):
         try:

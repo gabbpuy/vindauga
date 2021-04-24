@@ -32,13 +32,6 @@ class TerminalView(View):
         self.terminal = Terminal(self.size.x, self.size.y, 0, command, *commandArgs)
         self.terminal.setColors(curses.COLOR_WHITE, curses.COLOR_BLACK)
 
-    def __del__(self):
-        try:
-            TerminalView.ActiveTerminals.remove(self)
-        except ValueError:
-            # Terminal is not in the list
-            pass
-
     def draw(self):
         minY = min(self.size.y, self.terminal.rows)
         minX = min(self.size.x, self.terminal.cols)

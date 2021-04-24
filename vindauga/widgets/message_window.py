@@ -62,4 +62,4 @@ def postMessage(messageData):
         Program.desktop.insert(wPtr)
         Program.desktop.drawView()
 
-    message(wPtr, evBroadcast, cmInsMsgBox, messageData)
+    message(wPtr, evBroadcast, cmInsMsgBox, str(messageData))

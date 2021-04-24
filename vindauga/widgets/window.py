@@ -56,7 +56,6 @@ class Window(Group):
 
     def close(self):
         if self.valid(cmClose):
-            self.frame = None
             self.destroy(self)
 
     def shutdown(self):
