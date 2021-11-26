@@ -1,4 +1,5 @@
 # -*- coding: utf-8 -*-
+from typing import Union
 from .status_item import StatusItem
 
 
@@ -14,7 +15,7 @@ class StatusDef:
         self.items = None
         self.next = None
 
-    def __add__(self, other):
+    def __add__(self, other: Union['StatusDef', StatusItem]):
         if isinstance(other, StatusDef):
             return self.__addStatusDef(other)
         elif isinstance(other, StatusItem):
@@ -28,14 +29,14 @@ class StatusDef:
                 yield cur
                 cur = cur.next
 
-    def __addStatusDef(self, other):
+    def __addStatusDef(self, other: 'StatusDef'):
         cur = self
         while cur.next:
             cur = cur.next
         cur.next = other
         return self
 
-    def __addStatusItem(self, other):
+    def __addStatusItem(self, other: StatusItem):
         si = self
         while si.next:
             si = si.next

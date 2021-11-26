@@ -11,7 +11,7 @@ from vindauga.types.view import View
 
 from .background import Background
 
-logger = logging.getLogger('vindauga.widgets.scroll_group')
+logger = logging.getLogger(__name__)
 sbHorizontalBar = 1
 sbVerticalBar = 2
 

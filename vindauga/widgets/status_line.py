@@ -11,7 +11,7 @@ from vindauga.types.palette import Palette
 from vindauga.events.event import Event
 from vindauga.types.view import View
 
-logger = logging.getLogger('vindauga.widgets.status_line')
+logger = logging.getLogger(__name__)
 
 
 class StatusLine(View):
@@ -119,9 +119,11 @@ class StatusLine(View):
         elif what == evKeyDown:
             item = self._itemCodes.get(event.keyDown.keyCode)
             if item and self.commandEnabled(item.command):
-                event.what = evCommand
-                event.message.command = item.command
-                event.message.infoPtr = None
+                e = Event(evCommand)
+                e.message.command = item.command
+                e.message.infoPtr = None
+                self.putEvent(e)
+                self.drawView()
                 return
         elif what == evBroadcast:
             if event.message.command == cmCommandSetChanged:
@@ -204,6 +206,5 @@ class StatusLine(View):
         p = self._defs
         while p and (self.helpCtx < p.min or self.helpCtx > p.max):
             p = p.next
-        self._items = list(p) if p else None
-        self._itemCodes = {p.keyCode:p for p in self._items}
-
+        self._items = list(p) if p else []
+        self._itemCodes = {p.keyCode: p for p in self._items}

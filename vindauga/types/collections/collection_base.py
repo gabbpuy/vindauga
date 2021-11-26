@@ -1,7 +1,8 @@
 # -*- coding: utf-8 -*-
+import itertools
 import logging
 
-logger = logging.getLogger('vindauga.types.collections.collection_base')
+logger = logging.getLogger(__name__)
 
 
 class CollectionBase(list):

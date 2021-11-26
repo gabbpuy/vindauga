@@ -1,7 +1,5 @@
 # -*- coding: utf-8 -*-
 from gettext import gettext as _
-import time
-from collections import deque
 import logging
 import queue
 
@@ -26,31 +24,7 @@ from vindauga.types.view import View, SHADOW_SIZE
 from .desktop import Desktop
 from .status_line import StatusLine
 
-logger = logging.getLogger('vindauga.widgets.Program')
-
-hcNew = 0xFF01
-hcOpen = 0xFF02
-hcSave = 0xFF03
-hcSaveAs = 0xFF04
-hcSaveAll = 0xFF05
-hcChangeDir = 0xFF06
-hcDosShell = 0xFF07
-hcExit = 0xFF08
-
-hcUndo = 0xFF10
-hcCut = 0xFF11
-hcCopy = 0xFF12
-hcPaste = 0xFF13
-hcClear = 0xFF14
-
-hcTile = 0xFF20
-hcCascade = 0xFF21
-hcCloseAll = 0xFF22
-hcResize = 0xFF23
-hcZoom = 0xFF24
-hcNext = 0xFF25
-hcPrev = 0xFF26
-hcClose = 0xFF27
+logger = logging.getLogger(__name__)
 
 
 def hasMouse(view, event):

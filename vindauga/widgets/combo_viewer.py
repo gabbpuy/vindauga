@@ -62,7 +62,7 @@ class ComboViewer(ListViewer):
             self.testChar = ''
             self.endModal(cmCancel)
             self.clearEvent(event)
-
+            return
         if event.what == evKeyDown:
             if event.keyDown.charScan.charCode in string.printable and event.keyDown.keyCode != kbTab:
                 self.testChar += event.keyDown.charScan.charCode

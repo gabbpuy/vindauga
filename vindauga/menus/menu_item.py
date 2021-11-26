@@ -4,7 +4,7 @@ import logging
 from vindauga.constants.command_codes import hcNoContext
 from vindauga.types.view import View
 
-logger = logging.getLogger('vindauga.menus.menu_item')
+logger = logging.getLogger(__name__)
 
 
 class MenuItem:

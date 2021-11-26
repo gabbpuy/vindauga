@@ -20,7 +20,7 @@ from vindauga.types.view import View
 from .frame import Frame
 from .scroll_bar import ScrollBar
 
-logger = logging.getLogger('vindauga.widgets.window')
+logger = logging.getLogger(__name__)
 minWinSize = Point(16, 6)
 
 

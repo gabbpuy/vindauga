@@ -22,8 +22,7 @@ from vindauga.widgets.input_line import InputLine
 from vindauga.widgets.label import Label
 from vindauga.widgets.scroll_bar import ScrollBar
 
-logger = logging.getLogger('vindauga.dialogs.change_dir_dialog')
-
+logger = logging.getLogger(__name__)
 
 class ChangeDirDialog(Dialog):
     changeDirTitle = _('Change Directory')

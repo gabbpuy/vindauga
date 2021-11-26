@@ -9,7 +9,7 @@ from vindauga.types.rect import Rect
 from .menu import Menu
 from .menu_view import MenuView
 
-logger = logging.getLogger('vindauga.menus.menu_bar')
+logger = logging.getLogger(__name__)
 
 
 class MenuBar(MenuView):

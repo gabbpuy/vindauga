@@ -1,4 +1,5 @@
 # -*- coding: utf-8 -*-
+from dataclasses import dataclass
 import logging
 
 from vindauga.constants.command_codes import wnNoNumber
@@ -16,7 +17,7 @@ from .static_prompt import StaticPrompt
 from .static_text import StaticText
 from .window import Window
 
-logger = logging.getLogger('vindauga.widgets.info_window')
+logger = logging.getLogger(__name__)
 
 
 class InfoWindow(Window):
@@ -36,7 +37,7 @@ class InfoWindow(Window):
             if emc == cmFindInfoBox:
                 self.clearEvent(event)
             elif emc == cmInsInfoBox:
-                p = event.message.infoPtr
+                p: InfoData = event.message.infoPtr
                 r = self.getExtent()
                 lastLine = r.bottomRight.y - 2
                 i = p.line
@@ -70,12 +71,10 @@ class InfoWindow(Window):
         return Palette(self.cpInfoWindow)
 
 
+@dataclass
 class InfoData:
-    __slots__ = ('line', 'text')
-
-    def __init__(self, line, text):
-        self.line = line
-        self.text = text
+    line: int
+    text: str
 
 
 def postInfo(line, text):

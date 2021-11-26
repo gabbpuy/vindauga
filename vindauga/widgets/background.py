@@ -6,7 +6,7 @@ from vindauga.types.draw_buffer import DrawBuffer
 from vindauga.types.palette import Palette
 from vindauga.types.view import View
 
-logger = logging.getLogger('vindauga.widgets.background')
+logger = logging.getLogger(__name__)
 
 
 class Background(View):

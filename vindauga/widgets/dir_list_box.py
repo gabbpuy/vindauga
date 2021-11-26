@@ -21,7 +21,7 @@ if PLATFORM_IS_WINDOWS:
 
     kernel = windll.kernel32
 
-logger = logging.getLogger('vindauga.widgets.dir_list_box')
+logger = logging.getLogger(__name__)
 
 
 class DirListBox(ListBox):

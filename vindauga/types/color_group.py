@@ -1,4 +1,5 @@
 # -*- coding: utf-8 -*-
+from typing import Union
 from .color_item import ColorItem
 
 
@@ -19,7 +20,7 @@ class ColorGroup:
         self.name = name
         self.index = 0
 
-    def __add__(self, other):
+    def __add__(self, other: Union['ColorGroup', ColorItem]):
         if isinstance(other, ColorGroup):
             return self.__addColorGroup(other)
         elif isinstance(other, ColorItem):
@@ -28,10 +29,10 @@ class ColorGroup:
 
     add = __add__
 
-    def __addColorGroup(self, other):
+    def __addColorGroup(self, other: 'ColorGroup'):
         self.groups.append(other)
         return self
 
-    def __addColorItem(self, other):
+    def __addColorItem(self, other: ColorItem):
         self.groups[-1].items.append(other)
         return self

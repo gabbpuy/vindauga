@@ -21,7 +21,7 @@ from vindauga.widgets.history import History
 from vindauga.widgets.label import Label
 from vindauga.widgets.scroll_bar import ScrollBar
 
-logger = logging.getLogger('vindauga.dialogs.file_dialog')
+logger = logging.getLogger(__name__)
 
 ffOpen = 0x0001
 ffSaveAs = 0x0002

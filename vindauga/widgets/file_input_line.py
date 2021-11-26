@@ -9,7 +9,7 @@ from vindauga.constants.std_dialog_commands import cmFileFocused
 from vindauga.misc.util import fexpand
 from .input_line import InputLine
 
-logger = logging.getLogger('vindauga.widgets.file_input_line')
+logger = logging.getLogger(__name__)
 
 
 class FileInputLine(InputLine):
@@ -38,4 +38,5 @@ class FileInputLine(InputLine):
                     self.setData(fexpand(p))
             else:
                 self.setData(event.message.infoPtr.name)
+            self.clearEvent(event)
             self.drawView()

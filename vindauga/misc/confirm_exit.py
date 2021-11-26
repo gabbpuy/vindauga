@@ -3,7 +3,7 @@ import logging
 
 from vindauga.types.draw_buffer import DrawBuffer
 
-logger = logging.getLogger('vindauga.misc.confirm_exit')
+logger = logging.getLogger(__name__)
 
 
 def confirmExit(stdscr):

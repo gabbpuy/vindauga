@@ -8,7 +8,7 @@ from vindauga.constants.keys import kbUp, kbHome, kbEnd, kbLeft, kbRight, kbBack
 from vindauga.types.screen import Screen
 from .input_regex import InputRegex
 
-logger = logging.getLogger('vindauga.widgets.static_input_line')
+logger = logging.getLogger(__name__)
 
 
 class StaticInputLine(InputRegex):

@@ -49,7 +49,7 @@ checkBoxData = 0
 radioButtonData = 0
 inputLineData = ''
 
-demoDialogData = [checkBoxData, radioButtonData, inputLineData]
+demoDialogData = reversed([checkBoxData, radioButtonData, inputLineData])
 
 
 class VindaugaDemo(Application):
@@ -150,7 +150,7 @@ class VindaugaDemo(Application):
             emc = event.message.command
             if emc == cmHelp and not self.helpInUse:
                 self.helpInUse = True
-            elif emc in AppCommands:
+            elif isinstance(emc, AppCommands):
                 self.clearEvent(event)
                 if emc == AppCommands.cmAboutCmd:
                     self.aboutDialogBox()
@@ -401,4 +401,8 @@ if __name__ == '__main__':
     handler = logging.StreamHandler(open('vindauga.log', 'wt'))
     handler.setFormatter(logging.Formatter(format))
     logger.addHandler(handler)
-    run()
+    try:
+        run()
+    except:
+        logger.exception('vindauga fail')
+

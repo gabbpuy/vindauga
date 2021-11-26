@@ -13,7 +13,7 @@ from vindauga.types.records.directory_search_record import DirectorySearchRecord
 from vindauga.types.records.search_record import FA_DIREC, SearchRecord
 from vindauga.widgets.sorted_list_box import SortedListBox
 
-logger = logging.getLogger('vindauga.widgets.file_list')
+logger = logging.getLogger(__name__)
 
 
 class FileList(SortedListBox):

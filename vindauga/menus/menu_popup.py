@@ -6,7 +6,7 @@ from vindauga.misc.character_codes import getCtrlChar, getAltChar
 
 from .menu_box import MenuBox
 
-logger = logging.getLogger('vindauga.menus.menu_popup')
+logger = logging.getLogger(__name__)
 
 
 class MenuPopup(MenuBox):

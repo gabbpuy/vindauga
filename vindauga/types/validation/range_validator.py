@@ -5,7 +5,7 @@ from vindauga.constants.validation_constants import voTransfer, vtGetData, vtSet
 from vindauga.dialogs.message_box import messageBox
 from .validator import Validator
 
-logger = logging.getLogger('vindauga.validation.range_validator')
+logger = logging.getLogger(__name__)
 
 
 class RangeValidator(Validator):

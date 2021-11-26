@@ -151,7 +151,6 @@ class InputLine(View):
                         self.drawView()
 
                         done = not (self.mouseEvent(event, evMouseMove | evMouseAuto))
-
                 self.clearEvent(event)
             elif event.what == evKeyDown:
                 self.__saveState()

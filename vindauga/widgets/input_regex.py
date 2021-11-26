@@ -12,7 +12,7 @@ from vindauga.events.event import Event
 from vindauga.types.screen import Screen
 from .input_line import InputLine
 
-logger = logging.getLogger('vindauga.widgets.input_regex')
+logger = logging.getLogger(__name__)
 
 
 class InputRegex(InputLine):

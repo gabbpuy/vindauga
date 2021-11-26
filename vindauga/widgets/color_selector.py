@@ -11,7 +11,7 @@ from vindauga.misc.util import ctrlToArrow
 from vindauga.types.draw_buffer import DrawBuffer
 from vindauga.types.view import View
 
-logger = logging.getLogger('vindauga.widgets.color_selector')
+logger = logging.getLogger(__name__)
 
 
 class ColorSelector(View):

@@ -13,7 +13,7 @@ from vindauga.types.palette import Palette
 from vindauga.types.records.data_record import DataRecord
 from vindauga.types.view import View
 
-logger = logging.getLogger('vindauga.widgets.cluster')
+logger = logging.getLogger(__name__)
 
 
 class Cluster(View):

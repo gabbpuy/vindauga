@@ -9,7 +9,7 @@ from vindauga.types.draw_buffer import DrawBuffer
 from vindauga.types.rect import Rect
 from .menu_view import MenuView
 
-logger = logging.getLogger('vindauga.menus.menu_box')
+logger = logging.getLogger(__name__)
 
 
 class MenuBox(MenuView):

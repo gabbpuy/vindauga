@@ -11,7 +11,7 @@ class Test_Collection(TestCase):
     def test_collection(self):
         t = Collection()
 
-        t.insert(1)
+        t.insert(1, 1)
         t.insert(2, 2)
         t.insert(3, 4)
 

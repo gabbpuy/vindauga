@@ -6,7 +6,7 @@ from functools import partial
 # The underlying datatype - 'L' gives 16 bits for unicode plus 8 for attributes / colours
 BufferArray = partial(array.array, 'L')
 
-logger = logging.getLogger('vindauga.types.draw_buffer')
+logger = logging.getLogger(__name__)
 
 # Max width of a line. This is a 1K line, that seems a reasonable width...
 LINE_WIDTH = 1024
@@ -28,12 +28,12 @@ class DrawBuffer:
         if not filled:
             self._data = BufferArray()
         else:
-            self._data = BufferArray([0x00] * LINE_WIDTH)
+            self._data = BufferArray([ord('\x00')] * LINE_WIDTH)
 
     def moveBuf(self, indent: int, source, attr: int, count: int):
         if not attr:
             attrs = (c & self.ATTRIBUTE_MASK for c in self._data[indent:indent + count])
-            self._data[indent:indent + count] = BufferArray(c | a for c, a in zip(source[:count], attrs))
+            self._data[indent:indent + count] = BufferArray(ord(c) | a for c, a in zip(source[:count], attrs))
         else:
             attr = (attr & 0xFF) << self.CHAR_WIDTH
             self._data[indent: indent + count] = BufferArray((ord(c) | attr for c in source[:count]))
@@ -62,7 +62,7 @@ class DrawBuffer:
 
         :param indent: offset into the buffer
         :param strn: string to move
-        :param attrs: 8 bit colors as a 16 bit number
+        :param attrs: 8 bit colors as a 16 bit number (on and off)
         """
         # "~" highlights chunks. so break into chunks
         parts = strn.split('~')
@@ -96,9 +96,6 @@ class DrawBuffer:
         except OverflowError:
             logger.exception('Set Item Failed')
             raise
-
-    def __setslice__(self, *args):
-        return self._data.__setslice__(*args)
 
     def __delitem__(self, *args):
         return self._data.__delitem__(*args)

@@ -1,9 +1,10 @@
 # -*- coding: utf-8 -*-
+from gettext import gettext as _
 import itertools
 import logging
 import textwrap
 
-from vindauga.types.collections.collection import Collection
+from vindauga.types.collections.string_collection import StringCollection
 from vindauga.constants.message_flags import mfError, mfOKButton
 from vindauga.constants.grow_flags import gfGrowHiX, gfGrowHiY
 from vindauga.constants.state_flags import sfExposed
@@ -12,7 +13,7 @@ from vindauga.types.draw_buffer import DrawBuffer
 
 from .scroller import Scroller
 
-logger = logging.getLogger('vindauga.widgets.file_viewer')
+logger = logging.getLogger(__name__)
 
 
 class FileViewer(Scroller):
@@ -48,7 +49,7 @@ class FileViewer(Scroller):
     def readFile(self, fName):
         self._limit.x = 0
         self.fileName = fName
-        self.fileLines = Collection()
+        self.fileLines = StringCollection()
 
         try:
             fileToView = open(fName, 'rt', encoding='utf-8')
@@ -59,13 +60,15 @@ class FileViewer(Scroller):
 
         lines = fileToView.readlines()
         if self.wrap:
-            wrapped = (textwrap.wrap(l + '\n', self.size.x - 1, expand_tabs=True, tabsize=4) for l in lines)
+            wrapped = (
+                textwrap.wrap(line + '\n', self.size.x - 1, expand_tabs=True, tabsize=4)
+                for line in lines)
             lines = itertools.chain(*wrapped)
 
         self.fileLines.extend(lines)
         self._limit.y = len(self.fileLines)
         if self.fileLines:
-            self._limit.x = max(len(l) for l in self.fileLines)
+            self._limit.x = max(len(line) for line in self.fileLines)
 
     def setState(self, state, enable):
         super().setState(state, enable)

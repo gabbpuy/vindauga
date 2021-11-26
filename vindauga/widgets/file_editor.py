@@ -10,7 +10,7 @@ from vindauga.misc.message import message
 from vindauga.misc.util import fexpand
 from .editor import Editor
 
-logger = logging.getLogger('vindauga.widgets.file_editor')
+logger = logging.getLogger(__name__)
 
 
 class FileEditor(Editor):
@@ -45,8 +45,7 @@ class FileEditor(Editor):
                 self.saveAs()
             else:
                 return
-
-        self.clearEvent(event)
+            self.clearEvent(event)
 
     def initBuffer(self):
         self.buffer = BufferArray([0] * self.bufSize)

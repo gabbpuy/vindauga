@@ -40,7 +40,7 @@ class Point:
 
     def __lt__(self, other):
         # I am closer to 0, 0 than the other
-        return self.x < other.x or self.y < other.y
+        return abs(self.x) < abs(other.x) or abs(self.y) < abs(other.y)
 
     def __iadd__(self, other):
         self.x += other.x

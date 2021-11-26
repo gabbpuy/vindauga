@@ -7,7 +7,7 @@ from signal import *
 
 from .confirm_exit import confirmExit
 
-logger = logging.getLogger('vindauga.misc.signal_handling')
+logger = logging.getLogger(__name__)
 
 PLATFORM_IS_WINDOWS = platform.system().lower() == 'windows'
 

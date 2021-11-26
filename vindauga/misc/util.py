@@ -6,7 +6,7 @@ from vindauga.constants.keys import (kbCtrlB, kbLeft, kbCtrlF, kbRight, kbCtrlP,
                                      kbCtrlA, kbHome, kbCtrlE, kbEnd, kbCtrlD, kbDel, kbCtrlQ, kbIns,
                                      kbAltV, kbPgUp, kbCtrlV, kbPgDn, kbCtrlH, kbBackSpace)
 
-logger = logging.getLogger('vindauga.misc.util')
+logger = logging.getLogger(__name__)
 
 fexpand = os.path.abspath
 

@@ -20,7 +20,7 @@ from vindauga.types.view import View
 
 TAB_MASK = 7
 
-logger = logging.getLogger('vindauga.widgets.editor')
+logger = logging.getLogger(__name__)
 
 firstKeys = (
     (kbCtrlA, cmWordLeft),
@@ -379,14 +379,14 @@ class Editor(View):
                 self.replace()
             elif c == cmSearchAgain:
                 self.doSearchReplace()
-            else:
-                if c not in {
+            elif c in {
                     cmCut, cmCopy, cmPaste, cmUndo, cmClear, cmCharLeft, cmCharRight, cmWordLeft, cmWordRight,
                     cmLineStart, cmLineEnd, cmLineUp, cmLineDown, cmPageUp, cmPageDown, cmTextStart, cmTextEnd,
                     cmNewLine, cmBackSpace, cmDelChar, cmDelWord, cmDelStart, cmDelEnd, cmDelLine, cmInsMode,
                     cmStartSelect, cmHideSelect, cmIndentMode}:
-                    return
                 self._handleEditorCommand(c, centerCursor, selectMode)
+            else:
+                return
         elif what == evBroadcast:
             c = event.message.command
             if c == cmScrollBarChanged:
@@ -467,12 +467,14 @@ class Editor(View):
 
     def _handleKeyDownEvent(self, centerCursor, event):
         self.lock()
-        if self.overwrite and not self.hasSelection():
-            if self.curPtr != self.lineEnd(self.curPtr):
-                self.selEnd = self.nextChar(self.curPtr)
-        self.insertText(event.keyDown.charScan.charCode, 1, False)
-        self.trackCursor(centerCursor)
-        self.unlock()
+        try:
+            if self.overwrite and not self.hasSelection():
+                if self.curPtr != self.lineEnd(self.curPtr):
+                    self.selEnd = self.nextChar(self.curPtr)
+            self.insertText(event.keyDown.charScan.charCode, 1, False)
+            self.trackCursor(centerCursor)
+        finally:
+            self.unlock()
 
     def _handleMouseEvent(self, event, selectMode):
         if event.mouse.eventFlags & meDoubleClick:
@@ -480,27 +482,28 @@ class Editor(View):
         done = False
         while not done:
             self.lock()
+            try:
+                if event.what == evMouseAuto:
+                    mouse = self.makeLocal(event.mouse.where)
+                    d = Point(self.delta.x, self.delta.y)
 
-            if event.what == evMouseAuto:
-                mouse = self.makeLocal(event.mouse.where)
-                d = Point(self.delta.x, self.delta.y)
+                    if mouse.x < 0:
+                        d.x -= 1
+                    if mouse.x >= self.size.x:
+                        d.x += 1
 
-                if mouse.x < 0:
-                    d.x -= 1
-                if mouse.x >= self.size.x:
-                    d.x += 1
+                    if mouse.y < 0:
+                        d.y -= 1
 
-                if mouse.y < 0:
-                    d.y -= 1
+                    if mouse.y >= self.size.y:
+                        d.y += 1
 
-                if mouse.y >= self.size.y:
-                    d.y += 1
+                    self.scrollTo(d.x, d.y)
 
-                self.scrollTo(d.x, d.y)
-
-            self.setCurPtr(self.getMousePtr(event.mouse.where), selectMode)
-            selectMode |= smExtend
-            self.unlock()
+                self.setCurPtr(self.getMousePtr(event.mouse.where), selectMode)
+                selectMode |= smExtend
+            finally:
+                self.unlock()
 
             done = (not self.mouseEvent(event, evMouseMove + evMouseAuto))
 
@@ -914,42 +917,12 @@ class Editor(View):
         pos = linePtr  # Buffer
 
         while pos < self.curPtr and self.buffer[pos] != ord('\n') and i <= width:
-            if self.selStart <= pos < self.selEnd:
-                curColor = ((color & 0xFF00) >> 8) << DrawBuffer.CHAR_WIDTH
-            else:
-                curColor = (color & 0xFF) << DrawBuffer.CHAR_WIDTH
-            if self.buffer[pos] == 0x9:
-                _, r = divmod(i, 8)
-                for j in range(r):
-                    drawBuf[i + j] = 0x20 | curColor
-                    i += 1
-                    if i + j > width:
-                        break
-                pos += 1
-            else:
-                drawBuf[i] = curColor | self.buffer[pos]
-                pos += 1
-                i += 1
+            i, pos = self.__highlight(color, drawBuf, i, pos, width)
 
         if pos >= self.curPtr:
             pos += self.gapLen
             while (pos < self.bufSize) and self.buffer[pos] != ord('\n') and i <= width:
-                if self.selStart <= pos < self.selEnd:
-                    curColor = ((color & 0xFF00) >> 8) << DrawBuffer.CHAR_WIDTH
-                else:
-                    curColor = (color & 0xFF) << DrawBuffer.CHAR_WIDTH
-                if self.buffer[pos] == 0x9:
-                    _, r = divmod(i, 8)
-                    for j in range(r):
-                        drawBuf[i + j] = 0x20 | curColor
-                        i += 1
-                        if i + j > width:
-                            break
-                    pos += 1
-                else:
-                    drawBuf[i] = curColor | self.buffer[pos]
-                    pos += 1
-                    i += 1
+                i, pos = self.__highlight(color, drawBuf, i, pos, width)
 
         for j in range(i, width):
             if self.selStart <= pos < self.selEnd:
@@ -957,6 +930,25 @@ class Editor(View):
             else:
                 curColor = (color & 0xFF) << DrawBuffer.CHAR_WIDTH
             drawBuf[j] = 0x20 | curColor
+
+    def __highlight(self, color, drawBuf, i, pos, width):
+        if self.selStart <= pos < self.selEnd:
+            curColor = ((color & 0xFF00) >> 8) << DrawBuffer.CHAR_WIDTH
+        else:
+            curColor = (color & 0xFF) << DrawBuffer.CHAR_WIDTH
+        if self.buffer[pos] == 0x9:
+            _, r = divmod(i, 8)
+            for j in range(r):
+                drawBuf[i + j] = 0x20 | curColor
+                i += 1
+                if i + j > width:
+                    break
+            pos += 1
+        else:
+            drawBuf[i] = curColor | self.buffer[pos]
+            pos += 1
+            i += 1
+        return i, pos
 
     def nextChar(self, pos):
         if pos == self.bufLen:

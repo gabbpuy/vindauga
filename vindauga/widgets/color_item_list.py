@@ -6,7 +6,7 @@ from vindauga.constants.event_codes import evBroadcast
 from vindauga.misc.message import message
 from .list_viewer import ListViewer
 
-logger = logging.getLogger('vindauga.widgets.color_item_list')
+logger = logging.getLogger(__name__)
 
 
 class ColorItemList(ListViewer):

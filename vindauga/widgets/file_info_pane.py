@@ -63,3 +63,4 @@ class FileInfoPane(View):
         if event.what == evBroadcast and event.message.command == cmFileFocused:
             self.__fileBlock = event.message.infoPtr
             self.drawView()
+            self.clearEvent(event)

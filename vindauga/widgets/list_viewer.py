@@ -14,7 +14,7 @@ from vindauga.types.draw_buffer import DrawBuffer
 from vindauga.types.palette import Palette
 from vindauga.types.view import View
 
-logger = logging.getLogger('vindauga.widgets.list_viewer')
+logger = logging.getLogger(__name__)
 
 
 class ListViewer(View):
@@ -216,12 +216,15 @@ class ListViewer(View):
                 if (event.message.command == cmScrollBarClicked and
                         (event.message.infoPtr in {self.hScrollBar, self.vScrollBar})):
                     self.focus()
+                    self.clearEvent(event)
                 elif event.message.command == cmScrollBarChanged:
                     if self.vScrollBar is event.message.infoPtr:
                         self.focusItemNum(self.vScrollBar.value)
                         self.drawView()
+                        self.clearEvent(event)
                     elif self.hScrollBar is event.message.infoPtr:
                         self.drawView()
+                        self.clearEvent(event)
         return
 
     def selectItem(self, item):

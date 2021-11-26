@@ -6,7 +6,7 @@ from typing import Iterable
 from .list_viewer import ListViewer
 
 
-logger = logging.getLogger('vindauga.widgets.list_box')
+logger = logging.getLogger(__name__)
 
 
 @dataclass

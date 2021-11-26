@@ -9,7 +9,7 @@ from vindauga.constants.state_flags import sfModal
 from vindauga.types.palette import Palette
 from .window import Window
 
-logger = logging.getLogger('vindauga.widgets.dialog')
+logger = logging.getLogger(__name__)
 
 dpBlueDialog = 0
 dpCyanDialog = 1
@@ -42,6 +42,12 @@ class Dialog(Window):
         self.growMode = 0
         self.flags = wfMove | wfClose
         self.palette = dpGrayDialog
+
+    def __enter__(self):
+        yield self
+
+    def __exit__(self, exc_type, exc_val, exc_tb):
+        self.destroy(self)
 
     def getPalette(self):
         return self._palettes[self.palette]

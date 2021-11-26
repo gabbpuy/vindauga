@@ -7,7 +7,7 @@ from vindauga.constants.grow_flags import gfGrowHiX, gfGrowHiY
 from vindauga.types.palette import Palette
 from vindauga.widgets.list_viewer import ListViewer
 
-logger = logging.getLogger('vindauga.widgets.message_list_viewer')
+logger = logging.getLogger(__name__)
 
 
 class MessageListViewer(ListViewer):

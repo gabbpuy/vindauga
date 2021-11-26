@@ -19,7 +19,7 @@ if not PLATFORM_WINDOWS:
 else:
     from .windows_shell import WindowsShell
 
-logger = logging.getLogger('vindauga.terminal.terminal')
+logger = logging.getLogger(__name__)
 
 
 @dataclass

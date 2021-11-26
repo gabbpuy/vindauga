@@ -18,7 +18,7 @@ from .point import Point
 from .screen import Screen
 from .view import View
 
-logger = logging.getLogger('vindauga.types.group')
+logger = logging.getLogger(__name__)
 
 
 @dataclass

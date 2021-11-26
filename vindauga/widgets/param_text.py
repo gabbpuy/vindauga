@@ -2,7 +2,7 @@
 import logging
 from .static_text import StaticText
 
-logger = logging.getLogger('vindauga.widgets.param_text')
+logger = logging.getLogger(__name__)
 
 
 class ParamText(StaticText):

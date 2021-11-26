@@ -1,4 +1,7 @@
 # -*- coding: utf-8 -*-
+from dataclasses import dataclass
+from typing import Any, Optional
+
 from vindauga.constants.event_codes import evKeyDown
 from vindauga.constants.keys import kbTab
 from vindauga.types.palette import Palette
@@ -7,9 +10,9 @@ from vindauga.types.records.data_record import DataRecord
 from .editor import Editor
 
 
+@dataclass
 class MemoData:
-    def __init__(self, buffer):
-        self.buffer = buffer
+    buffer: str = ''
 
     @property
     def length(self):

@@ -16,7 +16,7 @@ from vindauga.types.palette import Palette
 from vindauga.types.rect import Rect
 from vindauga.types.view import View
 
-logger = logging.getLogger('vindauga.widgets.scroll_bar')
+logger = logging.getLogger(__name__)
 
 
 class ScrollBar(View):

@@ -18,7 +18,7 @@ import win32security
 
 from vindauga.constants.message_flags import mfError, mfOKButton
 from vindauga.dialogs.message_box import messageBox
-logger = logging.getLogger('vindauga.terminal.windows_shell')
+logger = logging.getLogger(__name__)
 
 
 @dataclass

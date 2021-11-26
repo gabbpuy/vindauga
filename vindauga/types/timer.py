@@ -2,7 +2,7 @@
 import logging
 from threading import Timer as _Timer, RLock
 
-logger = logging.getLogger('vindauga.types.timer')
+logger = logging.getLogger(__name__)
 
 
 class Timer:

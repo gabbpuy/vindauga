@@ -7,7 +7,7 @@ from vindauga.constants.keys import kbEnter
 from vindauga.misc.message import message
 from .grid_view import GridView, cmListItemSelected
 
-logger = logging.getLogger('vindauga.widgets.grid_view_box')
+logger = logging.getLogger(__name__)
 cmListKeyEnter = 59
 
 

@@ -3,7 +3,7 @@ import logging
 from collections import defaultdict
 
 
-logger = logging.getLogger('vindauga.history_support.history_utils')
+logger = logging.getLogger(__name__)
 
 histories = defaultdict(list)
 

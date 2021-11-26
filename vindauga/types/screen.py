@@ -44,7 +44,7 @@ else:
 
     HAS_IOCTL = 'TIOCLINUX' in dir(termios)
 
-logger = logging.getLogger('vindauga.types.screen')
+logger = logging.getLogger(__name__)
 
 BUTTON_PRESSED = (curses.BUTTON1_PRESSED |
                   curses.BUTTON2_PRESSED |

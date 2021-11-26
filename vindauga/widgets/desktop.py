@@ -12,7 +12,7 @@ from vindauga.types.rect import Rect
 
 from .background import Background
 
-logger = logging.getLogger('vindauga.widgets.desktop')
+logger = logging.getLogger(__name__)
 
 
 class Desktop(Group):

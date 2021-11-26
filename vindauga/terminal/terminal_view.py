@@ -16,7 +16,7 @@ from vindauga.types.view import View
 
 from .terminal import Terminal, STATE_CURSOR_INVIS, STATE_TITLE_CHANGED, STATE_MOUSE
 
-logger = logging.getLogger('vindauga.terminal.window_terminal')
+logger = logging.getLogger(__name__)
 
 
 class TerminalView(View):

@@ -2,7 +2,7 @@
 import gettext
 import logging
 
-logger = logging.getLogger('vindauga.types.vindauga_object')
+logger = logging.getLogger(__name__)
 
 gettext.install('vindauga')
 
@@ -18,7 +18,6 @@ class VindaugaObject:
             VindaugaObject._registry[cls.name] = cls
         except AttributeError:
             logger.info('A class has no name: %s', cls)
-            pass
 
     def destroy(self, o):
         if o:

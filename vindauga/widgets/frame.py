@@ -16,7 +16,7 @@ from vindauga.types.point import Point
 from vindauga.types.view import View
 from vindauga.widgets.scroll_group import ScrollGroup
 
-logger = logging.getLogger('vindauga.widgets.frame')
+logger = logging.getLogger(__name__)
 
 
 class Frame(View):
@@ -158,10 +158,12 @@ class Frame(View):
                     else:
                         if self.owner.flags & wfMove:
                             self.__dragWindow(event, dmDragMove)
+                            self.clearEvent(event)
             else:
                 if ((mouse.x >= self.size.x - 2 and mouse.y >= self.size.y - 1 and self.state & sfActive) and
                         self.owner.flags & wfGrow):
                     self.__dragWindow(event, dmDragGrow)
+                    self.clearEvent(event)
 
     def setState(self, state, enable):
         """

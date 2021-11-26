@@ -37,7 +37,7 @@ class GridHeadingView(GridView):
             super().handleEvent(event)
             return
 
-        newColumn = oldColumn = -1
+        newColumn = -1
 
         if event.what == evMouseDown and event.mouse.eventFlags & meDoubleClick:
             mouse = self.makeLocal(event.mouse.where)

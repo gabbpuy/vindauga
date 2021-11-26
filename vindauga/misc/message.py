@@ -4,7 +4,7 @@ import logging
 from vindauga.constants.event_codes import evNothing
 from vindauga.events.event import Event
 
-logger = logging.getLogger('vindauga.misc.message')
+logger = logging.getLogger(__name__)
 
 
 def message(receiver, what, command, infoPtr):

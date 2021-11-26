@@ -8,8 +8,8 @@ from vindauga.constants.command_codes import (cmClose, cmNext, cmPrev, cmZoom, c
                                               )
 from vindauga.constants.drag_flags import dmDragMove, dmDragGrow, dmLimitLoX, dmLimitLoY, dmLimitHiX, dmLimitHiY
 from vindauga.constants.grow_flags import gfGrowLoX, gfGrowLoY, gfGrowHiX, gfGrowHiY, gfGrowRel, gfFixed
-from vindauga.constants.event_codes import evMouseDown, evKeyDown, evMouseMove, evNothing, evBroadcast, evMouseUp, \
-    evCommand
+from vindauga.constants.event_codes import (evMouseDown, evKeyDown, evMouseMove, evNothing, evBroadcast, evMouseUp,
+                                            evCommand)
 from vindauga.constants.keys import (kbLeft, kbRight, kbUp, kbDown, kbCtrlLeft, kbCtrlRight, kbShift, kbHome, kbEnd,
                                      kbPgUp, kbPgDn, kbEsc, kbEnter)
 from vindauga.constants.option_flags import ofSelectable, ofTopSelect, ofFirstClick, ofValidate
@@ -26,7 +26,7 @@ from .rect import Rect
 from .screen import Screen
 from .vindauga_object import VindaugaObject
 
-logger = logging.getLogger('vindauga.types.view')
+logger = logging.getLogger(__name__)
 
 SHADOW_SIZE = Point(2, 1)
 SHADOW_ATTR = 0x08
@@ -537,8 +537,7 @@ class View(VindaugaObject):
         You should call `drawView()` (not `draw()`) whenever you need to redraw a
         view after making a change that affects its visual appearance.
         """
-        exposed = self.exposed()
-        if exposed:
+        if self.exposed():
             self.draw()
             self.drawCursor()
 

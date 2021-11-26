@@ -9,15 +9,25 @@ class TestDrawBuffer(TestCase):
     Test Draw Buffer
     """
 
-    def test_moveBuf(self):
+    def test_moveBuf_no_attr(self):
         """
         Test Move Buf
         """
-        b = DrawBuffer()
+        b = DrawBuffer(True)
         b.moveBuf(0, 'abcdefghijk', 0, 5)
-        data = list(b._data[:10])
+        data = b[:10].tolist()
         result = [ord(c) for c in 'abcde\0\0\0\0\0']
-        assert data == result, ("_data is", data, "vs", result)
+        assert data == result, ("_data is", data, "vs", result, len(b))
+
+    def test_moveBuf_with_attr(self):
+        """
+        Test Move Buf
+        """
+        b = DrawBuffer(True)
+        b.moveBuf(0, 'abcdefghijk', 0xFF, 5)
+        data = b[:10].tolist()
+        result = [0xFF0000 | ord(c) for c in 'abcde'] + [0x00] * 5
+        assert data == result, ("_data is", data, "vs", result, len(b))
 
     def test_moveChar(self):
         self.fail()

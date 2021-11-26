@@ -12,7 +12,7 @@ from vindauga.widgets.program import getDesktopSize, execView
 
 from .message_box import MsgBoxText
 
-logger = logging.getLogger('vindauga.widgets.input_box')
+logger = logging.getLogger(__name__)
 
 
 def inputBoxRect(bounds, title, aLabel, s, limit):

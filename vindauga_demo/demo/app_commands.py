@@ -25,4 +25,3 @@ class AppCommands(IntEnum):
     cmTest132x50 = auto()
     cmTest132x60 = auto()
     cmTest160x60 = auto()
-

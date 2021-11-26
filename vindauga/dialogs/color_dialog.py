@@ -18,7 +18,7 @@ from vindauga.widgets.label import Label
 from vindauga.widgets.mono_selector import MonoSelector
 from vindauga.widgets.scroll_bar import ScrollBar
 
-logger = logging.getLogger('vindauga.dialogs.color_dialog')
+logger = logging.getLogger(__name__)
 
 
 class ColorIndex:

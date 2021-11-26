@@ -15,7 +15,7 @@ from vindauga.types.point import Point
 from vindauga.types.rect import Rect
 from vindauga.types.view import View
 
-logger = logging.getLogger('vindauga.menus.menu_view')
+logger = logging.getLogger(__name__)
 
 
 class MenuAction(Enum):
