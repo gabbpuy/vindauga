@@ -7,6 +7,7 @@ from vindauga.constants.keys import kbShiftTab, kbTab, kbBackSpace, kbEnter, kbE
 from vindauga.types.records.data_record import DataRecord
 
 from .input_line import InputLine
+from ..constants.validation_constants import vtGetData
 
 
 class NumericInputType(Enum):
@@ -16,8 +17,8 @@ class NumericInputType(Enum):
 
 
 class NumericInputLine(InputLine):
-    def __init__(self, bounds, maxLen, inputType: NumericInputType):
-        super().__init__(bounds, maxLen)
+    def __init__(self, bounds, maxLen, inputType: NumericInputType, validator=None):
+        super().__init__(bounds, maxLen, validator=validator)
         self.inputType = inputType
 
     def handleEvent(self, event):
@@ -94,4 +95,7 @@ class NumericInputLine(InputLine):
         return int(s)
 
     def getData(self):
-        return DataRecord(value=self._toNumber())
+        rec = DataRecord()
+        if not self.validator or (self.validator.transfer(''.join(self.current.data), rec, vtGetData) == 0):
+            rec.value = self._toNumber()
+        return rec

@@ -47,8 +47,8 @@ class ColorDisplay(View):
                 elif event.message.command == cmColorForegroundChanged:
                     self._color = (self._color & 0xF0) | (event.message.infoPtr & 0x0F)
                 message(self.owner, evBroadcast, cmSetColorIndex, self._color)
-            self.drawView()
-            self.clearEvent(event)
+                self.drawView()
+                self.clearEvent(event)
 
     def setColor(self, color):
         """
