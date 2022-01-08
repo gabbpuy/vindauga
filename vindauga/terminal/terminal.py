@@ -297,12 +297,6 @@ class Terminal:
             columns[i] = Texel()
             self._resetCell(columns[i])
 
-        #for i in range(self.currCol, self.cols):
-        #    if i + n < self.cols:
-        #        columns[i] = copy.deepcopy(columns[i + n])
-        #    else:
-        #        self._resetCell(columns[i])
-
     def do_DECSTBM(self):
         """
         Start Scroll Region

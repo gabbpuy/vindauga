@@ -12,6 +12,7 @@ import select
 import struct
 import subprocess
 import sys
+import threading
 
 from vindauga.constants.command_codes import cmSysRepaint, cmSysResize, cmSysWakeup
 from vindauga.constants.event_codes import (mbLeftButton, mbRightButton, evMouseDown, evMouseUp, meDoubleClick,
@@ -134,6 +135,7 @@ class TScreen:
 
         self.selectPalette()
         self.lockRefresh = 0
+        self.__draw_lock = threading.Lock()
 
     @staticmethod
     def evLength():
@@ -514,22 +516,23 @@ class TScreen:
         stdscr.refresh()
 
     def writeRow(self, x, y, src, rowLen):
-        stdscr = self.stdscr
-        stdscr.move(y, x)
-        attributeMap = self.attributeMap
-        attrset = stdscr.attrset
-        addch = stdscr.addch
-        for sc in itertools.islice(src, rowLen):
-            code = chr(sc & 0xFFFF)
-            color = ((sc & 0xFF0000) >> 16) & 0xFF
-            attrset(attributeMap[color])
-            try:
-                addch(code)
-            except curses.error as e:
-                # Writing to the bottom right corner throws an error after it is drawn
-                pass
+        with self.__draw_lock:
+            stdscr = self.stdscr
+            stdscr.move(y, x)
+            attributeMap = self.attributeMap
+            attrset = stdscr.attrset
+            addch = stdscr.addch
+            for sc in itertools.islice(src, rowLen):
+                code = chr(sc & 0xFFFF)
+                color = ((sc & 0xFF0000) >> 16) & 0xFF
+                attrset(attributeMap[color])
+                try:
+                    addch(code)
+                except curses.error as e:
+                    # Writing to the bottom right corner throws an error after it is drawn
+                    pass
 
-        stdscr.move(self.curY, self.curX)
+            stdscr.move(self.curY, self.curX)
 
     def _setScreenSize(self):
         self.screenHeight, self.screenWidth = self.stdscr.getmaxyx()
