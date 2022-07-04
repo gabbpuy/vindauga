@@ -438,7 +438,7 @@ class TScreen:
             self._setScreenSize()
             event.message.command = cmSysResize
             event.what = evCommand
-        elif TScreen.evLength() > 0:
+        elif not TScreen.evQueue.empty():
             event.setFrom(TScreen.evQueue.get())
         elif msAutoTimer.isExpired():
             msAutoTimer.start(DELAY_AUTOCLICK_NEXT)

@@ -2,6 +2,7 @@
 from gettext import gettext as _
 import logging
 import queue
+from queue import  Empty as QueueEmptyException
 
 from vindauga.constants.command_codes import (cmReleasedFocus, cmCancel, cmSysRepaint, cmSysResize, cmSysWakeup,
                                               cmSelectWindowNum, cmQuit, cmCommandSetChanged, cmMenu, cmClose, cmZoom,
@@ -180,9 +181,9 @@ class Program(Group):
 
         :param event: Event object to be modified
         """
-        if Program.pending.qsize():
-            event.setFrom(Program.pending.get())
-        else:
+        try:
+            event.setFrom(Program.pending.get_nowait())
+        except QueueEmptyException:
             Screen.getEvent(event)
             if event.what == evCommand:
                 c = event.message.command

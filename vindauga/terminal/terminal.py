@@ -168,7 +168,7 @@ class Terminal:
         return 0
 
     def startCSI(self):
-        logger.info('startCSI() -> %s', self.escBuf)
+        # logger.info('startCSI() -> %s', self.escBuf)
         verb = self.escBuf[-1]
         self.csiParam = []
 
@@ -286,7 +286,7 @@ class Terminal:
         """
         Delete Chars
         """
-        logger.info('do_DCH()')
+        # logger.info('do_DCH()')
         n = self.getNumber()
 
         columns = self.cells[self.currRow]
@@ -388,7 +388,7 @@ class Terminal:
         """
         Erase Line
         """
-        logger.info('do_EL() -> %s', self.csiParam)
+        # logger.info('do_EL() -> %s', self.csiParam)
         cmd = 0
         if self.csiParam:
             cmd = self.csiParam[0]
@@ -457,7 +457,7 @@ class Terminal:
         """
         Set Graphics
         """
-        logger.info('do_SGR() -> %s', self.csiParam)
+        # logger.info('do_SGR() -> %s', self.csiParam)
         if not self.csiParam:
             # Reset
             self.currAttr = curses.A_NORMAL
@@ -549,7 +549,7 @@ class Terminal:
         """
         Reset Mode
         """
-        logger.info('do_DEC_RM() -> %s', self.csiParam)
+        # logger.info('do_DEC_RM() -> %s', self.csiParam)
         if not self.csiParam:
             return
         for param in self.csiParam:
@@ -562,7 +562,7 @@ class Terminal:
         """
         Set Mode
         """
-        logger.info('do_DEC_SM() %s', self.csiParam)
+        # logger.info('do_DEC_SM() %s', self.csiParam)
         if not self.csiParam:
             return
 
@@ -794,7 +794,6 @@ class Terminal:
         self.eraseRow(self.scrollMin)
 
     def write(self, keyCode):
-        logger.info('write(%s)', keyCode)
         keyTrans = {
             '\n': b'\r',
             curses.KEY_UP: b'\x1B[A',
@@ -881,7 +880,9 @@ class Terminal:
 
     if not PLATFORM_WINDOWS:
         def writePipe(self, keyCode):
-            os.write(self.__ptyFd, bytes(keyCode, encoding='utf-8'))
+            if not isinstance(keyCode, bytes):
+                keyCode = bytes(keyCode, encoding='utf-8')
+            os.write(self.__ptyFd, keyCode)
     else:
         def writePipe(self, keyCode):
             if keyCode == '\r':
