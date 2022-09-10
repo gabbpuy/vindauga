@@ -315,7 +315,7 @@ class Editor(View):
         color = self.getColor(0x0201)
 
         for line in range(y, y + count):
-            b = DrawBuffer()
+            b = DrawBuffer(True)
             self.formatLine(b, linePtr, self.delta.x + self.size.x, color)
             self.writeBuf(0, line, self.size.x, 1, b[self.delta.x:])
             linePtr = self.nextLine(linePtr)
@@ -518,8 +518,7 @@ class Editor(View):
         self.buffer = BufferArray()
 
     def countLines(self, start, count):
-        lines = sum(1 for c in itertools.islice(self.buffer, start, start + count) if c == ord('\n'))
-        return lines
+        return self.buffer[start:count].count('\n') + 1
 
     @staticmethod
     def scan(buffer, size, pattern):
@@ -936,7 +935,8 @@ class Editor(View):
             curColor = ((color & 0xFF00) >> 8) << DrawBuffer.CHAR_WIDTH
         else:
             curColor = (color & 0xFF) << DrawBuffer.CHAR_WIDTH
-        if self.buffer[pos] == 0x9:
+        if self.buffer[pos] == ord('\t'):
+            # TODO - set tab stop somewhere
             _, r = divmod(i, 8)
             for j in range(r):
                 drawBuf[i + j] = 0x20 | curColor
@@ -945,7 +945,7 @@ class Editor(View):
                     break
             pos += 1
         else:
-            drawBuf[i] = curColor | self.buffer[pos]
+            drawBuf[i] = curColor | ord(self.buffer[pos])
             pos += 1
             i += 1
         return i, pos

@@ -350,7 +350,7 @@ class TScreen:
         modifiers = 0
         if PLATFORM_IS_WINDOWS:
             # Handle ALT+ keys in DOS window
-            if (code & 0x120) == 0x120:
+            if (code & 0x120) == 0x120 and code >= 0x160:
                 code = chr(code - 0x160)
                 keyType = TALT
                 modifiers = 0

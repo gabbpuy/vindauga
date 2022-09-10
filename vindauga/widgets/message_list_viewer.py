@@ -24,6 +24,7 @@ class MessageListViewer(ListViewer):
     def getText(self, item, maxLen):
         if self.items:
             return self.items[item][:maxLen]
+        return super().getText(item, maxLen)
 
     def getPalette(self):
         return Palette(self.cpMsgList)

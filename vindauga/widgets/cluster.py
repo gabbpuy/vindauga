@@ -24,11 +24,10 @@ class Cluster(View):
         super().__init__(bounds)
         self._value = 0
         self._sel = 0
-        self._strings = []
+        self._strings = strings[:]
         self._enableMask = 0xFFFFFFFF
 
         self.options |= ofSelectable | ofFirstClick | ofPreProcess | ofPostProcess
-        self._strings = strings[:]
         self.setCursor(2, 0)
         self.showCursor()
 

@@ -250,7 +250,10 @@ class Group(View):
         return None
 
     def indexOf(self, view):
-        return self.children.index(view)
+        try:
+            return self.children.index(view)
+        except ValueError:
+            return -1
 
     def setState(self, state, enable):
         sb = SetBlock()

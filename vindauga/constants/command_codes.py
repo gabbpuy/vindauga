@@ -56,6 +56,13 @@ cmSelectWindowNum = 55
 
 #  ListViewer messages
 cmListItemSelected = 56
+cmListItemFocused = 61
+cmGrabDefault = 62
+cmReleaseDefault = 63
+
+cmClosingWindow = 57
+cmClusterMovedTo = 58
+cmClusterPress = 59
 
 ## View Help context codes
 

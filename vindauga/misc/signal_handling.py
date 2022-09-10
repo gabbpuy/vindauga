@@ -23,28 +23,25 @@ def sigWinchHandler():
 def signalHandler(signo, _frame):
     from vindauga.types.screen import Screen
 
-    signals = [SIGINT, SIGQUIT]
     if PLATFORM_IS_WINDOWS:
-        signals = [SIGINT, SIGQUIT, SIGBREAK]
+        signals = [SIGINT, SIGBREAK]
+    else:
+        signals = [SIGINT, SIGQUIT]
 
-    if signo == SIGCONT:
+
+    if (not PLATFORM_IS_WINDOWS) and signo == SIGCONT:
         Screen.resume()
         signal(SIGTSTP, signalHandler)
         return
-
     elif signo in signals:
-        signal(SIGINT, SIG_IGN)
-        signal(SIGQUIT, SIG_IGN)
-        if PLATFORM_IS_WINDOWS:
-            signal(SIGBREAK, SIG_IGN)
+        for ignored in signals:
+            signal(ignored, SIG_IGN)
         if confirmExit(Screen.stdscr):
             # logger.info(inspect.getframeinfo(_frame))
             logger.info(inspect.stack())
-            sys.exit(1)
-        signal(SIGINT, signalHandler)
-        signal(SIGQUIT, signalHandler)
-        if PLATFORM_IS_WINDOWS:
-            signal(SIGBREAK, signalHandler)
+            exit(1)
+        for ignored in signals:
+            signal(ignored, signalHandler)
         Screen.doRepaint += 1  # refresh..
         return
     elif signo == SIGTSTP:
