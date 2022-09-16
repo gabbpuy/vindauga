@@ -1,16 +1,24 @@
 # -*- coding: utf-8 -*-
+import logging
+from typing import Optional
+
 from vindauga.constants.command_codes import cmCancel, cmValid
 from vindauga.constants.event_codes import evMouseDown, evMouseAuto, meDoubleClick, evMouseMove, evKeyDown
-from vindauga.constants.keys import kbShift, kbLeft, kbRight, kbHome, kbEnd, kbBackSpace, kbDel, kbIns, kbCtrlY
+from vindauga.constants.keys import (kbShift, kbLeft, kbRight, kbHome, kbEnd, kbBackSpace, kbDel, kbIns, kbCtrlY,
+                                     kbEnter, kbTab, kbShiftHome, kbShiftLeft, kbShiftRight, kbShiftEnd)
 from vindauga.constants.option_flags import ofSelectable, ofFirstClick
 from vindauga.constants.state_flags import sfCursorVis, sfCursorIns, sfActive, sfSelected, sfFocused
 from vindauga.constants.validation_constants import vtDataSize, vtGetData, vtSetData, vsOK
+from vindauga.events.event import Event
 from vindauga.misc.util import ctrlToArrow
 from vindauga.types.draw_buffer import DrawBuffer
 from vindauga.types.palette import Palette
 from vindauga.types.records.data_record import DataRecord
+from vindauga.types.rect import Rect
 from vindauga.types.view import View
+from vindauga.types.validation.validator import Validator
 
+logger = logging.getLogger(__name__)
 
 class State:
     def __init__(self):
@@ -55,6 +63,9 @@ class State:
         self.firstPos = max(0, self.pos - size.x + 2)
         self.anchor = 0
 
+    def __repr__(self):
+        return f'State: p: {self.pos}, 1: {self.firstPos}, s: {self.selStart}, e: {self.selEnd}, a: {self.anchor} d:{len(self.data)}'
+
 
 class InputLine(View):
     rightArrow = '►'
@@ -62,7 +73,7 @@ class InputLine(View):
     cpInputLine = '\x13\x13\x14\x15'
     name = 'InputLine'
 
-    def __init__(self, bounds, maxLen, validator=None):
+    def __init__(self, bounds: Rect, maxLen: int, validator: Optional[Validator] = None):
         super().__init__(bounds)
 
         self.maxLen = maxLen - 1
@@ -74,8 +85,11 @@ class InputLine(View):
         self.state |= sfCursorVis
         self.options |= ofSelectable | ofFirstClick
 
-    def consumesData(self):
+    def consumesData(self) -> bool:
         return True
+
+    def dataSize(self) -> int:
+        return self.maxLen
 
     def draw(self):
         b = DrawBuffer()
@@ -93,11 +107,10 @@ class InputLine(View):
 
         if self.__canScroll(1):
             b.moveChar(self.size.x - 1, self.rightArrow, self.getColor(4), 1)
+        if self.__canScroll(-1):
+            b.moveChar(0, self.leftArrow, self.getColor(4), 1)
 
         if self.state & sfSelected:
-            if self.__canScroll(-1):
-                b.moveChar(0, self.leftArrow, self.getColor(4), 1)
-
             left = self.current.selStart - self.current.firstPos
             right = self.current.selEnd - self.current.firstPos
 
@@ -109,21 +122,22 @@ class InputLine(View):
         self.writeLine(0, 0, self.size.x, self.size.y, b)
         self.setCursor(self.current.pos - self.current.firstPos + 1, 0)
 
-    def getData(self):
+    def getData(self) -> DataRecord:
         rec = DataRecord()
         if not self.validator or (self.validator.transfer(''.join(self.current.data), rec, vtGetData) == 0):
             rec.value = ''.join(self.current.data)
         return rec
 
-    def getDataString(self):
+    def getDataString(self) -> str:
         return ''.join(self.current.data)
 
-    def getPalette(self):
+    def getPalette(self) -> Palette:
         palette = Palette(self.cpInputLine)
         return palette
 
-    def handleEvent(self, event):
-        padKeys = {0x47, 0x4b, 0x4d, 0x4f, 0x73, 0x74}
+    def handleEvent(self, event: Event):
+        # Scancodes for numpad keys...
+        numpad_keys = {kbShiftLeft, kbShiftRight, kbShiftHome, kbShiftEnd}
         super().handleEvent(event)
 
         if self.state & sfSelected:
@@ -156,12 +170,7 @@ class InputLine(View):
                 self.__saveState()
                 oldKeyCode = event.keyDown.keyCode
                 event.keyDown.keyCode = ctrlToArrow(event.keyDown.keyCode)
-
-                # scanCode must be non-zero
-                if (event.keyDown.charScan.scanCode and
-                        event.keyDown.charScan.scanCode in padKeys and
-                        event.keyDown.controlKeyState & kbShift):
-                    event.keyDown.charScan.charCode = '\x00'
+                if event.keyDown.keyCode in numpad_keys:
                     if self.current.anchor < 0:
                         self.current.anchor = self.current.pos
                 else:
@@ -169,70 +178,71 @@ class InputLine(View):
 
                 kc = event.keyDown.keyCode
 
-                if kc == kbLeft:
+                if kc in (kbLeft, kbShiftLeft):
                     if self.current.pos > 0:
                         self.current.pos -= 1
-                elif kc == kbRight:
+                elif kc in (kbRight, kbShiftRight):
                     if self.current.pos < len(self.current.data):
                         self.current.pos += 1
-
-                elif kc == kbHome:
+                elif kc in (kbHome, kbShiftHome):
                     self.current.pos = 0
-
-                elif kc == kbEnd:
+                elif kc in (kbEnd, kbShiftEnd):
                     self.current.pos = len(self.current.data)
-
                 elif kc == kbBackSpace:
                     if self.current.pos > 0:
                         del self.current.data[self.current.pos - 1]
                         self.current.pos -= 1
                         if self.current.firstPos > 0:
                             self.current.firstPos -= 1
-
-                        self.__checkValid(True)
                 elif kc == kbDel:
                     if self.current.selStart == self.current.selEnd:
                         if self.current.pos < len(self.current.data):
                             self.current.selStart = self.current.pos
                             self.current.selEnd = self.current.pos + 1
                         self.__deleteSelect()
-                        self.__checkValid(True)
                 elif kc == kbIns:
                     self.setState(sfCursorIns, not (self.state & sfCursorIns))
+                elif kc == kbCtrlY:
+                    self.current.data = []
+                    self.current.pos = 0
+                elif kc in (kbEnter, kbTab):
+                    return
                 else:
                     if event.keyDown.charScan.charCode >= ' ':
-                        self.__deleteSelect()
-                        if self.state & sfCursorIns:
-                            if self.current.pos < len(self.current.data):
-                                del self.current.data[self.current.pos]
-                        if self.__checkValid(True):
-                            if len(self.current.data) < self.maxLen:
-                                if self.current.firstPos > self.current.pos:
-                                    self.current.firstPos = self.current.pos
-                                self.current.data.insert(self.current.pos, event.keyDown.charScan.charCode)
-                                self.current.pos += 1
-                            self.__checkValid(False)
-                    elif event.keyDown.charScan.charCode == kbCtrlY:
-                        self.current.data = []
-                        self.current.pos = 0
+                        if not self.insertChar(event.keyDown.charScan.charCode):
+                            self.clearEvent(event)
                     else:
                         event.keyDown.keyCode = oldKeyCode
                         return
 
                 self.__adjustSelectBlock()
-
-                if self.current.firstPos > self.current.pos:
-                    self.current.firstPos = self.current.pos
-
-                i = self.current.pos - self.size.x + 2
-
-                if self.current.firstPos < i:
-                    self.current.firstPos = i
-
-                self.drawView()
+                self.makeVisible()
                 self.clearEvent(event)
 
-    def selectAll(self, enable):
+    def insertChar(self, value: str) -> bool:
+        if self.validator:
+            if not self.validator.isValidInput(value, False):
+                return False
+        if not self.state & sfCursorIns:
+            self.__deleteSelect()
+        length = len(self.current.data)
+        if ((not self.state & sfCursorIns and length < self.maxLen) or
+                (self.state & sfCursorIns and self.current.pos < self.maxLen)):
+            if self.current.firstPos > self.current.pos:
+                self.current.firstPos = self.current.pos
+            self.current.data.insert(self.current.pos, value)
+            self.current.pos += 1
+        return True
+
+    def makeVisible(self):
+        if self.current.firstPos > self.current.pos:
+            self.current.firstPos = self.current.pos
+        i = self.current.pos - self.size.x - 2
+        if self.current.firstPos < i:
+            self.current.firstPos = i
+        self.drawView()
+
+    def selectAll(self, enable: bool):
         self.current.selectAll(enable, self.size)
         self.drawView()
 
@@ -245,12 +255,12 @@ class InputLine(View):
 
         self.selectAll(True)
 
-    def setState(self, state, enable):
+    def setState(self, state: int, enable: bool):
         super().setState(state, enable)
         if state == sfSelected or (state == sfActive and (self.state & sfSelected)):
             self.selectAll(enable)
 
-    def setValidator(self, validator):
+    def setValidator(self, validator: Validator):
         self.validator = validator
 
     def valid(self, command):
@@ -263,7 +273,7 @@ class InputLine(View):
                     return False
         return True
 
-    def __canScroll(self, delta):
+    def __canScroll(self, delta: int) -> bool:
         if delta < 0:
             return self.current.firstPos > 0
 
@@ -271,7 +281,7 @@ class InputLine(View):
             return (len(self.current.data) - self.current.firstPos + 2) > self.size.x
         return False
 
-    def __mouseDelta(self, event):
+    def __mouseDelta(self, event: Event) -> int:
         mouse = self.makeLocal(event.mouse.where)
 
         if mouse.x <= 0:
@@ -281,7 +291,7 @@ class InputLine(View):
             return 1
         return 0
 
-    def __mousePos(self, event):
+    def __mousePos(self, event: Event) -> int:
         mouse = self.makeLocal(event.mouse.where)
 
         mouse.x = max(mouse.x, 1)
@@ -305,7 +315,7 @@ class InputLine(View):
         if self.validator:
             self.current.update(self.old)
 
-    def __checkValid(self, noAutoFill):
+    def __checkValid(self, noAutoFill) -> bool:
         if self.validator:
             oldLen = len(self.current.data)
             newData = self.current.data

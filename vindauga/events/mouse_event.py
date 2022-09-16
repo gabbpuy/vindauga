@@ -1,4 +1,5 @@
 # -*- coding: utf-8 -*-
+from copy import copy
 from dataclasses import dataclass, field
 
 from vindauga.types.point import Point
@@ -10,3 +11,9 @@ class MouseEvent:
     eventFlags: int = 0
     controlKeyState: int = 0
     buttons: int = 0
+
+    def copy(self, other: 'MouseEvent'):
+        self.where = copy(other.where)
+        self.eventFlags = other.eventFlags
+        self.controlKeyState = other.controlKeyState
+        self.buttons = other.buttons

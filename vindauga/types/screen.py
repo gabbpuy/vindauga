@@ -238,7 +238,7 @@ class TScreen:
                 event.mouse.buttons |= mbLeftButton
         else:
             event.mouse.buttons = buttons
-
+        EventQueue.mouse.copy(event.mouse)
         TScreen.putEvent(event)
 
     def handleMouse(self):
