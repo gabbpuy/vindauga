@@ -1,4 +1,5 @@
 # -*- coding: utf-8 -*-
+import itertools
 import logging
 import os
 import sys
@@ -375,7 +376,8 @@ class VindaugaDemo(Application):
             c.helpCtx = HelpContexts.hcOCColorsDBox
             c.setData(self.getPalette())
             if self.desktop.execView(c) != cmCancel:
-                self.setPalette(c.pal)
+                pal = c.getData()
+                self.setPalette(pal)
                 self.setScreenMode(Screen.screenMode)
         self.destroy(c)
 

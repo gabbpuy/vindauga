@@ -1,17 +1,25 @@
 # -*- coding: utf-8 -*-
+from enum import IntEnum
 import logging
 
 from vindauga.constants.colors import cmColorForegroundChanged, cmColorBackgroundChanged, cmColorSet
 from vindauga.constants.event_codes import evBroadcast, evMouseDown, evKeyDown, evMouseMove
 from vindauga.constants.keys import kbLeft, kbRight, kbDown, kbUp
 from vindauga.constants.option_flags import ofSelectable, ofFirstClick, ofFramed
+from vindauga.events.event import Event
 from vindauga.misc.cp437 import cp437ToUnicode
 from vindauga.misc.message import message
 from vindauga.misc.util import ctrlToArrow
 from vindauga.types.draw_buffer import DrawBuffer
+from vindauga.types.rect import Rect
 from vindauga.types.view import View
 
 logger = logging.getLogger(__name__)
+
+
+class ColorSel(IntEnum):
+    csBackground = 0
+    csForeground = 1
 
 
 class ColorSelector(View):
@@ -24,13 +32,11 @@ class ColorSelector(View):
 
     `ColorSelector` is a view for displaying the color selections available.
     """
-    csBackground = 0
-    csForeground = 1
     icon = '○'
     icon_reversed = '◙'
     name = 'ColorSelector'
 
-    def __init__(self, bounds, selectorType):
+    def __init__(self, bounds: Rect, selectorType: ColorSel):
         super().__init__(bounds)
         self.options |= (ofSelectable | ofFirstClick | ofFramed)
         self.eventMask |= evBroadcast
@@ -52,7 +58,7 @@ class ColorSelector(View):
 
             self.writeLine(0, y, self.size.x, 1, b)
 
-    def handleEvent(self, event):
+    def handleEvent(self, event: Event):
         """
         Handles mouse and key events: you can click on a given color indicator
         to select that color, or you can select colors by positioning the
@@ -83,16 +89,16 @@ class ColorSelector(View):
         """
         Send a message to indicate color has changed
         """
-        if self._selectorType == self.csForeground:
+        if self._selectorType == ColorSel.csForeground:
             msg = cmColorForegroundChanged
         else:
             msg = cmColorBackgroundChanged
 
         message(self.owner, evBroadcast, msg, self._color)
 
-    def __handleBroadcastEvent(self, event):
+    def __handleBroadcastEvent(self, event: Event):
         if event.message.command == cmColorSet:
-            if self._selectorType == self.csBackground:
+            if self._selectorType == ColorSel.csBackground:
                 self._color = event.message.infoPtr >> 4
             else:
                 self._color = event.message.infoPtr & 0x0f
@@ -124,7 +130,7 @@ class ColorSelector(View):
             else:
                 self._color -= maxCol - width
         else:
-            return False
+            return
         self.__colorChanged()
         self.drawView()
         return True
@@ -140,4 +146,6 @@ class ColorSelector(View):
             self.__colorChanged()
             self.drawView()
             mousing = self.mouseEvent(event, evMouseMove)
+        self.__colorChanged()
+        self.drawView()
         self.clearEvent(event)

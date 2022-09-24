@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-from typing import Union
+from typing import Union, List, Optional
 from .color_item import ColorItem
 
 
@@ -14,13 +14,13 @@ class ColorGroup:
     The `ColorGroup` class defines a list of `ColorItem` objects. Each member
     of a color group consists of a set of color names and their associated color codes.
     """
-    def __init__(self, name: object):
-        self.items = []
-        self.groups = [self]
+    def __init__(self, name: str):
+        self.items: List[ColorItem] = []
+        self.groups: List[ColorGroup] = [self]
         self.name = name
         self.index = 0
 
-    def __add__(self, other: Union['ColorGroup', ColorItem]):
+    def __add__(self, other: Union['ColorGroup', ColorItem]) -> Optional[Union['ColorGroup', ColorItem]]:
         if isinstance(other, ColorGroup):
             return self.__addColorGroup(other)
         elif isinstance(other, ColorItem):
@@ -29,10 +29,13 @@ class ColorGroup:
 
     add = __add__
 
-    def __addColorGroup(self, other: 'ColorGroup'):
+    def __addColorGroup(self, other: 'ColorGroup') -> 'ColorGroup':
         self.groups.append(other)
         return self
 
-    def __addColorItem(self, other: ColorItem):
+    def __addColorItem(self, other: ColorItem) -> 'ColorGroup':
         self.groups[-1].items.append(other)
         return self
+
+    def __len__(self) -> int:
+        return len(self.groups)

@@ -1,10 +1,15 @@
 # -*- coding: utf-8 -*-
 import logging
+from typing import List
 
 from vindauga.constants.colors import cmSaveColorIndex, cmNewColorIndex, cmNewColorItem
 from vindauga.constants.event_codes import evBroadcast
 from vindauga.misc.message import message
 from .list_viewer import ListViewer
+from .scroll_bar import ScrollBar
+from ..events.event import Event
+from ..types.color_item import ColorItem
+from ..types.rect import Rect
 
 logger = logging.getLogger(__name__)
 
@@ -29,14 +34,14 @@ class ColorItemList(ListViewer):
     """
     name = 'ColorItemList'
 
-    def __init__(self, bounds, scrollBar, items):
+    def __init__(self, bounds: Rect, scrollBar: ScrollBar, items: List[ColorItem]):
         super().__init__(bounds, 1, 0, scrollBar)
         self._items = items
 
         self.eventMask |= evBroadcast
         self.setRange(len(items))
 
-    def focusItem(self, item):
+    def focusItem(self, item: int):
         """
         Selects the given item by calling `super().focusItem(item)`, then
         broadcasts a `cmNewColorIndex` event.
@@ -49,18 +54,18 @@ class ColorItemList(ListViewer):
         curItem = self._items[item]
         message(self.owner, evBroadcast, cmNewColorIndex, curItem.index)
 
-    def getText(self, item, maxChars):
+    def getText(self, item: int, maxChars: int) -> str:
         curItem = self._items[item]
         return curItem.name[:maxChars]
 
-    def handleEvent(self, event):
+    def handleEvent(self, event: Event):
         super().handleEvent(event)
 
         if event.what == evBroadcast:
-            g = event.message.infoPtr
+            group = event.message.infoPtr
             command = event.message.command
             if command == cmNewColorItem:
-                self._items = g.items
-                self.setRange(len(g.items))
-                self.focusItem(g.index)
+                self._items = group.items
+                self.setRange(len(group.items))
+                self.focusItem(group.index)
                 self.drawView()

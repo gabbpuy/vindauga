@@ -38,6 +38,7 @@
 #----------------------------------------------------------------------#
 """
 import array
+from typing import Union
 
 
 class Palette:
@@ -50,7 +51,7 @@ class Palette:
     frames, buttons, text, and so on.
     """
 
-    def __init__(self, palette=b''):
+    def __init__(self, palette: Union['Palette', str] = ''):
         if isinstance(palette, (Palette,)):
             self.palette = array.array('B', palette.palette)
         else:

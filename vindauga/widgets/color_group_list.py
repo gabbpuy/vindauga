@@ -3,8 +3,12 @@ import logging
 
 from vindauga.constants.colors import cmNewColorItem, cmSaveColorIndex
 from vindauga.constants.event_codes import evBroadcast
+from vindauga.events.event import Event
 from vindauga.misc.message import message
+from vindauga.types.color_group import ColorGroup
+from vindauga.types.rect import Rect
 from vindauga.widgets.list_viewer import ListViewer
+from vindauga.widgets.scroll_bar import ScrollBar
 
 logger = logging.getLogger(__name__)
 
@@ -25,12 +29,12 @@ class ColorGroupList(ListViewer):
     """
     name = 'ColorGroupList'
 
-    def __init__(self, bounds, scrollBar, groups):
+    def __init__(self, bounds: Rect, scrollBar: ScrollBar, groups: ColorGroup):
         super().__init__(bounds, 1, 0, scrollBar)
         self._groups = groups
-        self.setRange(len(self._groups.groups))
+        self.setRange(len(groups))
 
-    def focusItem(self, item):
+    def focusItem(self, item: int):
         """
         Selects the given item by calling `super().focusItem(item)` and then
         broadcasts a `cmNewColorItem` event.
@@ -38,10 +42,10 @@ class ColorGroupList(ListViewer):
         :param item: Item to select
         """
         super().focusItem(item)
-        curGroup = self._groups.groups[item]
+        curGroup = self.getGroup(item)
         message(self.owner, evBroadcast, cmNewColorItem, curGroup)
 
-    def getText(self, item, maxChars):
+    def getText(self, item: int, maxChars: int):
         """
         Retrieve the group name corresponding to item
 
@@ -52,25 +56,24 @@ class ColorGroupList(ListViewer):
         curGroup = self._groups.groups[item]
         return curGroup.name[:maxChars]
 
-    def handleEvent(self, event):
+    def handleEvent(self, event: Event):
         super().handleEvent(event)
-        if event.what == evBroadcast:
-            if event.message.command == cmSaveColorIndex:
-                self.setGroupIndex(self.focused, event.message.infoPtr)
+        if event.what == evBroadcast and event.message.command == cmSaveColorIndex:
+            self.setGroupIndex(self.focused, event.message.infoPtr)
 
-    def setGroupIndex(self, groupNum, itemNum):
+    def setGroupIndex(self, groupNum: int, itemNum: int):
         g = self.getGroup(groupNum)
         g.index = itemNum
 
-    def getGroupIndex(self, groupNum):
+    def getGroupIndex(self, groupNum: int):
         g = self.getGroup(groupNum)
         return g.index
 
-    def getGroup(self, groupNum):
+    def getGroup(self, groupNum: int):
         return self._groups.groups[groupNum]
 
-    def getNumGroups(self):
+    def getNumGroups(self) -> int:
         return len(self._groups.groups)
 
-    def __getitem__(self, groupNum):
+    def __getitem__(self, groupNum: int) -> ColorGroup:
         return self._groups.groups[groupNum]

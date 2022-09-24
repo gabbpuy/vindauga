@@ -1,9 +1,14 @@
 # -*- coding: utf-8 -*-
+import logging
+
 from vindauga.constants.colors import cmColorBackgroundChanged, cmColorForegroundChanged, cmColorSet, cmSetColorIndex
 from vindauga.constants.event_codes import evBroadcast
 from vindauga.misc.message import message
 from vindauga.types.draw_buffer import DrawBuffer
+from vindauga.types.rect import Rect
 from vindauga.types.view import View
+
+logger = logging.getLogger(__name__)
 
 
 class ColorDisplay(View):
@@ -19,7 +24,7 @@ class ColorDisplay(View):
     """
     name = 'ColorDisplay'
 
-    def __init__(self, bounds, text):
+    def __init__(self, bounds: Rect, text: str):
         super().__init__(bounds)
         self._color = 0
         self._text = text
@@ -46,6 +51,7 @@ class ColorDisplay(View):
                     self._color = (self._color & 0x0F) | ((event.message.infoPtr << 4) & 0xF0)
                 elif event.message.command == cmColorForegroundChanged:
                     self._color = (self._color & 0xF0) | (event.message.infoPtr & 0x0F)
+                message(self.owner, evBroadcast, cmSetColorIndex, self._color)
                 self.drawView()
 
     def setColor(self, color):
