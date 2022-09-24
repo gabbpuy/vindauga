@@ -44,7 +44,7 @@ kbBackSpace = 0x0e08
 kbCtrlBackSpace = 0x0e7f
 kbShiftTab = 0x0f00
 kbTab = 0x0f09
-kbCtrlTab = 0x0F0a
+kbCtrlTab = 0x0f0a
 
 
 kbAltQ = 0x1000

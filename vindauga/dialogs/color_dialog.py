@@ -104,9 +104,11 @@ class ColorDialog(Dialog):
         if event.what == evBroadcast:
             if event.message.command == cmNewColorItem:
                 self.groupIndex = self._groups.focused
-            elif event.message.command == cmSetColorIndex:
-                self.pal.palette[self._groups.getGroupIndex(self.groupIndex)] = event.message.infoPtr
-            elif event.message.command == cmNewColorIndex:
+
+        super().handleEvent(event)
+
+        if event.what == evBroadcast:
+            if event.message.command == cmNewColorIndex:
                 self._display.setColor(self.pal.palette[event.message.infoPtr])
         super().handleEvent(event)
 

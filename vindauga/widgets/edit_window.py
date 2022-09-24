@@ -1,4 +1,7 @@
 # -*- coding: utf-8 -*-
+from pathlib import Path
+from typing import Optional, Union
+
 from vindauga.constants.edit_command_codes import cmUpdateTitle
 from vindauga.constants.event_codes import evBroadcast
 from vindauga.constants.option_flags import ofTileable
@@ -17,7 +20,7 @@ class EditWindow(Window):
     clipboardTitle = _('Clipboard')
     untitled = _('Untitled')
 
-    def __init__(self, bounds, fileName, windowNumber):
+    def __init__(self, bounds: Rect, fileName: Optional[Union[str, Path]], windowNumber: int):
         super().__init__(bounds, '', windowNumber)
         self.min = None
         self.options |= ofTileable

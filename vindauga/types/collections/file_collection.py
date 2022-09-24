@@ -1,5 +1,9 @@
 # -*- coding: utf-8 -*-
+import logging
+
 from .sorted_collection import SortedCollection
+
+logger = logging.getLogger(__name__)
 
 FA_DIREC = 0x02
 
@@ -35,6 +39,7 @@ class FileCollection(SortedCollection):
 
     def search(self, key):
         i = 0
-        if any(i for i, entry in enumerate(self) if entry.name == key):
-            return i
+
+        if any((file := i) for i, entry in enumerate(self) if entry == key):
+            return file
         return len(self) + 1

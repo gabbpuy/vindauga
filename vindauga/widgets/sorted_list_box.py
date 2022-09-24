@@ -1,9 +1,13 @@
 # -*- coding: utf-8 -*-
+import logging
+
 from vindauga.constants.command_codes import cmReleasedFocus
 from vindauga.constants.event_codes import evBroadcast, evKeyDown
 from vindauga.constants.keys import kbBackSpace
 
 from .list_box import ListBox
+
+logger = logging.getLogger(__name__)
 
 
 def _equal(s1, s2, count):
@@ -64,8 +68,7 @@ class SortedListBox(ListBox):
 
                     curString += event.keyDown.charScan.charCode
 
-                k = self.__getKey(curString)
-
+                k = self._getKey(curString)
                 value = self.getList().search(k)
 
                 if value < self._range:
@@ -84,5 +87,5 @@ class SortedListBox(ListBox):
                 if self.__searchPos != oldPos or event.keyDown.charScan.charCode.isalpha():
                     self.clearEvent(event)
 
-    def __getKey(self, s):
+    def _getKey(self, s):
         return s

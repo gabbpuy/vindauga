@@ -107,9 +107,8 @@ class FileDialog(Dialog):
 
     def handleEvent(self, event):
         super().handleEvent(event)
-
         if event.what == evCommand:
-            if event.message.command in [cmFileOpen, cmFileReplace, cmFileClear]:
+            if event.message.command in {cmFileOpen, cmFileReplace, cmFileClear}:
                 self.endModal(event.message.command)
                 self.clearEvent(event)
         elif event.what == evBroadcast and event.message.command == cmFileDoubleClicked:
@@ -132,24 +131,23 @@ class FileDialog(Dialog):
             return True
 
         if super().valid(command):
-            if command != cmCancel and command != cmFileClear:
-                fName = self.getFilename()
-
-                if isWild(fName):
-                    path, name = splitPath(fName)
+            if command not in (cmCancel, cmFileClear):
+                filename = self.getFilename()
+                if isWild(filename):
+                    path, name = splitPath(filename)
                     if self.checkDirectory(path):
                         self.directory = path
                         self.wildCard = name
                         if command != cmFileInit:
                             self.fileList.select()
                         self.fileList.readDirectory(self.directory, self.wildCard)
-                elif os.path.isdir(fName):
-                    if self.checkDirectory(fName):
-                        self.directory = fName
+                elif os.path.isdir(filename):
+                    if self.checkDirectory(filename):
+                        self.directory = filename
                         if command != cmFileInit:
                             self.fileList.select()
                         self.fileList.readDirectory(self.directory, self.wildCard)
-                elif validFileName(fName):
+                elif validFileName(filename):
                     return True
                 else:
                     messageBox(self.invalidFileText, mfError, [mfOKButton])

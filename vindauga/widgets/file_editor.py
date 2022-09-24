@@ -1,6 +1,9 @@
 # -*- coding: utf-8 -*-
+import io
 import logging
 import os
+from pathlib import Path
+from typing import Optional, Union
 
 from vindauga.constants.command_codes import *
 from vindauga.constants.edit_command_codes import *
@@ -9,6 +12,9 @@ from vindauga.types.draw_buffer import BufferArray
 from vindauga.misc.message import message
 from vindauga.misc.util import fexpand
 from .editor import Editor
+from .indicator import Indicator
+from .scroll_bar import ScrollBar
+from ..types.rect import Rect
 
 logger = logging.getLogger(__name__)
 
@@ -17,14 +23,14 @@ class FileEditor(Editor):
 
     backupExt = '~'
 
-    def __init__(self, bounds, hScrollBar, vScrollBar, indicator, filename):
+    def __init__(self, bounds: Rect, hScrollBar: ScrollBar, vScrollBar: ScrollBar, indicator: Optional[Indicator],
+                 filename: Optional[Union[str, Path]]):
         super().__init__(bounds, hScrollBar, vScrollBar, indicator, 0)
 
         if not filename:
             self.fileName = ''
         else:
-            self.fileName = filename
-            self.filename = fexpand(filename)
+            self.fileName = fexpand(filename)
 
             if self.isValid:
                 self.isValid = self.loadFile()
@@ -47,9 +53,6 @@ class FileEditor(Editor):
                 return
             self.clearEvent(event)
 
-    def initBuffer(self):
-        self.buffer = BufferArray([0] * self.bufSize)
-
     def loadFile(self):
         try:
             f = open(self.fileName, 'rt', encoding='utf-8')
@@ -58,72 +61,58 @@ class FileEditor(Editor):
             self.setBufLen(0)
             return True
 
-        fBuffer = f.read()
-        fSize = len(fBuffer)
-        self.setBufSize(fSize)
-        self.buffer[-fSize:] = BufferArray(ord(c) for c in fBuffer)
-        self.setBufLen(fSize)
+        self.buffer = BufferArray(ord(c) for c in f.read())
+        self.setBufLen(len(self.buffer))
         return True
 
     def save(self):
-        if self.fileName:
+        if not self.fileName:
             return self.saveAs()
         return self.saveFile()
 
     def saveAs(self):
         res = False
 
-        if self.editorDialog(edSaveAs, self.fileName) != cmCancel:
+        result, data = Editor.editorDialog(edSaveAs, self.fileName)
+        if result != cmCancel:
+            self.fileName = data
             fexpand(self.fileName)
             message(self.owner, evBroadcast, cmUpdateTitle, None)
             res = self.saveFile()
             if self.isClipboard():
                 self.fileName = ''
-
         return res
 
     @staticmethod
-    def writeBlock(f, buf, bytes):
-        while bytes:
-            written = f.write(buf)
-            bytes -= written
-            buf = buf[written:]
+    def writeBlock(f: io.FileIO, buf: BufferArray, numBytes: int):
+        str_buffer = ''.join(chr(c) for c in buf[:numBytes])
+        while numBytes:
+            written = f.write(str_buffer)
+            numBytes -= written
+            str_buffer = str_buffer[written:]
 
     def saveFile(self):
-        if self.editorFlags & efBackupFiles:
-            backupName = '{}{}'.format(self.fileName, self.backupExt)
-            os.rename(self.fileName, backupName)
+        try:
+            if self.editorFlags & efBackupFiles:
+                backupName = '{}{}'.format(self.fileName, self.backupExt)
+                if os.path.exists(backupName):
+                    os.unlink(backupName)
+                os.rename(self.fileName, backupName)
+        except FileNotFoundError:
+            pass
 
         try:
             with open(self.fileName, 'wt') as f:
                 self.writeBlock(f, self.buffer, self.curPtr)
                 self.writeBlock(f, self.buffer[self.curPtr + self.gapLen:],
                                 self.bufLen - self.curPtr)
-        except:
-            self.editorDialog(edCreateError, self.fileName)
+        except Exception as e:
+            logger.exception('saveFile')
+            Editor.editorDialog(edCreateError, self.fileName)
             return False
 
         self.modified = False
         self.update(ufUpdate)
-        return True
-
-    def setBufSize(self, newSize):
-        logger.info('setBufSize(%s) [%s]', newSize, self.bufSize)
-        if newSize == 0:
-            newSize = 0x1000
-        else:
-            newSize = (newSize + 0xFFF) & 0xFFFFF000
-
-        if newSize != self.bufSize:
-            temp = self.buffer
-            nn = min(newSize, self.bufSize)
-            self.buffer = BufferArray(temp[:nn])
-            self.buffer.extend([0] * (newSize - nn))
-            n = self.bufLen - self.curPtr + self.delCount
-            self.buffer[newSize - n: newSize] = temp[self.bufSize - n: self.bufSize]
-            self.bufSize = newSize
-            self.gapLen = self.bufSize - self.bufLen
-        logger.info('setBufSize(%s) -> %s, %s, %s', newSize, self.bufSize, self.gapLen, len(self.buffer))
         return True
 
     def shutdown(self):
@@ -146,7 +135,7 @@ class FileEditor(Editor):
             else:
                 d = edSaveModify
 
-            dd = self.editorDialog(d, self.fileName)
+            dd = Editor.editorDialog(d, self.fileName)
             if dd == cmYes:
                 return self.save()
             elif dd == cmNo:
@@ -154,4 +143,4 @@ class FileEditor(Editor):
                 return True
             elif dd == cmCancel:
                 return False
-        return False
+        return True

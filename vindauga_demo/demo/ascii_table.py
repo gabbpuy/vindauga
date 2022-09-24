@@ -57,46 +57,44 @@ class _Table(View):
                 self.charFocused()
                 processing = self.mouseEvent(event, evMouseMove)
             self.clearEvent(event)
-        else:
-            if event.what == evKeyboard:
-                kc = event.keyDown.keyCode
-                spot = None
-                if kc == kbHome:
-                    spot = (0, 0)
-                elif kc == kbEnd:
-                    spot = (self.size.x - 1, self.size.y - 1)
-                elif kc == kbUp:
-                    if self.cursor.y > 0:
-                        spot = (self.cursor.x, self.cursor.y - 1)
-                    else:
-                        spot = (self.cursor.x, self.size.y - 1)
-                elif kc == kbDown:
-                    if self.cursor.y < self.size.y - 1:
-                        spot = (self.cursor.x, self.cursor.y + 1)
-                    else:
-                        spot = (self.cursor.x, 0)
-                elif kc == kbLeft:
-                    if self.cursor.x > 0:
-                        spot = (self.cursor.x - 1, self.cursor.y)
-                    else:
-                        spot = (self.size.x - 1, self.cursor.y)
-                elif kc == kbRight:
-                    if self.cursor.x < self.size.x - 1:
-                        spot = (self.cursor.x + 1, self.cursor.y)
-                    else:
-                        spot = (0, self.cursor.y)
+        elif event.what == evKeyboard:
+            kc = event.keyDown.keyCode
+            if kc == kbHome:
+                spot = (0, 0)
+            elif kc == kbEnd:
+                spot = (self.size.x - 1, self.size.y - 1)
+            elif kc == kbUp:
+                if self.cursor.y > 0:
+                    spot = (self.cursor.x, self.cursor.y - 1)
                 else:
-                    c = event.keyDown.charScan.charCode
-                    if isinstance(c, str):
-                        c = ord(c)
-                    y, x = divmod(c, 32)
-                    spot = (x, y)
+                    spot = (self.cursor.x, self.size.y - 1)
+            elif kc == kbDown:
+                if self.cursor.y < self.size.y - 1:
+                    spot = (self.cursor.x, self.cursor.y + 1)
+                else:
+                    spot = (self.cursor.x, 0)
+            elif kc == kbLeft:
+                if self.cursor.x > 0:
+                    spot = (self.cursor.x - 1, self.cursor.y)
+                else:
+                    spot = (self.size.x - 1, self.cursor.y)
+            elif kc == kbRight:
+                if self.cursor.x < self.size.x - 1:
+                    spot = (self.cursor.x + 1, self.cursor.y)
+                else:
+                    spot = (0, self.cursor.y)
+            else:
+                c = event.keyDown.charScan.charCode
+                if isinstance(c, str):
+                    c = ord(c)
+                y, x = divmod(c, 32)
+                spot = (x, y)
 
-                if spot is not None:
-                    self.setCursor(*spot)
+            if spot is not None:
+                self.setCursor(*spot)
 
-                self.charFocused()
-                self.clearEvent(event)
+            self.charFocused()
+            self.clearEvent(event)
 
 
 class _Report(View):
@@ -116,13 +114,11 @@ class _Report(View):
         elif c == ' ':
             c = 'SP'
         elif not c.isprintable():
-            # c = '.'
             c = unctrl(c)
 
-        str = ' Char: {:3s} Decimal: {:3d} Hex: {:02X}    '.format(
-            c, ord(self.__asciiChar), ord(self.__asciiChar))
+        line = ' Char: {:3s} Decimal: {:3d} Hex: {:02X}    '.format(c, ord(self.__asciiChar), ord(self.__asciiChar))
 
-        buf.moveStr(0, str, color)
+        buf.moveStr(0, line, color)
         self.writeLine(0, 0, 32, 1, buf)
 
     def handleEvent(self, event):

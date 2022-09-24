@@ -8,6 +8,7 @@ from vindauga.types.palette import Palette
 from vindauga.types.records.data_record import DataRecord
 
 from .editor import Editor
+from ..types.draw_buffer import BufferArray
 
 
 @dataclass
@@ -27,21 +28,17 @@ class Memo(Editor):
     name = "Memo"
     cpMemo = "\x1A\x1B"
 
-    def __init__(self, bounds, hScrollBar, vScrollBar, indicator, bufSize):
-        super().__init__(bounds, hScrollBar, vScrollBar, indicator, bufSize)
-        self.buffer = None
-
     def consumesData(self):
         return True
 
     def getData(self):
         rec = DataRecord()
-        data = MemoData(self.buffer)
+        data = MemoData(''.join(chr(c) for c in self.buffer))
         rec.value = data
         return rec
 
     def setData(self, rec: MemoData):
-        self.buffer = rec.buffer
+        self.buffer = BufferArray(ord(c) for c in rec.buffer)
         self.setBufLen(rec.length)
 
     def getPalette(self):

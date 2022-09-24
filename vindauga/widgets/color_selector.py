@@ -74,7 +74,8 @@ class ColorSelector(View):
         elif what == evKeyDown:
             key = ctrlToArrow(event.keyDown.keyCode)
             if key in {kbLeft, kbRight, kbUp, kbDown}:
-                self.__handleKeyDownEvent(key, maxCol, width)
+                if self.__handleKeyDownEvent(key, maxCol, width):
+                    self.clearEvent(event)
         elif what == evBroadcast:
             self.__handleBroadcastEvent(event)
 
@@ -92,9 +93,9 @@ class ColorSelector(View):
     def __handleBroadcastEvent(self, event):
         if event.message.command == cmColorSet:
             if self._selectorType == self.csBackground:
-                self._color = ord(event.message.infoPtr) >> 4
+                self._color = event.message.infoPtr >> 4
             else:
-                self._color = ord(event.message.infoPtr) & 0x0f
+                self._color = event.message.infoPtr & 0x0f
             self.drawView()
 
     def __handleKeyDownEvent(self, key, maxCol, width):
@@ -122,8 +123,11 @@ class ColorSelector(View):
                 self._color = 0
             else:
                 self._color -= maxCol - width
+        else:
+            return False
         self.__colorChanged()
         self.drawView()
+        return True
 
     def __handleMouseEvent(self, event, oldColor):
         mousing = True
@@ -136,4 +140,4 @@ class ColorSelector(View):
             self.__colorChanged()
             self.drawView()
             mousing = self.mouseEvent(event, evMouseMove)
-
+        self.clearEvent(event)

@@ -72,7 +72,15 @@ def relativePath(path):
 
 
 def validFileName(fileName):
-    return os.access(fileName, os.R_OK | os.W_OK)
+    if os.path.exists(fileName):
+        return os.access(fileName, os.R_OK)
+    try:
+        with open(fileName, 'w'):
+            pass
+        os.remove(fileName)
+        return True
+    except IOError:
+        return False
 
 
 def pathValid(path):

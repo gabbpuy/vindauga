@@ -45,12 +45,11 @@ class GridViewBox(GridView):
 
     def handleEvent(self, event):
         if event.what == evMouseDown and event.mouse.eventFlags & meDoubleClick:
+            self.clearEvent(event)
             message(self.owner, evBroadcast, cmListItemSelected, self)
+        elif event.what == evKeyDown and event.keyDown.keyCode == kbEnter:
             self.clearEvent(event)
-
-        if event.what == evKeyDown and event.keyDown.keyCode == kbEnter:
             message(self.owner, evBroadcast, cmListKeyEnter, self)
-            self.clearEvent(event)
 
         super().handleEvent(event)
 

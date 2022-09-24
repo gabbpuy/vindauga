@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 from dataclasses import dataclass
+import datetime
 from functools import total_ordering
 
 FA_ARCH = 0x01
@@ -11,7 +12,7 @@ FA_RDONLY = 0x04
 @dataclass
 class SearchRecord:
     attr: int = 0
-    time: int = 0
+    time: datetime.datetime = 0
     size: int = 0
     name: str = ''
 

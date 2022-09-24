@@ -57,7 +57,6 @@ class Dialog(Window):
 
         if event.what == evKeyDown:
             kc = event.keyDown.keyCode
-
             if kc == kbEsc:
                 event.what = evCommand
                 event.message.command = cmCancel
@@ -70,7 +69,6 @@ class Dialog(Window):
                 event.message.infoPtr = None
                 self.putEvent(event)
                 self.clearEvent(event)
-
         elif event.what == evCommand:
             command = event.message.command
             if command in {cmOK, cmCancel, cmYes, cmNo}:
@@ -78,7 +76,7 @@ class Dialog(Window):
                     self.endModal(command)
                     self.clearEvent(event)
 
-    def valid(self, command):
+    def valid(self, command: int) -> bool:
         if command == cmCancel:
             return True
         return super().valid(command)

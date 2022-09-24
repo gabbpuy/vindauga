@@ -48,8 +48,9 @@ class Indicator(View):
         if state == sfDragging:
             self.drawView()
 
-    def setValue(self, location, modified):
+    def setValue(self, location: Point, modified: bool):
         if self._location != location or self._modified != modified:
-            self._location = location
+            self._location.x = location.x
+            self._location.y = location.y
             self._modified = modified
             self.drawView()

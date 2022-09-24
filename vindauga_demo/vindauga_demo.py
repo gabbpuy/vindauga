@@ -1,4 +1,5 @@
 # -*- coding: utf-8 -*-
+import logging
 import os
 import sys
 
@@ -45,11 +46,24 @@ from vindauga.widgets.radio_buttons import RadioButtons
 from vindauga.widgets.static_text import StaticText
 from vindauga.widgets.status_line import StatusLine
 
+logger = logging.getLogger('vindauga.vindauga_demp')
+
+
 checkBoxData = 0
 radioButtonData = 0
 inputLineData = ''
 
 demoDialogData = reversed([checkBoxData, radioButtonData, inputLineData])
+
+
+def setupLogging():
+    logger = logging.getLogger('vindauga')
+    logger.propagate = False
+    format = '%(name)s\t %(message)s'
+    logger.setLevel(logging.DEBUG)
+    handler = logging.StreamHandler(open('vindauga.log', 'wt'))
+    handler.setFormatter(logging.Formatter(format))
+    logger.addHandler(handler)
 
 
 class VindaugaDemo(Application):
@@ -392,17 +406,8 @@ def run():
 
 
 if __name__ == '__main__':
-    import logging
-
-    logger = logging.getLogger('vindauga')
-    logger.propagate = False
-    format = '%(name)s\t %(message)s'
-    logger.setLevel(logging.DEBUG)
-    handler = logging.StreamHandler(open('vindauga.log', 'wt'))
-    handler.setFormatter(logging.Formatter(format))
-    logger.addHandler(handler)
+    setupLogging()
     try:
         run()
     except:
         logger.exception('vindauga fail')
-

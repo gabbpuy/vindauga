@@ -85,7 +85,6 @@ class Scroller(View):
                 event.message.command == cmScrollBarChanged and
                 (event.message.infoPtr in {self._hScrollBar, self._vScrollBar})):
             self.scrollDraw()
-            self.clearEvent(event)
 
     def scrollDraw(self):
         """

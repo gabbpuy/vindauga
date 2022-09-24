@@ -56,15 +56,12 @@ class Label(StaticText):
 
         if event.what == evMouseDown:
             self.focusLink(event)
-            self.clearEvent(event)
         elif event.what == evKeyDown:
             c = hotKey(self._text)
 
             if (getAltCode(c) == event.keyDown.keyCode or c != 0 and self.owner.phase == Group.phPostProcess and
                     event.keyDown.charScan.charCode.upper() == c):
                 self.focusLink(event)
-                self.clearEvent(event)
         elif event.what == evBroadcast and self._linkedWidget and event.message.command in {cmReceivedFocus, cmReleasedFocus}:
             self._light = ((self._linkedWidget.state & sfFocused) != 0)
             self.drawView()
-            self.clearEvent(event)

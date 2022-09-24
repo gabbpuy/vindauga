@@ -189,6 +189,7 @@ class InputLine(View):
                 elif kc in (kbEnd, kbShiftEnd):
                     self.current.pos = len(self.current.data)
                 elif kc == kbBackSpace:
+                    self.__deleteSelect()
                     if self.current.pos > 0:
                         del self.current.data[self.current.pos - 1]
                         self.current.pos -= 1
@@ -199,7 +200,7 @@ class InputLine(View):
                         if self.current.pos < len(self.current.data):
                             self.current.selStart = self.current.pos
                             self.current.selEnd = self.current.pos + 1
-                        self.__deleteSelect()
+                    self.__deleteSelect()
                 elif kc == kbIns:
                     self.setState(sfCursorIns, not (self.state & sfCursorIns))
                 elif kc == kbCtrlY:

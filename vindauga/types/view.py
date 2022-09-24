@@ -464,7 +464,7 @@ class View(VindaugaObject):
             return hcDragging
         return self.helpCtx
 
-    def valid(self, command):
+    def valid(self, command: int) -> bool:
         """
         Use this member function to check the validity of a view after it has
         been constructed or at the point in time when a modal state ends (due
@@ -894,7 +894,7 @@ class View(VindaugaObject):
         if self.owner:
             self.owner.putEvent(event)
 
-    def endModal(self, command):
+    def endModal(self, command: int):
         """
         Calls `TopView()` to seek the top most modal view. If there is none
         such (that is, if TopView() returns None) no further action is taken. If

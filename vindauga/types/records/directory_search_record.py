@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 import datetime
+from dataclasses import dataclass
 from functools import  total_ordering
 import os
 import stat
@@ -8,6 +9,7 @@ from .search_record import SearchRecord, FA_DIREC, FA_ARCH
 
 
 @total_ordering
+@dataclass
 class DirectorySearchRecord(SearchRecord):
 
     def setStatInfo(self, filename: str, s: os.stat_result):

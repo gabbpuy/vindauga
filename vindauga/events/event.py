@@ -30,4 +30,4 @@ class Event:
         self.message.infoPtr = who
 
     def __repr__(self):
-        return '<Event: {:X}::{}::{}::{}>'.format(self.what, self.mouse, self.keyDown, self.message)
+        return '<Event: What:{:X} Mo:{} Ke:{} Me:{}>'.format(self.what, self.mouse, self.keyDown, self.message)

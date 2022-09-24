@@ -28,7 +28,7 @@ class FileInputLine(InputLine):
             if event.message.infoPtr.attr & FA_DIREC:
                 p = self.owner.wildCard
                 if ':' not in p and os.path.sep not in p:
-                    p = os.path.join(event.message.infoPtr.name, p)
+                    p = os.path.join(event.message.infoPtr.name, os.path.sep, p)
                     self.setData(p)
                 else:
                     p = fexpand(p)
@@ -38,5 +38,4 @@ class FileInputLine(InputLine):
                     self.setData(fexpand(p))
             else:
                 self.setData(event.message.infoPtr.name)
-            self.clearEvent(event)
             self.drawView()

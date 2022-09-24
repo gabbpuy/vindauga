@@ -1,11 +1,12 @@
 # -*- coding: utf-8 -*-
 from dataclasses import dataclass
+from typing import Any
 
 
 @dataclass
 class MessageEvent:
     command: int = 0
-    infoPtr: object = None
+    infoPtr: Any = None
 
     """
     infoLong = None

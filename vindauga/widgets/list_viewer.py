@@ -3,7 +3,8 @@ import logging
 
 from vindauga.constants.command_codes import (cmScrollBarClicked, cmScrollBarChanged, cmListItemSelected)
 from vindauga.constants.event_codes import evBroadcast, evMouseDown, evMouseAuto, evMouseMove, meDoubleClick, evKeyDown
-from vindauga.constants.keys import kbUp, kbDown, kbLeft, kbRight, kbPgDn, kbPgUp, kbHome, kbEnd, kbCtrlPgDn, kbCtrlPgUp
+from vindauga.constants.keys import kbUp, kbDown, kbLeft, kbRight, kbPgDn, kbPgUp, kbHome, kbEnd, kbCtrlPgDn, \
+    kbCtrlPgUp, kbEnter
 from vindauga.constants.option_flags import ofSelectable, ofFirstClick
 from vindauga.constants.state_flags import sfVisible, sfActive, sfSelected
 from vindauga.constants.key_mappings import showMarkers
@@ -216,16 +217,12 @@ class ListViewer(View):
                 if (event.message.command == cmScrollBarClicked and
                         (event.message.infoPtr in {self.hScrollBar, self.vScrollBar})):
                     self.focus()
-                    self.clearEvent(event)
                 elif event.message.command == cmScrollBarChanged:
                     if self.vScrollBar is event.message.infoPtr:
                         self.focusItemNum(self.vScrollBar.value)
                         self.drawView()
-                        self.clearEvent(event)
                     elif self.hScrollBar is event.message.infoPtr:
                         self.drawView()
-                        self.clearEvent(event)
-        return
 
     def selectItem(self, item):
         """
@@ -319,7 +316,6 @@ class ListViewer(View):
             newItem = self.focused
         else:
             kc = ctrlToArrow(event.keyDown.keyCode)
-
             if kc == kbUp:
                 newItem = self.focused - 1
             elif kc == kbDown:
@@ -334,7 +330,6 @@ class ListViewer(View):
                     newItem = self.focused - self.size.y
                 else:
                     return
-
             elif kc == kbPgDn:
                 newItem = self.focused + self.size.y * self.numCols
             elif kc == kbPgUp:

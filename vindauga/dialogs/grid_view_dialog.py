@@ -74,9 +74,9 @@ class GridViewDialog(Dialog):
                     self.inputLine.hide()
                 else:
                     # Show empty line input
-                    mouseY = event.message.infoPtr.cursor.y
-                    mouseX = event.message.infoPtr.cursor.x
                     listBox: GridViewBox = event.message.infoPtr
+                    mouseY = listBox.cursor.y
+                    mouseX = listBox.cursor.x
                     self.inputLine.growTo(listBox.columnWidth[listBox.focusedColumn] - 1, 1)
                     self.inputLine.moveTo(mouseX, mouseY + 3)
                     # self.inputLine.setData('')
@@ -85,9 +85,9 @@ class GridViewDialog(Dialog):
                     self.inputLine.show()
                 self.clearEvent(event)
             elif emc == cmListKeyEnter:
-                mouseY = event.message.infoPtr.cursor.y
-                mouseX = event.message.infoPtr.cursor.x
                 listBox: GridViewBox = event.message.infoPtr
+                mouseY = listBox.cursor.y
+                mouseX = listBox.cursor.x
                 self.inputLine.growTo(listBox.columnWidth[listBox.focusedColumn] - 1, 1)
                 self.inputLine.moveTo(mouseX, mouseY + 3)
                 self.inputLine.setData(listBox.getText(listBox.focusedColumn, listBox.focusedRow, self.inputLine.maxLen))

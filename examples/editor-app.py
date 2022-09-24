@@ -2,10 +2,10 @@
 import logging
 
 from vindauga.constants.buttons import bfDefault, bfNormal
-from vindauga.constants.command_codes import cmSave, cmSaveAs, cmCut, cmCopy, cmPaste, cmClear, cmUndo, wnNoNumber, \
-    cmCancel
-from vindauga.constants.command_codes import cmOpen, cmNew, cmTile, cmCascade, cmOK, hcNoContext, cmQuit, cmResize, \
-    cmZoom, cmNext, cmPrev, cmClose, cmMenu
+from vindauga.constants.command_codes import (cmSave, cmSaveAs, cmCut, cmCopy, cmPaste, cmClear, cmUndo, wnNoNumber,
+                                              cmCancel)
+from vindauga.constants.command_codes import (cmOpen, cmNew, cmTile, cmCascade, cmOK, hcNoContext, cmQuit, cmResize,
+                                              cmZoom, cmNext, cmPrev, cmClose, cmMenu)
 from vindauga.constants.message_flags import mfError, mfInformation, mfYesButton, mfNoButton, mfOKButton, mfCancelButton
 from vindauga.constants.edit_command_codes import *
 from vindauga.constants.event_codes import evCommand
@@ -19,7 +19,6 @@ from vindauga.dialogs.message_box import messageBox, messageBoxRect
 from vindauga.menus.menu_bar import MenuBar
 from vindauga.menus.menu_item import MenuItem
 from vindauga.menus.sub_menu import SubMenu
-from vindauga.types.records.data_record import DataRecord
 from vindauga.types.command_set import CommandSet
 from vindauga.types.rect import Rect
 from vindauga.types.status_def import StatusDef
@@ -29,6 +28,7 @@ from vindauga.widgets.button import Button
 from vindauga.widgets.check_boxes import CheckBoxes
 from vindauga.widgets.edit_window import EditWindow
 from vindauga.widgets.dialog import Dialog
+from vindauga.widgets.editor import Editor
 from vindauga.widgets.history import History
 from vindauga.widgets.input_line import InputLine
 from vindauga.widgets.label import Label
@@ -41,19 +41,32 @@ cmCalculator = 104
 cmShowClip = 105
 cmMacros = 106
 
+logger = logging.getLogger('vindauga.editor-app')
+
+
+def setupLogging():
+    logger = logging.getLogger('vindauga')
+    logger.propagate = False
+    format = "%(name)s\t %(message)s"
+    logger.setLevel(logging.DEBUG)
+    handler = logging.StreamHandler(open('vindauga.log', 'wt'))
+    handler.setFormatter(logging.Formatter(format))
+    logger.addHandler(handler)
+
 
 def execDialog(d, data):
-    if data:
-        d.setData([data])
+    if data is not None:
+        if not isinstance(data, (list, tuple)):
+            data = [data]
+        d.setData(data)
 
     p = Program.application.validView(d)
     if not p:
         return cmCancel
     result = Program.desktop.execView(p)
-    if result != cmCancel and data:
-        d = p.getData()
-        result = d.value
-    return result
+    if result != cmCancel and data is not None:
+        data = p.getData()
+    return result, data
 
 
 def createFindDialog():
@@ -64,7 +77,7 @@ def createFindDialog():
     d.insert(Label(Rect(2, 2, 32, 3), '~T~ext to find', control))
     d.insert(History(Rect(32, 3, 35, 4), control, 10))
 
-    d.insert(CheckBoxes(Rect(3, 5, 35, 7), ('~C~ase sensitive', '~W~hole words only', None)))
+    d.insert(CheckBoxes(Rect(3, 5, 35, 7), ('~C~ase sensitive', '~W~hole words only')))
     d.insert(Button(Rect(14, 9, 24, 11), 'O~K~', cmOK, bfDefault))
     d.insert(Button(Rect(26, 9, 36, 11), 'Cancel', cmCancel, bfNormal))
     d.selectNext(False)
@@ -85,7 +98,7 @@ def createReplaceDialog():
     d.insert(Label(Rect(2, 5, 34, 6), '~N~ew _text', control))
     d.insert(History(Rect(34, 6, 37, 7), control, 11))
 
-    d.insert(CheckBoxes(Rect(3, 8, 37, 12), ('~C~ase sensitive', '~W~hole words only','~P~rompt on replace',
+    d.insert(CheckBoxes(Rect(3, 8, 37, 12), ('~C~ase sensitive', '~W~hole words only', '~P~rompt on replace',
                                              '~R~eplace all')))
 
     d.insert(
@@ -96,27 +109,19 @@ def createReplaceDialog():
 
 
 def isTileable(p, *args):
-    return p.options & ofTileable and p.state * sfVisible
+    return (p.options & ofTileable) and (p.state & sfVisible)
 
 
 class EditorApp(Application):
     def __init__(self):
         super().__init__()
         ts = CommandSet()
-        ts.enableCmd(cmSave)
-        ts.enableCmd(cmSaveAs)
-        ts.enableCmd(cmCut)
-        ts.enableCmd(cmCopy)
-        ts.enableCmd(cmPaste)
-        ts.enableCmd(cmClear)
-        ts.enableCmd(cmUndo)
-        ts.enableCmd(cmFind)
-        ts.enableCmd(cmReplace)
-        ts.enableCmd(cmSearchAgain)
+        ts.cmds = {cmSave, cmSaveAs, cmCut, cmCopy, cmPaste, cmClear, cmUndo, cmFind, cmReplace,
+                   cmSearchAgain}
         self.disableCommands(ts)
-
-        self.editorDialog = self.doEditorDialog
         self.clipWindow = self.openEditor(None, False)
+        Editor.editorDialog = self.doEditorDialog
+        Editor.clipboard = self.clipWindow.editor
 
     def initMenuBar(self, bounds):
         bounds.bottomRight.y = bounds.topLeft.y + 1
@@ -164,44 +169,45 @@ class EditorApp(Application):
                           StatusItem("~Ctrl+W~ Close", kbCtrlW, cmClose) +
                           StatusItem("~F5~ Zoom", kbF5, cmZoom) +
                           StatusItem("~F6~ Next", kbF6, cmNext) +
-                          StatusItem(0, kbCtrlF5, cmResize)
+                          StatusItem('', kbCtrlF5, cmResize)
                           )
 
-    def doEditorDialog(self, dialog, *args):
+    @staticmethod
+    def doEditorDialog(dialog, *args):
         if dialog == edOutOfMemory:
             return messageBox('Not enough memory for this operation', mfError, (mfOKButton,))
         if dialog == edReadError:
-            return messageBox('Error reading file {}'.format(args[0]), mfError, (mfOKButton,))
+            return messageBox(f'Error reading file {args[0]}', mfError, (mfOKButton,))
         if dialog == edWriteError:
-            return messageBox('Error writing file {}'.format(args[0]), mfError, (mfOKButton,))
+            return messageBox(f'Error writing file {args[0]}', mfError, (mfOKButton,))
         if dialog == edCreateError:
-            return messageBox('Error creating file {}'.format(args[0]), mfError, (mfOKButton,))
+            return messageBox(f'Error creating file {args[0]}', mfError, (mfOKButton,))
         if dialog == edSaveModify:
-            return messageBox('%s has been modified. Save?'.format(args[0]), mfInformation,
+            return messageBox(f'{args[0]} has been modified. Save?', mfInformation,
                               (mfYesButton, mfNoButton, mfCancelButton))
         if dialog == edSaveUntitled:
             return messageBox('Save untitled file?', mfInformation,
                               (mfYesButton, mfNoButton, mfCancelButton))
-        if dialog == edSaveUntitled:
+        if dialog == edSaveAs:
             return execDialog(
                 FileDialog('*.*', 'Save file as', '~N~ame', fdOKButton, 101), args[0]
             )
-
+        if dialog == edFind:
+            return execDialog(createFindDialog(), args[0])
         if dialog == edSearchFailed:
             return messageBox('Search string not found', mfError, (mfOKButton,))
-
         if dialog == edReplace:
             return execDialog(createReplaceDialog(), args[0])
-
         if dialog == edReplacePrompt:
-            return self.doReplacePrompt(args[0])
+            return EditorApp.doReplacePrompt(args[0])
 
-    def doReplacePrompt(self, cursor):
+    @staticmethod
+    def doReplacePrompt(cursor):
         r = Rect(0, 2, 40, 9)
-        r.move((self.desktop.size.x - r.bottomRight.x) // 2, 0)
-        lower = self.desktop.makeGlobal(r.bottomRight)
+        r.move((Program.desktop.size.x - r.bottomRight.x) // 2, 0)
+        lower = Program.desktop.makeGlobal(r.bottomRight)
         if cursor.y <= lower.y:
-            r.move(0, (self.desktop.size.y - r.bottomRight.y) // 2)
+            r.move(0, (Program.desktop.size.y - r.bottomRight.y) // 2)
 
         return messageBoxRect(r, 'Replace this occurrence?', mfInformation, (mfYesButton, mfNoButton, mfCancelButton))
 
@@ -215,9 +221,9 @@ class EditorApp(Application):
 
     def fileOpen(self):
         filename = '*'
-        c = execDialog(FileDialog('*', 'Open file', '~N~ame', fdOpenButton, 100), filename)
+        c, filename = execDialog(FileDialog('*', 'Open file', '~N~ame', fdOpenButton, 100), filename)
         if c != cmCancel:
-            self.openEditor(c, True)
+            self.openEditor(filename, True)
 
     def fileNew(self):
         self.openEditor(None, True)
@@ -266,26 +272,21 @@ class EditorApp(Application):
 
     def idle(self):
         super().idle()
-        if self.desktop.firstThat(isTileable, 0):
-            self.enableCommand(cmTile)
-            self.enableCommand(cmCascade)
-        else:
-            for command in (cmSave, cmSaveAs, cmUndo, cmCut, cmCopy, cmPaste, cmClear,
-                            cmFind, cmReplace, cmSearchAgain, cmTile, cmCascade):
-                self.disableCommand(command)
-
-
-def setupLogging():
-    logger = logging.getLogger('vindauga')
-    logger.propagate = False
-    format = "%(name)s\t %(message)s"
-    logger.setLevel(logging.DEBUG)
-    handler = logging.StreamHandler(open('vindauga.log', 'wt'))
-    handler.setFormatter(logging.Formatter(format))
-    logger.addHandler(handler)
+        if not self.commandEnabled(cmTile) and self.desktop.firstThat(isTileable):
+            c = CommandSet()
+            c.cmds = {cmTile, cmCascade}
+            self.enableCommands(c)
+        elif not self.commandEnabled(cmTile):
+            c = CommandSet()
+            c.cmds = {cmSave, cmSaveAs, cmUndo, cmCut, cmCopy, cmPaste, cmClear, cmFind, cmReplace, cmSearchAgain,
+                      cmTile, cmCascade}
+            self.disableCommands(c)
 
 
 if __name__ == '__main__':
     setupLogging()
-    app = EditorApp()
-    app.run()
+    try:
+        app = EditorApp()
+        app.run()
+    except:
+        logger.exception('Runtime Error')

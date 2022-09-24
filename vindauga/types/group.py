@@ -4,8 +4,9 @@ from dataclasses import dataclass
 import datetime
 import logging
 from itertools import cycle, islice
+from typing import Optional
 
-from vindauga.constants.command_codes import cmCancel, hcNoContext, cmReleasedFocus, cmLoseFocus
+from vindauga.constants.command_codes import cmCancel, hcNoContext, cmReleasedFocus, cmLoseFocus, cmQuit
 from vindauga.constants.event_codes import positionalEvents, focusedEvents, evNothing, evMouseDown
 from vindauga.constants.option_flags import (ofSelectable, ofPreProcess, ofPostProcess, ofBuffered, ofValidate,
                                              ofCenterY, ofCenterX)
@@ -178,19 +179,20 @@ class Group(View):
             self.setCommands(saveCommands)
 
     def execute(self):
-        done = False
-        while not done:
+        stillExecuting = True
+        while stillExecuting:
             self.endState = 0
-            alsoDone = False
-            while not alsoDone:
+            handlingEvents = True
+            while handlingEvents:
                 e = Event(evNothing)
                 self.getEvent(e)
+                self.handleEvent(e)
                 if e.what != evNothing:
-                    self.handleEvent(e)
-                if e.what != evNothing:
+                    logger.error('Event Error for %s', e)
                     self.eventError(e)
-                alsoDone = (self.endState != 0)
-            done = (self.valid(self.endState))
+                    self.clearEvent(e)
+                handlingEvents = self.endState == 0
+            stillExecuting = not self.valid(self.endState)
         return self.endState
 
     def awaken(self):
@@ -228,10 +230,9 @@ class Group(View):
             if p:
                 p.select()
 
-    def firstThat(self, func, *args):
-        for c in self.children:
-            if func(c, *args):
-                return c
+    def firstThat(self, func, *args) -> Optional[View]:
+        if any(func((child := c), *args) is True for c in self.children):
+            return child
         return None
 
     def focusNext(self, forwards):
@@ -240,7 +241,7 @@ class Group(View):
             return p.focus()
         return True
 
-    def firstMatch(self, state, options):
+    def firstMatch(self, state: int, options: int) -> Optional[View]:
         if not self.children:
             return None
 
@@ -249,13 +250,13 @@ class Group(View):
                 return c
         return None
 
-    def indexOf(self, view):
+    def indexOf(self, view: View) -> int:
         try:
             return self.children.index(view)
         except ValueError:
             return -1
 
-    def setState(self, state, enable):
+    def setState(self, state: int, enable: bool):
         sb = SetBlock()
         sb.state = state
         sb.enable = enable
@@ -278,7 +279,7 @@ class Group(View):
             if not enable:
                 self.freeBuffer()
 
-    def handleEvent(self, event):
+    def handleEvent(self, event: Event):
         super().handleEvent(event)
         hs = HandleStruct(event, self)
 
@@ -375,7 +376,7 @@ class Group(View):
         if self.current:
             self.current.resetCursor()
 
-    def endModal(self, command):
+    def endModal(self, command: int):
         if self.state & sfModal:
             self.endState = command
         else:
@@ -394,7 +395,7 @@ class Group(View):
             h = super().getHelpCtx()
         return h
 
-    def valid(self, command):
+    def valid(self, command: int) -> bool:
         if command == cmLoseFocus:
             return True
 
@@ -462,7 +463,7 @@ class Group(View):
             func(c, *args)
 
     @staticmethod
-    def __isInvalid(view, command):
+    def __isInvalid(view: View, command: int) -> bool:
         return not view.valid(command)
 
     def __findNext(self, forwards):

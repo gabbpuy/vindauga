@@ -57,11 +57,9 @@ class ScrollGroup(Group):
             if (event.message.command == cmScrollBarChanged and
                     (event.message.infoPtr in {self.hScrollBar, self.vScrollBar})):
                 self.scrollDraw()
-                self.clearEvent(event)
             elif (event.message.command == cmReceivedFocus and
                   self.firstThat(lambda view, args: view is args, event.message.infoPtr)):
                 self.focusSubView(event.message.infoPtr)
-                self.clearEvent(event)
 
     class ScrollInfo:
         delta: Point

@@ -24,6 +24,7 @@ from vindauga.widgets.scroll_bar import ScrollBar
 
 logger = logging.getLogger(__name__)
 
+
 class ChangeDirDialog(Dialog):
     changeDirTitle = _('Change Directory')
     dirNameText = _('Directory ~N~ame')
@@ -32,6 +33,7 @@ class ChangeDirDialog(Dialog):
     okText = _('O~K~')
     helpText = _('~H~elp')
     invalidText = _('Invalid Directory')
+    drivesText = _('Drives')
 
     def __init__(self, options, historyId):
         super().__init__(Rect(16, 2, 64, 20), self.changeDirTitle)
@@ -80,6 +82,7 @@ class ChangeDirDialog(Dialog):
                     curDir += os.sep
             elif emc == cmDirSelection:
                 self.chDirButton.makeDefault(event.message.infoPtr)
+                self.clearEvent(event)
                 return
             else:
                 return
@@ -89,6 +92,7 @@ class ChangeDirDialog(Dialog):
             self.dirInput.setData(curDir)
             self.dirInput.drawView()
             self.dirList.select()
+            self.clearEvent(event)
 
     def valid(self, command):
         if command != cmOK:
@@ -96,6 +100,10 @@ class ChangeDirDialog(Dialog):
         rec = DataRecord()
         self.dirInput.getData()
         path = rec.value
+        if path == self.drivesText:
+            path = ''
+            rec.value = ''
+
         if not path:
             event = Event(evCommand)
             event.message.command = cmChangeDir

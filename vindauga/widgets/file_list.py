@@ -22,17 +22,17 @@ class FileList(SortedListBox):
     def __init__(self, bounds, scrollBar):
         super().__init__(bounds, 2, scrollBar)
 
-    def focusItem(self, item):
+    def focusItem(self, item: int):
         super().focusItem(item)
         message(self.owner, evBroadcast, cmFileFocused, self.getList()[item])
 
-    def selectItem(self, item):
+    def selectItem(self, item: int):
         message(self.owner, evBroadcast, cmFileDoubleClicked, self.getList()[item])
 
     def consumesData(self):
         return False
 
-    def __getKey(self, s):
+    def _getKey(self, s: str):
         record = SearchRecord()
 
         if self._shiftState & kbShift or (s and s[0] == '.'):
@@ -42,12 +42,11 @@ class FileList(SortedListBox):
         record.name = s.upper()
         return record
 
-    def getText(self, item, maxChars):
+    def getText(self, item: int, maxChars: int) -> str:
         f = self.getList()[item]
-        dest = f.name[:maxChars]
+        dest = f.name
         if f.attr & FA_DIREC:
             dest += os.path.sep
-            dest = dest[:maxChars]
         return dest
 
     def readDirectory(self, path, wildcard=None):
@@ -78,22 +77,18 @@ class FileList(SortedListBox):
                 record.attr = FA_DIREC
             fileList.append(record)
 
-        try:
-            root, directories, files = next(os.walk(directory))
-            for localDir in directories:
-                record = DirectorySearchRecord()
-                s = os.stat(os.path.join(root, localDir))
-                record.setStatInfo(localDir, s)
-                fileList.append(record)
+        root, directories, files = next(os.walk(directory), (directory, [], []))
+        for localDir in directories:
+            record = DirectorySearchRecord()
+            s = os.stat(os.path.join(root, localDir))
+            record.setStatInfo(localDir, s)
+            fileList.append(record)
 
-            for f in fnmatch.filter(files, wildcard):
-                record = DirectorySearchRecord()
-                s = os.stat(os.path.join(root, f))
-                record.setStatInfo(f, s)
-                fileList.append(record)
-        except StopIteration:
-            # no files or directories
-            pass
+        for f in fnmatch.filter(files, wildcard):
+            record = DirectorySearchRecord()
+            s = os.stat(os.path.join(root, f))
+            record.setStatInfo(f, s)
+            fileList.append(record)
 
         self.newList(fileList)
         self.focusItemNum(0)

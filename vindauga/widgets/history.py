@@ -72,13 +72,12 @@ class History(View):
                     self._linkedWidget.drawView()
                 self.destroy(historyWindow)
             self.clearEvent(event)
-        else:
-            if event.what == evBroadcast:
-                if ((event.message.command == cmReleasedFocus and
-                     event.message.infoPtr == self._linkedWidget) or
-                        event.message.command == cmRecordHistory):
-                    historyRecord = self._linkedWidget.getData()
-                    self.recordHistory(historyRecord.value)
+        elif event.what == evBroadcast:
+            if ((event.message.command == cmReleasedFocus and
+                 event.message.infoPtr == self._linkedWidget) or
+                    event.message.command == cmRecordHistory):
+                historyRecord = self._linkedWidget.getData()
+                self.recordHistory(historyRecord.value)
 
     def initHistoryWindow(self, bounds):
         p = HistoryWindow(bounds, self._historyId)

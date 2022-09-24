@@ -24,7 +24,7 @@ class SortedCollection(Collection):
         self.sort()
 
     def insert(self, index, value):
-        super().insert(index, value)
+        super().append(value)
         self.sort()
 
     def append(self, value):

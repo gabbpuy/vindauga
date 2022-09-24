@@ -1,5 +1,4 @@
 # -*- coding: utf-8 -*-
-import itertools
 import logging
 
 logger = logging.getLogger(__name__)
@@ -30,9 +29,8 @@ class CollectionBase(list):
         :param args: Args to pass to `testFunc`
         :return: First Item or None
         """
-        for item in self:
-            if testFunc(item, *args):
-                return item
+        if any(testFunc((item := _item), *args) for _item in self):
+            return item
         return None
 
     def lastThat(self, testFunc, *args):
@@ -43,9 +41,8 @@ class CollectionBase(list):
         :param args: Args to pass to `testFunc`
         :return: First Item or None
         """
-        for item in reversed(self):
-            if testFunc(item, *args):
-                return item
+        if any(testFunc((item := _item), *args) for _item in reversed(self)):
+            return item
         return None
 
     def forEach(self, action, *args):
