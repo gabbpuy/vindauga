@@ -235,6 +235,11 @@ class Group(View):
             return child
         return None
 
+    def lastThat(self, func, *args) -> Optional[View]:
+        if any(func((child := c), *args) is True for c in reversed(self.children)):
+            return child
+        return None
+
     def focusNext(self, forwards):
         p = self.__findNext(forwards)
         if p:
