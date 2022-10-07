@@ -30,8 +30,7 @@ class GridViewDialog(Dialog):
                                    decimalPoint)
         self.listBox.growMode = gfGrowHiX | gfGrowHiY
         self.headingBox = GridHeadingView(Rect(r.topLeft.x, r.topLeft.y - headRows, r.bottomRight.x, r.topLeft.y),
-                                          self.hScrollBar, self.vScrollBar, columnWidth, headings, columns, headRows,
-                                          self.listBox)
+                                          columnWidth, headings, columns, headRows, self.listBox)
         self.headingBox.growMode = gfGrowHiX
 
         self.inputLine = InputLine(Rect(r.topLeft.x, r.topLeft.y, r.topLeft.x + columnWidth[0] - 1,

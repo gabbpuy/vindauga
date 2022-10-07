@@ -13,19 +13,12 @@ class GridHeadingView(GridView):
         True: ' ▼'
     }
 
-    def __init__(self, bounds, hScrollBar, vScrollBar, columnWidths, cellText, columns, rows, widget=None):
-        super().__init__(bounds, hScrollBar, vScrollBar, columnWidths)
+    def __init__(self, bounds, columnWidths, cellText, columns, rows, widget=None):
+        self.headingMode = True
+        super().__init__(bounds, None, None, columnWidths)
         self.cellText = list((list(c) for c in cellText))
         self.setRange(columns, rows)
         self.widget = widget
-        """
-        if hScrollBar:
-            hScrollBar.maxVal = columns - 1
-        if vScrollBar:
-            vScrollBar.maxVal = rows - 1
-        """
-
-        self.headingMode = True
         self.sortedColumn = -1
         self.reversed = False
 

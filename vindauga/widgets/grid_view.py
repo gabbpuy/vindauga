@@ -9,6 +9,7 @@ from vindauga.constants.keys import kbUp, kbDown, kbRight, kbLeft, kbPgDn, kbPgU
 
 from vindauga.constants.state_flags import sfSelected, sfActive
 from vindauga.constants.option_flags import ofFirstClick, ofSelectable
+from vindauga.events.event import Event
 
 from vindauga.misc.character_codes import SPECIAL_CHARS
 from vindauga.misc.message import message
@@ -71,26 +72,28 @@ class GridView(View):
                 thisWidth = self.size.x - posColumn + 1
             for i in range(self.size.y):
                 row = i + self.topRow
-                color = normalColor
-                scOff = 0
                 if self.headingMode:
-                    scOff = 4
-                elif (self.state & (sfSelected | sfActive) == (sfSelected | sfActive) and
-                      self.focusedRow == row and self.focusedColumn == column and self.numRows):
+                    color = normalColor
+                    specialChar = 4
+                elif ((self.state & (sfSelected | sfActive)) == (sfSelected | sfActive) and
+                      self.isSelected(column, row) and self.numRows):
                     color = focusedColor
                     self.setCursor(posColumn + 1, i)
-                    scOff = 0
+                    specialChar = 0
                 elif column < self.numColumns and row < self.numRows and self.isSelected(column, row):
                     color = selectedColor
-                    scOff = 4
+                    specialChar = 2
+                else:
+                    color = normalColor
+                    specialChar = 4
 
                 b.moveChar(0, ' ', color, thisWidth)
                 if column < self.numColumns and row < self.numRows:
                     text = self.getText(column, row, thisWidth)
                     b.moveStr(1, text, color)
                     if self.showMarkers:
-                        b.putChar(0, SPECIAL_CHARS[scOff])
-                        b.putChar(thisWidth - 2, SPECIAL_CHARS[scOff + 1])
+                        b.putChar(0, SPECIAL_CHARS[specialChar])
+                        b.putChar(thisWidth - 2, SPECIAL_CHARS[specialChar + 1])
                 elif not (i or column):
                     b.moveStr(1, _('<empty>'), self.getColor(1))
 
@@ -99,7 +102,7 @@ class GridView(View):
                 self.writeLine(posColumn, i, thisWidth, 1, b)
             posColumn += thisWidth
 
-    def focusItem(self, column, row):
+    def focusItem(self, column: int, row: int):
         self.focusedColumn = column
         if self.hScrollBar and not self.headingMode:
             self.hScrollBar.setValue(column)
@@ -123,22 +126,23 @@ class GridView(View):
         if not self.headingMode:
             message(self.owner, evBroadcast, cmUpdateItemNumber, self)
 
-    def focusItemNum(self, column, row):
+    def focusItemNum(self, column: int, row: int):
+        if not self.numRows:
+            return
         column = max(min(column, self.numColumns - 1), 0)
         row = max(min(row, self.numRows - 1), 0)
-        if self.numRows:
-            self.focusItem(column, row)
+        self.focusItem(column, row)
 
-    def getPalette(self):
+    def getPalette(self) -> Palette:
         return Palette(self.cpGridView)
 
     def getText(self, _column, _row, _maxChars):
         return ''
 
-    def isSelected(self, column, row):
+    def isSelected(self, column: int, row: int) -> bool:
         return column == self.focusedColumn and row == self.focusedRow
 
-    def handleEvent(self, event):
+    def handleEvent(self, event: Event):
         super().handleEvent(event)
 
         mouseAutosToSkip = 4
@@ -184,7 +188,8 @@ class GridView(View):
                 running = self.mouseEvent(event, evMouseMove | evMouseAuto)
 
             self.focusItemNum(newColumn, newRow)
-            if event.mouse.eventFlags & meDoubleClick and self.focusedColumn < self.numColumns and self.focusedRow < self.numRows:
+            if (event.mouse.eventFlags & meDoubleClick and self.focusedColumn < self.numColumns and
+                    self.focusedRow < self.numRows):
                 self.selectItem(self.focusedColumn, self.focusedRow)
             self.clearEvent(event)
         elif event.what == evKeyDown:
@@ -231,7 +236,8 @@ class GridView(View):
                         newRow = oldRow - 1
                         oldColumn = self.numColumns
                     newColumn = oldColumn - 1
-
+                else:
+                    return
             self.focusItemNum(newColumn, newRow)
             self.clearEvent(event)
         elif event.what == evBroadcast:
@@ -247,7 +253,7 @@ class GridView(View):
     def selectItem(self, _column, _row):
         message(self.owner, evBroadcast, cmListItemSelected, self)
 
-    def setRange(self, columns, rows):
+    def setRange(self, columns: int, rows: int):
         self.numColumns = columns
         if self.hScrollBar:
             if self.focusedColumn > columns:
@@ -261,7 +267,7 @@ class GridView(View):
                 self.focusedRow = 0
             self.vScrollBar.setParams(self.focusedRow, 0, rows - 1, self.vScrollBar.pageStep, self.vScrollBar.arrowStep)
 
-    def setState(self, state, enable):
+    def setState(self, state: int, enable: bool):
         super().setState(state, enable)
 
         if state & (sfSelected | sfActive):
@@ -278,7 +284,7 @@ class GridView(View):
                     self.vScrollBar.hide()
             self.drawView()
 
-    def getColumnPosition(self, column):
+    def getColumnPosition(self, column: int):
         position = 0
         # position = sum(self.columnWidths[self.leftColumn:max(self.numColumns, __column - 1)])
         for i in range(self.leftColumn, max(self.numColumns, column)):

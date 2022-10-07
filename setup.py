@@ -4,6 +4,14 @@ from setuptools import setup, find_packages
 with open('README.md', 'r') as fh:
     long_description = fh.read()
 
+dependencies = [
+    # Windows
+    "pywin32 >= 304; sys_platform == 'win32'",
+    "windows_curses >= 2.2.0 ; sys_platform == 'win32'",
+
+    # Mac
+    "pasteboard >= 0.3.3 ; sys_platform == 'darwin'",
+]
 
 setup(
     name='vindauga',
@@ -21,6 +29,7 @@ setup(
         "License :: OSI Approved :: BSD License",
         "Operating System :: OS Independent",
     ],
+    install_requires = dependencies,
 )
 
 # Note to self
