@@ -5,7 +5,7 @@ with open('README.md', 'r') as fh:
     long_description = fh.read()
 
 dependencies = [
-    "pyperclip >= 1.8.2"
+    "pyperclip >= 1.8.2",
 
     # Windows
     "pywin32 >= 304; sys_platform == 'win32'",
@@ -33,6 +33,7 @@ setup(
 
 # Note to self
 # python3 -m pip install --upgrade twine
+# python3 -m pip install --upgrade wheel
 # rm -rf dist/*
 # python3 setup.py sdist bdist_wheel
 # twine upload dist/*
