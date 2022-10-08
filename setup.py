@@ -5,18 +5,16 @@ with open('README.md', 'r') as fh:
     long_description = fh.read()
 
 dependencies = [
+    "pyperclip >= 1.8.2"
+
     # Windows
     "pywin32 >= 304; sys_platform == 'win32'",
     "windows_curses >= 2.3.0 ; sys_platform == 'win32'",
-
-    # Mac
-    # "pasteboard >= 0.3.3 ; sys_platform == 'darwin'",
-    "pyperclip >= 1.8.2"
 ]
 
 setup(
     name='vindauga',
-    version='0.1.0',
+    version='0.1.1',
     packages=find_packages(exclude=('test', 'build', 'dist')),
     long_description=long_description,
     long_description_content_type='text/markdown',

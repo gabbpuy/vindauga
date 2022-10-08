@@ -1,6 +1,5 @@
+pyperclip >= 1.8.2
+
 # Windows
 pywin32 >= 304; sys_platform == 'win32'
 windows_curses >= 2.3.0 ; sys_platform == 'win32'
-
-# Mac
-pyperclip >= 1.8.2
