@@ -1,5 +1,4 @@
 # -*- coding: utf-8 -*-
-import copy
 import curses
 from dataclasses import dataclass
 import logging
@@ -101,7 +100,7 @@ class Terminal:
             else:
                 shell = profile.pw_shell
             return shell, [os.path.basename(shell), '-l']
-        return 'cmd.exe', []
+        return 'cmd.exe', ['/u', '/f:on']
 
     if not PLATFORM_WINDOWS:
         def executeCommand(self):
@@ -340,9 +339,8 @@ class Terminal:
         n = self.getNumber()
 
         for i in range(self.currRow, self.scrollMax):
-
             if i + n < self.scrollMax:
-                self.cells[i] = copy.deepcopy(self.cells[i + n])
+                self.cells[i] = self.cells[i + n]
             else:
                 columns = self.cells[i]
                 for j in range(self.cols):
@@ -403,7 +401,7 @@ class Terminal:
             eraseStart = self.currCol
             eraseEnd = self.cols - 1
 
-        logger.info('Erase %s - %s', eraseStart, eraseEnd)
+        # logger.info('Erase %s - %s', eraseStart, eraseEnd)
 
         columns = self.cells[self.currRow]
         for i in range(eraseStart, eraseEnd + 1):
@@ -416,8 +414,9 @@ class Terminal:
         n = self.getNumber()
 
         columns = self.cells[self.currRow]
-        for i in range(self.cols, self.cols + n):
-            columns[i] = copy.deepcopy(columns[i - n])
+        columns[self.cols: self.cols + n] = columns[self.cols - n: self.cols]
+        # for i in range(self.cols, self.cols + n):
+        #     columns[i] = columns[i - n]
         for i in range(self.currCol, self.currCol + n):
             self._resetCell(columns[i])
 
@@ -430,8 +429,9 @@ class Terminal:
     def do_IL(self):
         n = self.getNumber()
 
-        for i in range(self.scrollMax, self.currRow - 1, -1):
-            self.cells[i] = copy.deepcopy(self.cells[i - n])
+        self.cells[self.currRow: self.scrollMax] = self.cells[self.currRow - n: self.scrollMax - n]
+        # for i in range(self.scrollMax, self.currRow - 1, -1):
+        #     self.cells[i] = self.cells[i - n]
         for i in range(self.currRow, self.currRow + n):
             if i > self.scrollMax:
                 break
@@ -777,8 +777,7 @@ class Terminal:
             return
 
         self.currRow = self.scrollMax
-        for i in range(self.scrollMin, self.scrollMax):
-            self.cells[i] = self.cells[i + 1]
+        self.cells[self.scrollMin:self.scrollMax] = self.cells[self.scrollMin + 1: self.scrollMax + 1]
         self.cells[self.scrollMax] = [Texel() for _ in range(self.cols)]
         self.eraseRow(self.scrollMax)
 
@@ -788,8 +787,7 @@ class Terminal:
             return
 
         self.currRow = self.scrollMin
-        for i in range(self.scrollMax, self.scrollMin, -1):
-            self.cells[i] = self.cells[i - 1]
+        self.cells[self.scrollMin + 1:self.scrollMax] = self.cells[self.scrollMin:self.scrollMax - 1]
         self.cells[self.scrollMin] = [Texel() for _ in range(self.cols)]
         self.eraseRow(self.scrollMin)
 
@@ -886,6 +884,10 @@ class Terminal:
     else:
         def writePipe(self, keyCode):
             if keyCode == '\r':
+                self.__childPid.write(bytes(keyCode, encoding='utf-8'))
                 keyCode = '\n'
-            self.__childPid.write(bytes(keyCode, encoding='utf-8'))
+            if isinstance(keyCode, str):
+                self.__childPid.write(bytes(keyCode, encoding='utf-8'))
+            else:
+                self.__childPid.write(keyCode)
 

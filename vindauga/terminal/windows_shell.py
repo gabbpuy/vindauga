@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 from dataclasses import dataclass
+import io
 import itertools
 import logging
 import os
@@ -18,6 +19,7 @@ import win32security
 
 from vindauga.constants.message_flags import mfError, mfOKButton
 from vindauga.dialogs.message_box import messageBox
+
 logger = logging.getLogger(__name__)
 
 
@@ -34,7 +36,10 @@ counter = itertools.count(1)
 
 
 class WindowsShell:
-    BUFFER_SIZE = 1024
+    """
+    Mostly works.. typed characters are not echoed back until CR is pressed.
+    """
+    BUFFER_SIZE = 128
 
     def __init__(self, cmdline):
         #self.cmdline = ' '.join(shlex.quote(c) for c in cmdline)
@@ -59,7 +64,7 @@ class WindowsShell:
             1,  # max instances
             WindowsShell.BUFFER_SIZE,  # out buffer size
             WindowsShell.BUFFER_SIZE,  # in buffer size
-            15,  # timeout
+            10,  # timeout
             saAttr)
 
         hChildStdoutWr = win32file.CreateFile(
@@ -69,7 +74,7 @@ class WindowsShell:
             saAttr,
             win32con.OPEN_EXISTING,
             win32con.FILE_FLAG_OVERLAPPED,
-            15)
+            10)
 
         win32api.SetHandleInformation(self.hChildStdoutRd, win32con.HANDLE_FLAG_INHERIT, 0)
 
@@ -80,7 +85,7 @@ class WindowsShell:
             1,  # max instances
             WindowsShell.BUFFER_SIZE,  # out buffer size
             WindowsShell.BUFFER_SIZE,  # in buffer size
-            15,  # timeout
+            10,  # timeout
             saAttr)
 
         hChildStderrWr = win32file.CreateFile(
@@ -90,7 +95,7 @@ class WindowsShell:
             saAttr,
             win32con.OPEN_EXISTING,
             win32con.FILE_FLAG_OVERLAPPED,
-            15)
+            10)
 
         win32api.SetHandleInformation(self.hChildStderrRd, win32con.HANDLE_FLAG_INHERIT, 0)
 
@@ -105,7 +110,7 @@ class WindowsShell:
             1,  # max instances
             WindowsShell.BUFFER_SIZE,  # out buffer size
             WindowsShell.BUFFER_SIZE,  # in buffer size
-            15,  # timeout... 0 gives a default 50 ms
+            10,  # timeout... 0 gives a default 50 ms
             saAttr)
 
         hChildStdinRd = win32file.CreateFile(
@@ -115,7 +120,7 @@ class WindowsShell:
             saAttr,
             win32con.OPEN_EXISTING,
             win32con.FILE_FLAG_OVERLAPPED | win32con.FILE_FLAG_NO_BUFFERING,
-            15)
+            10)
 
         win32api.SetHandleInformation(self.hChildStdinWr, win32con.HANDLE_FLAG_INHERIT, 0)
 
@@ -151,9 +156,10 @@ class WindowsShell:
         win32file.CloseHandle(hChildStdoutWr)
         win32file.CloseHandle(hChildStdinRd)
 
-        self.stdin = os.fdopen(msvcrt.open_osfhandle(int(self.hChildStdinWr), 0), 'wb', buffering=0)
-        self.stdout = os.fdopen(msvcrt.open_osfhandle(int(self.hChildStdoutRd), 0), 'rb', buffering=0)
-        self.stderr = os.fdopen(msvcrt.open_osfhandle(int(self.hChildStderrRd), 0), 'rb', buffering=0)
+        self.stdin = io.open(msvcrt.open_osfhandle(int(self.hChildStdinWr), os.O_APPEND), 'wb', buffering=0)
+        self.stdout = io.open(msvcrt.open_osfhandle(int(self.hChildStdoutRd), os.O_RDONLY), 'rb', buffering=0)
+        self.stderr = io.open(msvcrt.open_osfhandle(int(self.hChildStderrRd), os.O_RDONLY), 'rb', buffering=0)
+
         fds = WindowPipe(stdin=self.stdin, stdout=self.stdout, stderr=self.stderr)
         return fds
 
@@ -167,18 +173,18 @@ class WindowsShell:
         error, written = win32file.WriteFile(self.hChildStdinWr, buffer)
         if error:
             logger.error('write() Error: -> %s', win32api.GetLastError())
-        # win32file.FlushFileBuffers(self.hChildStdinWr)
         return written
 
     @staticmethod
     def __readPipe(handle):
         try:
-            (buffer, available, result) = win32pipe.PeekNamedPipe(handle, 0)
+            (buffer, available, result) = win32pipe.PeekNamedPipe(handle, 1)
         except pywintypes.error as e:
             raise BrokenPipeError
 
-        if result == -1:
-            raise BrokenPipeError
+        if result == -1 and (lastError := win32api.GetLastError()):
+             raise BrokenPipeError
+
         if available > 0:
             result, data = win32file.ReadFile(handle, available, None)
             if result < 0:
