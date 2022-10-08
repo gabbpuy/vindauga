@@ -129,7 +129,7 @@ def setPalette() -> Tuple[Display, array.array, Optional[array.array]]:
         attributeMap[0x70] = curses.A_REVERSE
         return Display.smMono, attributeMap, None
 
-    attributeMap = array.array('L', [0] * curses.COLOR_PAIRS)
+    attributeMap = array.array('L', [0] * 128)
 
     if not PLATFORM_IS_WINDOWS:
 
@@ -183,7 +183,7 @@ def setPalette() -> Tuple[Display, array.array, Optional[array.array]]:
                     curses.init_pair(i, fore, back)
                     i += 1
 
-        for i in range(256):
+        for i in range(128):
             back = (i >> 4) & 0x07
             bold = i & 0x08
             fore = i & 0x07
