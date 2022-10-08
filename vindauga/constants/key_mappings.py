@@ -46,11 +46,10 @@ _keyMappings = (
     # _(9, 0, MSHIFT, kbShiftTab),
     _(curses.KEY_BTAB, 0, 0, kbShiftTab),
     _(9, 0, MCTRL, kbCtrlTab),
-    # _(10, 0, 0, kbCtrlJ),
+    _(10, 0, MCTRL, kbCtrlEnter),
     _(10, 0, 0, kbEnter),
     _(11, 0, 0, kbCtrlK),
     _(12, 0, 0, kbCtrlL),
-    # _(13, 0, 0, kbCtrlM),
     _(13, 0, 0, kbEnter),
     _(14, 0, 0, kbCtrlN),
     _(15, 0, 0, kbCtrlO),
@@ -67,8 +66,37 @@ _keyMappings = (
     _(26, 0, 0, kbCtrlZ),
     _(27, 0, 0, kbEsc),
     _(31, 0, 0, kbCtrlBackSpace),
+    _(63, 0, MCTRL, kbDel),  # ^?
     _(127, 0, 0, kbBackSpace),
     _(127, TALT, 0, kbAltBackSpace),
+
+    # Explicit control codes ^A - ^Z
+    _(65, 0, MCTRL, kbCtrlA),
+    _(66, 0, MCTRL, kbCtrlB),
+    _(67, 0, MCTRL, kbCtrlC),
+    _(68, 0, MCTRL, kbCtrlD),
+    _(69, 0, MCTRL, kbCtrlE),
+    _(70, 0, MCTRL, kbCtrlF),
+    _(71, 0, MCTRL, kbCtrlG),
+    _(72, 0, MCTRL, kbCtrlH),
+    _(73, 0, MCTRL, kbTab),
+    _(74, 0, MCTRL, kbEnter),
+    _(75, 0, MCTRL, kbCtrlK),
+    _(76, 0, MCTRL, kbCtrlL),
+    _(77, 0, MCTRL, kbEnter),
+    _(78, 0, MCTRL, kbCtrlN),
+    _(79, 0, MCTRL, kbCtrlO),
+    _(80, 0, MCTRL, kbCtrlP),
+    _(81, 0, MCTRL, kbCtrlQ),
+    _(82, 0, MCTRL, kbCtrlR),
+    _(83, 0, MCTRL, kbCtrlS),
+    _(84, 0, MCTRL, kbCtrlT),
+    _(85, 0, MCTRL, kbCtrlU),
+    _(86, 0, MCTRL, kbCtrlV),
+    _(87, 0, MCTRL, kbCtrlW),
+    _(88, 0, MCTRL, kbCtrlX),
+    _(89, 0, MCTRL, kbCtrlY),
+    _(90, 0, MCTRL, kbCtrlZ),
 
     # alt-letter codes
     _(' ', TALT, 0, kbAltSpace),
@@ -108,7 +136,6 @@ _keyMappings = (
     _('X', TALT, 0, kbAltX),
     _('Y', TALT, 0, kbAltY),
     _('Z', TALT, 0, kbAltZ),
-
 
     # escape codes
     _(curses.KEY_DOWN, 0, 0, kbDown),

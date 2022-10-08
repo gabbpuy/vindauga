@@ -56,9 +56,9 @@ def get_key_mapping(code):
     if s in SHIFT_NAMES:
         return SHIFT_NAMES[s], MSHIFT
     if s.startswith('^'):
-        return s[-1], MCTRL
+        return ord(s[-1]), MCTRL
     if s.startswith('M-'):
-        return s[-1], MALT
+        return ord(s[-1]), MALT
     return code, 0
 
 
