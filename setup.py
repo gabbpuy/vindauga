@@ -7,7 +7,7 @@ with open('README.md', 'r') as fh:
 dependencies = [
     # Windows
     "pywin32 >= 304; sys_platform == 'win32'",
-    "windows_curses >= 2.2.0 ; sys_platform == 'win32'",
+    "windows_curses >= 2.3.0 ; sys_platform == 'win32'",
 
     # Mac
     "pasteboard >= 0.3.3 ; sys_platform == 'darwin'",

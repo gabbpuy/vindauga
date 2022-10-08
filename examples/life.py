@@ -48,6 +48,7 @@ from vindauga.widgets.window import Window
 logger = logging.getLogger('vindauga.examples.life')
 
 
+# noinspection PyArgumentList
 class CommandCodes(IntEnum):
     cmAbout = 101  # about box
     cmCreate = auto()  # creates a new life window
@@ -484,6 +485,7 @@ class LifeInterior(View):
         elif event.what == evCommand:
             if CommandCodes.cmPat01 <= event.message.command < CommandCodes.cmPat01 + len(patterns):
                 self.getPattern(event.message.command - CommandCodes.cmPat01)
+                self.drawView()
             else:
                 if event.message.command == CommandCodes.cmOneStep:
                     self.iterateBoard()
@@ -623,12 +625,12 @@ class LifeApp(Application):
             self.clearEvent(event)
 
     @staticmethod
-    def isTileable(view, *_args):
-        return view.options & ofTileable
+    def isTileable(view, *_args) -> bool:
+        return bool(view.options & ofTileable)
 
     def idle(self):
         super().idle()
-        if self.desktop.firstThat(self.isTileable, 0):
+        if self.desktop.firstThat(self.isTileable):
             View.enableCommands(self.windowCommands)
         else:
             View.disableCommands(self.windowCommands)
