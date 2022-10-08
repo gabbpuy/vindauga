@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 import array
 import atexit
+import contextlib
 import curses
 import curses.ascii
 import itertools
@@ -25,6 +26,7 @@ from vindauga.events.event_queue import EventQueue
 from vindauga.misc.signal_handling import signalHandler, sigWinchHandler
 from vindauga.misc.util import clamp
 from vindauga.timers import kbEscTimer, msAutoTimer, wakeupTimer
+from vindauga.utilities.colours.colours import setPalette
 
 from .draw_buffer import BufferArray, DrawBuffer
 from .display import Display
@@ -113,6 +115,7 @@ class TScreen:
         wakeupTimer.start(DELAY_WAKEUP)
         self.stdscr = self.initialiseScreen()
         self._setScreenSize()
+        self.__rawMode = False
 
         if not PLATFORM_IS_WINDOWS:
             signals = (SIGCONT,
@@ -366,63 +369,8 @@ class TScreen:
             TScreen.putEvent(event)
 
     def selectPalette(self):
-        if curses.can_change_color():
-            # TODO: Put the palette back the way it was
-            colorLevel = 650
-            # Your powershell window is going to look pink after you exit... d8)
-            curses.init_color(curses.COLOR_BLACK, 0, 0, 0)
-            curses.init_color(curses.COLOR_BLUE, 0, 0, colorLevel)
-            curses.init_color(curses.COLOR_GREEN, 0, colorLevel, 0)
-            curses.init_color(curses.COLOR_RED, colorLevel, 0, 0)
-            curses.init_color(curses.COLOR_YELLOW, colorLevel, colorLevel, 0)
-            curses.init_color(curses.COLOR_MAGENTA, colorLevel, 0, colorLevel)
-            curses.init_color(curses.COLOR_CYAN, 0, colorLevel, colorLevel)
-            curses.init_color(curses.COLOR_WHITE, colorLevel, colorLevel, colorLevel)
-
-        # The color ordering is different between a CMD / Powershell window and everything else...
-        if not PLATFORM_IS_WINDOWS:
-            colorMap = (curses.COLOR_BLACK,
-                        curses.COLOR_CYAN,
-                        curses.COLOR_GREEN,
-                        curses.COLOR_RED,
-                        curses.COLOR_YELLOW,
-                        curses.COLOR_MAGENTA,
-                        curses.COLOR_BLUE,
-                        curses.COLOR_WHITE)
-        else:
-            colorMap = (curses.COLOR_BLACK,
-                        curses.COLOR_YELLOW,
-                        curses.COLOR_GREEN,
-                        curses.COLOR_CYAN,
-                        curses.COLOR_RED,
-                        curses.COLOR_MAGENTA,
-                        curses.COLOR_BLUE,
-                        curses.COLOR_WHITE)
-
-        self.attributeMap = array.array('L', [0] * 256)
-
-        if curses.has_colors():
-            self.screenMode = Display.smCO80
-            i = 0
-            for fore in reversed(colorMap):
-                for back in colorMap:
-                    if i:
-                        curses.init_pair(i, fore, back)
-                    i += 1
-
-            for i in range(256):
-                back = (i >> 4) & 0x07
-                bold = i & 0x08
-                fore = i & 0x07
-                self.attributeMap[i] = curses.color_pair((7 - colorMap[fore]) * 8 + colorMap[back])
-                if bold:
-                    self.attributeMap[i] |= curses.A_BOLD
-
-        else:
-            self.screenMode = Display.smMono
-            self.attributeMap[0x07] = curses.A_NORMAL
-            self.attributeMap[0x0f] = curses.A_BOLD
-            self.attributeMap[0x70] = curses.A_REVERSE
+        self.screenMode, self.attributeMap, self.highColourMap = setPalette()
+        logger.info('ScreenMode: %s', self.screenMode)
 
     def getEvent(self, event):
         event.what = evNothing
@@ -493,7 +441,7 @@ class TScreen:
         code = cell & DrawBuffer.CHAR_MASK
         color = (cell >> DrawBuffer.CHAR_WIDTH) & 0xFF
 
-        if self.screenMode in {Display.smCO80, Display.smFont8x8}:
+        if self.screenMode in {Display.smCO80, Display.smFont8x8, Display.smCO256}:
             if show:
                 color ^= 0x7F
         else:
@@ -516,23 +464,55 @@ class TScreen:
         stdscr.refresh()
 
     def writeRow(self, x, y, src, rowLen):
+        if self.__rawMode and self.screenMode == Display.smCO256:
+            return self.writeRowRaw(x, y, src, rowLen)
+
         with self.__draw_lock:
             stdscr = self.stdscr
             stdscr.move(y, x)
             attributeMap = self.attributeMap
-            attrset = stdscr.attrset
-            addch = stdscr.addch
+            addstr = stdscr.addstr
             for sc in itertools.islice(src, rowLen):
                 code = chr(sc & 0xFFFF)
-                color = ((sc & 0xFF0000) >> 16) & 0xFF
-                attrset(attributeMap[color])
+                color = ((sc & 0xFFFF0000) >> 16) & 0xFFFF
                 try:
-                    addch(code)
+                    addstr(code, attributeMap[color])
                 except curses.error as e:
                     # Writing to the bottom right corner throws an error after it is drawn
                     pass
 
             stdscr.move(self.curY, self.curX)
+
+    def writeRowRaw(self, x, y, src, rowLen):
+        """
+        Write a row with high colours, instead of the 8x16 text-ui palette.
+        This needs `smCO256` Display type and 64K colour pairs to be worth using.
+        """
+        with self.__draw_lock:
+            stdscr = self.stdscr
+            stdscr.move(y, x)
+            attributeMap = self.highColourMap
+            addstr = stdscr.addstr
+            for sc in itertools.islice(src, rowLen):
+                code = chr(sc & 0xFFFF)
+                color = ((sc & 0xFFFF0000) >> 16) & 0xFFFF
+                try:
+                    addstr(code, attributeMap[color])
+                except curses.error as e:
+                    # Writing to the bottom right corner throws an error after it is drawn
+                    pass
+            stdscr.move(self.curY, self.curX)
+
+    @contextlib.contextmanager
+    def setRawMode(self):
+        """
+        Context manager to switch to raw mode for writing.
+        """
+        self.__rawMode = True
+        try:
+            yield
+        finally:
+            self.__rawMode = False
 
     def _setScreenSize(self):
         self.screenHeight, self.screenWidth = self.stdscr.getmaxyx()

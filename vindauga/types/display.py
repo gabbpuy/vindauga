@@ -7,3 +7,4 @@ class Display(IntEnum):
     smCO80 = 0x0003
     smMono = 0x0007
     smFont8x8 = 0x0100
+    smCO256 = 0x200
