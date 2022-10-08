@@ -10,7 +10,8 @@ dependencies = [
     "windows_curses >= 2.3.0 ; sys_platform == 'win32'",
 
     # Mac
-    "pasteboard >= 0.3.3 ; sys_platform == 'darwin'",
+    # "pasteboard >= 0.3.3 ; sys_platform == 'darwin'",
+    "pyperclip >= 1.8.2"
 ]
 
 setup(
