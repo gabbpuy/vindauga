@@ -16,7 +16,7 @@ class MyApp(Application):
     def doWork(self):
         messageBox('\003Directory Dialog\nCurrent Directory is {}'.format(os.getcwd()), mfInformation, (mfOKButton,))
         data = self.newDialog()
-        messageBox('\003Directory Dialog\nCurrent Directory is now {}\n{}'.format(os.getcwd(), data), mfInformation, (mfOKButton,))
+        messageBox('\003Directory Dialog\nCurrent Directory is now {}'.format(os.getcwd()), mfInformation, (mfOKButton,))
 
     def newDialog(self):
         pd = ChangeDirDialog(0, 'dirs')

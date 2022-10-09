@@ -1,6 +1,8 @@
 # -*- coding: utf-8 -*-
 import logging
 import os
+import pathlib
+from typing import Union
 
 from vindauga.constants.buttons import bfDefault, bfNormal
 from vindauga.constants.command_codes import cmOK, cmHelp
@@ -64,7 +66,7 @@ class ChangeDirDialog(Dialog):
         return True
 
     def getData(self):
-        return self.dirInput.getDataString()
+        return self.dirInput.getData()
 
     def setData(self, data):
         self.dirInput.setData(data.value)
@@ -94,11 +96,10 @@ class ChangeDirDialog(Dialog):
             self.dirList.select()
             self.clearEvent(event)
 
-    def valid(self, command):
+    def valid(self, command: int) -> bool:
         if command != cmOK:
             return True
-        rec = DataRecord()
-        self.dirInput.getData()
+        rec = self.dirInput.getData()
         path = rec.value
         if path == self.drivesText:
             path = ''
@@ -129,7 +130,7 @@ class ChangeDirDialog(Dialog):
                 self.dirInput.setData(curDir)
                 self.dirInput.drawView()
 
-    def changeDir(self, path):
+    def changeDir(self, path: Union[str, pathlib.Path]) -> bool:
         try:
             os.chdir(path)
             return False
