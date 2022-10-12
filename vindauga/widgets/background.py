@@ -14,7 +14,7 @@ class Background(View):
     The default desktop background.
 
     `Background` is a very simple view which by default is the background of the
-    desktop. It is a rectangle painted with an uniform pattern.
+    desktop. It is a rectangle painted with a uniform pattern.
     """
 
     name = 'Background'

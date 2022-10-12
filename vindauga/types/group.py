@@ -231,12 +231,12 @@ class Group(View):
                 p.select()
 
     def firstThat(self, func, *args) -> Optional[View]:
-        if any(func((child := c), *args) is True for c in self.children):
+        if any(bool(func((child := c), *args)) is True for c in self.children):
             return child
         return None
 
     def lastThat(self, func, *args) -> Optional[View]:
-        if any(func((child := c), *args) is True for c in reversed(self.children)):
+        if any(bool(func((child := c), *args)) is True for c in reversed(self.children)):
             return child
         return None
 

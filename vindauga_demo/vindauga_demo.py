@@ -21,6 +21,7 @@ from vindauga.dialogs.change_dir_dialog import ChangeDirDialog, cmChangeDir
 from vindauga.dialogs.color_dialog import ColorDialog
 from vindauga.dialogs.file_dialog import FileDialog, fdOpenButton
 from vindauga.dialogs.mouse_dialog import MouseDialog
+from vindauga.events.event import Event
 from vindauga.events.event_queue import EventQueue
 from vindauga.gadgets.puzzle import PuzzleWindow
 from vindauga.menus.menu_bar import MenuBar
@@ -35,6 +36,7 @@ from vindauga.types.rect import Rect
 from vindauga.types.screen import Screen
 from vindauga.types.status_def import StatusDef
 from vindauga.types.status_item import StatusItem
+from vindauga.types.view import View
 from vindauga.widgets.application import Application
 from vindauga.widgets.button import Button
 from vindauga.widgets.check_boxes import CheckBoxes
@@ -47,7 +49,7 @@ from vindauga.widgets.radio_buttons import RadioButtons
 from vindauga.widgets.static_text import StaticText
 from vindauga.widgets.status_line import StatusLine
 
-logger = logging.getLogger('vindauga.vindauga_demp')
+logger = logging.getLogger('vindauga.vindauga_demo')
 
 
 checkBoxData = 0
@@ -90,14 +92,14 @@ class VindaugaDemo(Application):
                     self.desktop.insert(w)
 
     @staticmethod
-    def isTileable(view, *_args):
+    def isTileable(view: View, *_args) -> bool:
         return view.options & ofTileable != 0
 
     @staticmethod
-    def closeView(view, params):
+    def closeView(view: View, params):
         message(view, evCommand, cmClose, params)
 
-    def initStatusLine(self, bounds):
+    def initStatusLine(self, bounds: Rect) -> StatusLine:
         bounds.topLeft.y = bounds.bottomRight.y - 1
 
         return StatusLine(bounds,
@@ -114,7 +116,7 @@ class VindaugaDemo(Application):
     def tile(self):
         self.desktop.tile(self.desktop.getExtent())
 
-    def initMenuBar(self, bounds):
+    def initMenuBar(self, bounds: Rect) -> MenuBar:
         bounds.bottomRight.y = bounds.topLeft.y + 1
         subMenu1 = (SubMenu('~≡~', 0, hcNoContext) +
                     MenuItem('~A~bout...', AppCommands.cmAboutCmd, kbNoKey, HelpContexts.hcSAbout) +
@@ -159,7 +161,7 @@ class VindaugaDemo(Application):
 
         return MenuBar(bounds, subMenu1 + subMenu2 + subMenu3 + subMenu4 + subMenu5)
 
-    def handleEvent(self, event):
+    def handleEvent(self, event: Event):
         super().handleEvent(event)
         if event.what == evCommand:
             emc = event.message.command
