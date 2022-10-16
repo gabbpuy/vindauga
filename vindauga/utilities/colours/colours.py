@@ -107,7 +107,7 @@ def loadColours() -> List[Dict]:
 def initPaletteColours():
     if curses.can_change_color():
         # If we can change colours, set the x-term colour palette
-        palette = loadColours()
+        from .xterm_colors import palette
         for colour in sorted(palette, key=lambda c: c['colorId'])[:curses.COLORS]:
             r = int(colour['rgb']['r'] * 1000 / 256)
             g = int(colour['rgb']['g'] * 1000 / 256)

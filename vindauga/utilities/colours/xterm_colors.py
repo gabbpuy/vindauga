@@ -1,4 +1,4 @@
-[
+palette = [
   {
     "colorId": 0,
     "hexString": "#000000",
