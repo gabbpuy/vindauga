@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 import logging
 import os
+import string
 
 from vindauga.constants.keys import (kbCtrlB, kbLeft, kbCtrlF, kbRight, kbCtrlP, kbUp, kbCtrlN, kbDown,
                                      kbCtrlA, kbHome, kbCtrlE, kbEnd, kbCtrlD, kbDel, kbCtrlQ, kbIns,
@@ -8,7 +9,9 @@ from vindauga.constants.keys import (kbCtrlB, kbLeft, kbCtrlF, kbRight, kbCtrlP,
 
 logger = logging.getLogger(__name__)
 
-fexpand = os.path.abspath
+
+def fexpand(path: str) -> str:
+    return os.path.normpath(os.path.expanduser(path))
 
 
 def splitPath(path):
@@ -57,7 +60,7 @@ def hotKey(s):
 
 
 def getCurDir():
-    theDir = os.getcwd()
+    theDir = os.path.normpath(os.getcwd())
     if not theDir.endswith(os.path.sep):
         theDir += os.path.sep
     return theDir

@@ -3,7 +3,7 @@ import logging
 import os
 
 from vindauga.constants.buttons import bfDefault, bfNormal
-from vindauga.constants.command_codes import cmOK, cmCancel
+from vindauga.constants.command_codes import cmOK, cmCancel, cmValid
 from vindauga.constants.message_flags import mfError, mfOKButton
 from vindauga.constants.event_codes import evCommand, evBroadcast
 from vindauga.constants.option_flags import ofCentered
@@ -126,34 +126,35 @@ class FileDialog(Dialog):
     def getData(self):
         return self.getFilename()
 
-    def valid(self, command):
+    def valid(self, command) -> bool:
         if not command:
             return True
 
-        if super().valid(command):
-            if command not in (cmCancel, cmFileClear):
-                filename = self.getFilename()
-                if isWild(filename):
-                    path, name = splitPath(filename)
-                    if self.checkDirectory(path):
-                        self.directory = path
-                        self.wildCard = name
-                        if command != cmFileInit:
-                            self.fileList.select()
-                        self.fileList.readDirectory(self.directory, self.wildCard)
-                elif os.path.isdir(filename):
-                    if self.checkDirectory(filename):
-                        self.directory = filename
-                        if command != cmFileInit:
-                            self.fileList.select()
-                        self.fileList.readDirectory(self.directory, self.wildCard)
-                elif validFileName(filename):
-                    return True
-                else:
-                    messageBox(self.invalidFileText, mfError, [mfOKButton])
-                    return False
-            else:
-                return True
+        if not super().valid(command):
+            return False
+        if command in (cmCancel, cmValid, cmFileClear):
+            return True
+        filename = self.getFilename()
+
+        if isWild(filename):
+            path, name = splitPath(fexpand(filename))
+            if self.checkDirectory(path):
+                self.directory = path
+                self.wildCard = name
+                if command != cmFileInit:
+                    self.fileList.select()
+                self.fileList.readDirectory(self.directory, self.wildCard)
+        elif os.path.isdir(filename):
+            if self.checkDirectory(filename):
+                self.directory = filename
+                if command != cmFileInit:
+                    self.fileList.select()
+                self.fileList.readDirectory(self.directory, self.wildCard)
+        elif validFileName(filename):
+            return True
+        else:
+            messageBox(self.invalidFileText, mfError, [mfOKButton])
+            return False
         return False
 
     def shutdown(self):
@@ -163,10 +164,10 @@ class FileDialog(Dialog):
 
     def _readCurrentDirectory(self):
         self.directory = getCurDir()
-        self.fileList.readDirectory(self.wildCard)
+        self.fileList.readDirectory(self.directory, self.wildCard)
 
-    def checkDirectory(self, pth):
-        if pathValid(pth):
+    def checkDirectory(self, path):
+        if pathValid(path):
             return True
 
         messageBox(self.invalidDriveText, mfError, [mfOKButton])

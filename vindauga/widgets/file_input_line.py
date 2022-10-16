@@ -24,18 +24,9 @@ class FileInputLine(InputLine):
 
         if (event.what == evBroadcast and
                 event.message.command == cmFileFocused and not (self.state & sfSelected)):
-
             if event.message.infoPtr.attr & FA_DIREC:
                 p = self.owner.wildCard
-                if ':' not in p and os.path.sep not in p:
-                    p = os.path.join(event.message.infoPtr.name, os.path.sep, p)
-                    self.setData(p)
-                else:
-                    p = fexpand(p)
-                    name = event.message.infoPtr.name
-                    head, tail = os.path.split(p)
-                    p = os.path.join(head, name, tail)
-                    self.setData(fexpand(p))
+                self.setData(fexpand(os.path.join(event.message.infoPtr.name, p)))
             else:
                 self.setData(event.message.infoPtr.name)
             self.drawView()

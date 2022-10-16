@@ -2,6 +2,7 @@
 import fnmatch
 import logging
 import os
+from datetime import datetime
 
 from vindauga.types.collections.file_collection import FileCollection
 from vindauga.constants.event_codes import evBroadcast
@@ -66,14 +67,14 @@ class FileList(SortedListBox):
 
         if directory:
             record = DirectorySearchRecord()
-            nPath = os.path.abspath(os.path.join(directory, '..'))
+            nPath = os.path.realpath(os.path.join(directory, '..'))
             s = os.stat(nPath)
             if s:
                 record.setStatInfo('..', s)
             else:
                 record.name = '..'
                 record.size = 0
-                record.time = 0x210000
+                record.time = datetime.fromtimestamp(0x210000)
                 record.attr = FA_DIREC
             fileList.append(record)
 
