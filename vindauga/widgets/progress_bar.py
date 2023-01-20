@@ -25,7 +25,7 @@ class ProgressBar(View):
 
     def draw(self):
         nBuf = DrawBuffer()
-        text = '{:-3d} %'.format(self.curPercent)
+        text = f'{self.curPercent:-3d} %'
         colorNormal = self.getColor(1)
         dill = 0
 

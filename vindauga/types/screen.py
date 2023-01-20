@@ -542,7 +542,7 @@ class TScreen:
         if kbReady or kbEscTimer.isRunning() or PLATFORM_IS_WINDOWS:
             self.handleKeyboard()
 
-        if not (kbReady or msReady):
+        if not (kbReady or msReady) and wakeupTimer.isExpired():
             wakeupTimer.start(DELAY_WAKEUP)
             event.message.command = cmSysWakeup
             event.what = evCommand

@@ -3,6 +3,7 @@ from gettext import gettext as _
 import logging
 import queue
 from queue import  Empty as QueueEmptyException
+from typing import Optional
 
 from vindauga.constants.command_codes import (cmReleasedFocus, cmCancel, cmSysRepaint, cmSysResize, cmSysWakeup,
                                               cmSelectWindowNum, cmQuit, cmCommandSetChanged, cmMenu, cmClose, cmZoom,
@@ -44,8 +45,8 @@ class Program(Group):
     """
 
     exitText = _('~Alt+X~ Exit')
-    desktop = None
-    application = None
+    desktop: Optional['Desktop'] = None
+    application: Optional['Application'] = None
     cpAppColor = "\x71\x70\x78\x74\x20\x28\x24\x17\x1F\x1A\x31\x31\x1E\x71\x1F" \
                  "\x37\x3F\x3A\x13\x13\x3E\x21\x3F\x70\x7F\x7A\x13\x13\x70\x7F\x7E" \
                  "\x70\x7F\x7A\x13\x13\x70\x70\x7F\x7E\x20\x2B\x2F\x78\x2E\x70\x30" \
@@ -202,8 +203,8 @@ class Program(Group):
                     self.redraw()
                     self.clearEvent(event)
                 elif c == cmSysWakeup:
-                    self.idle()
                     self.clearEvent(event)
+                    self.idle()
 
         if self.statusLine:
             if ((event.what & evKeyDown) or

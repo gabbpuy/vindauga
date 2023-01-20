@@ -15,4 +15,4 @@ class Clipboard:
 if __name__ == "__main__":
     clipboard = Clipboard()
     print(clipboard.receiveFromClipboard())
-    clipboard.sendToClipboard(b'Meh')
+    clipboard.sendToClipboard('Meh')

@@ -1,4 +1,6 @@
 # -*- coding: utf-8 -*-
+from typing import List
+
 from vindauga.constants.buttons import bfNormal
 from vindauga.constants.command_codes import (cmYes, cmNo, cmOK,
                                               cmCancel)
@@ -36,7 +38,7 @@ TITLES = (
 )
 
 
-def messageBoxRect(r, msg, messageType, buttons):
+def messageBoxRect(r: Rect, msg: str, messageType: MsgBoxText, buttons: List[int]):
 
     dialog = Dialog(r, TITLES[messageType])
 
@@ -57,7 +59,7 @@ def messageBoxRect(r, msg, messageType, buttons):
     return execView(dialog)
 
 
-def makeRect():
+def makeRect() -> Rect:
     r = Rect(0, 0, 40, 9)
     size = getDesktopSize()
     r.move((size.x - r.bottomRight.x) // 2,
@@ -65,5 +67,5 @@ def makeRect():
     return r
 
 
-def messageBox(msg, messageType, buttons):
+def messageBox(msg: str, messageType: MsgBoxText, buttons: List[int]):
     return messageBoxRect(makeRect(), msg, messageType, buttons)

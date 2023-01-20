@@ -142,7 +142,7 @@ class Group(View):
         self.current = None
         super().shutdown()
 
-    def execView(self, v):
+    def execView(self, v: View) -> int:
         if not v:
             return cmCancel
 
@@ -178,7 +178,7 @@ class Group(View):
             View.TheTopView = saveTopView
             self.setCommands(saveCommands)
 
-    def execute(self):
+    def execute(self) -> int:
         stillExecuting = True
         while stillExecuting:
             self.endState = 0

@@ -131,8 +131,7 @@ def setPalette() -> Tuple[Display, array.array, Optional[array.array]]:
 
     attributeMap = array.array('L', [0] * 128)
 
-    if not PLATFORM_IS_WINDOWS:
-
+    if not PLATFORM_IS_WINDOWS or (PLATFORM_IS_WINDOWS and curses.can_change_color()):
         colorMap = (Colours.Black,
                     Colours.Cyan,
                     Colours.Green,
