@@ -1,8 +1,13 @@
 # -*- coding: utf-8 -*-
+import logging
+
 from vindauga.history_support.history_utils import initHistory, doneHistory
 from vindauga.types.screen import Screen
+import vindauga.types.screen
 
 from .program import Program
+
+logger = logging.getLogger(__name__)
 
 
 class Application(Program):
@@ -28,6 +33,8 @@ class Application(Program):
     name = 'Application'
 
     def __init__(self):
+        Screen.init()
+        vindauga.types.screen.Screen = Screen.screen
         super().__init__()
         Program.application = self
         initHistory()
@@ -37,8 +44,8 @@ class Application(Program):
 
     @staticmethod
     def suspend():
-        Screen.suspend()
+        Screen.screen.suspend()
 
     @staticmethod
     def resume():
-        Screen.resume()
+        Screen.screen.resume()

@@ -45,7 +45,7 @@ class StaticInputLine(InputRegex):
                 else:
                     logger.info('::handleEvent() no match for %s', self.searchString)
                     self.searchString = self.searchString[:-1]
-                    Screen.makeBeep()
+                    Screen.screen.makeBeep()
                 self.clearEvent(event)
                 return
 

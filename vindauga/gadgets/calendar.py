@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 import datetime
+from gettext import gettext as _
 
 from vindauga.constants.event_codes import evMouseAuto, evKeyboard, evMouse, evMouseDown
 from vindauga.constants.keys import kbDown, kbUp

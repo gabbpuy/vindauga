@@ -1,5 +1,7 @@
 # -*- coding: utf-8 -*-
+from gettext import gettext as _
 import logging
+
 from vindauga.constants.message_flags import mfError, mfOKButton
 from vindauga.constants.validation_constants import voTransfer, vtGetData, vtSetData
 from vindauga.dialogs.message_box import messageBox

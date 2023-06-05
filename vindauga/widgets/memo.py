@@ -2,6 +2,7 @@
 from dataclasses import dataclass
 from typing import Any, Optional
 
+import wcwidth
 from vindauga.constants.event_codes import evKeyDown
 from vindauga.constants.keys import kbTab
 from vindauga.types.palette import Palette
@@ -17,10 +18,10 @@ class MemoData:
 
     @property
     def length(self):
-        return len(self.buffer)
+        return wcwidth.wcswidth(self.buffer)
 
     def __len__(self):
-        return len(self.buffer)
+        return wcwidth.wcswidth(self.buffer)
 
 
 class Memo(Editor):

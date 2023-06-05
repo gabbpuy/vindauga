@@ -1,10 +1,11 @@
 # -*- coding: utf-8 -*-
+from gettext import gettext as _
 from typing import List
 
 from vindauga.constants.buttons import bfNormal
 from vindauga.constants.command_codes import (cmYes, cmNo, cmOK,
                                               cmCancel)
-from vindauga.constants.message_flags import mfYesButton, mfNoButton, mfOKButton, mfCancelButton
+from vindauga.constants.message_flags import mfYesButton, mfNoButton, mfOKButton, mfCancelButton, mfError, mfWarning, mfInformation, mfConfirmation
 from vindauga.types.rect import Rect
 from vindauga.widgets.button import Button
 from vindauga.widgets.dialog import Dialog
@@ -30,15 +31,15 @@ BUTTONS = {
     mfCancelButton: (MsgBoxText.cancelText, cmCancel)
 }
 
-TITLES = (
-    MsgBoxText.warningText,
-    MsgBoxText.errorText,
-    MsgBoxText.informationText,
-    MsgBoxText.confirmText
-)
+TITLES = {
+    mfWarning: MsgBoxText.warningText,
+    mfError: MsgBoxText.errorText,
+    mfInformation: MsgBoxText.informationText,
+    mfConfirmation: MsgBoxText.confirmText,
+}
 
 
-def messageBoxRect(r: Rect, msg: str, messageType: MsgBoxText, buttons: List[int]):
+def messageBoxRect(r: Rect, msg: str, messageType: int, buttons: List[int]):
 
     dialog = Dialog(r, TITLES[messageType])
 
@@ -46,7 +47,6 @@ def messageBoxRect(r: Rect, msg: str, messageType: MsgBoxText, buttons: List[int
         StaticText(Rect(3, 2, dialog.size.x - 2, dialog.size.y - 3), msg))
 
     x = -2
-
     buttons = (BUTTONS[b] for b in sorted(buttons))
     buttonList = [Button(Rect(0, 0, 10, 2), button[0], button[1], bfNormal) for button in buttons]
     x += sum((2 + b.size.x) for b in buttonList)
@@ -67,5 +67,5 @@ def makeRect() -> Rect:
     return r
 
 
-def messageBox(msg: str, messageType: MsgBoxText, buttons: List[int]):
+def messageBox(msg: str, messageType: int, buttons: List[int]):
     return messageBoxRect(makeRect(), msg, messageType, buttons)

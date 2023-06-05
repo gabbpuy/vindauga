@@ -1,6 +1,8 @@
 # -*- coding: utf-8 -*-
 import logging
+from typing import Any, Tuple
 
+import wcwidth
 from vindauga.constants.buttons import bfDefault, bfNormal
 from vindauga.constants.command_codes import cmOK, cmCancel
 from vindauga.types.rect import Rect
@@ -15,13 +17,13 @@ from .message_box import MsgBoxText
 logger = logging.getLogger(__name__)
 
 
-def inputBoxRect(bounds, title, aLabel, s, limit):
+def inputBoxRect(bounds: Rect, title: str, aLabel: str, datum: Any, limit: int) -> Tuple[int, Any]:
     dialog = Dialog(bounds, title)
-    r = Rect(4 + len(aLabel), 2, dialog.size.x - 3, 3)
+    r = Rect(4 + wcwidth.wcswidth(aLabel), 2, dialog.size.x - 3, 3)
     control = InputLine(r, limit)
     dialog.insert(control)
 
-    r = Rect(2, 2, 3 + len(aLabel), 3)
+    r = Rect(2, 2, 3 + wcwidth.wcswidth(aLabel), 3)
     dialog.insert(Label(r, aLabel, control))
 
     r = Rect(dialog.size.x - 24, dialog.size.y - 4, dialog.size.x - 14, dialog.size.y - 2)
@@ -33,7 +35,7 @@ def inputBoxRect(bounds, title, aLabel, s, limit):
     dialog.insert(Button(r, MsgBoxText.cancelText, cmCancel, bfNormal))
 
     dialog.selectNext(False)
-    dialog.setData([s])
+    dialog.setData([datum])
 
     c = execView(dialog)
     rec = None
@@ -42,10 +44,10 @@ def inputBoxRect(bounds, title, aLabel, s, limit):
     return c, rec
 
 
-def inputBox(Title, aLabel, s, limit):
+def inputBox(title: str, label: str, datum: Any, limit: int):
     r = Rect(0, 0, 60, 8)
     size = getDesktopSize()
     r.move((size.x - r.bottomRight.x) // 2,
            (size.y - r.bottomRight.y) // 2)
 
-    return inputBoxRect(r, Title, aLabel, s, limit)
+    return inputBoxRect(r, title, label, datum, limit)

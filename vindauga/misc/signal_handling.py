@@ -28,27 +28,27 @@ def signalHandler(signo, _frame):
     else:
         signals = [SIGINT, SIGQUIT]
 
-
+    screen = Screen.screen
     if (not PLATFORM_IS_WINDOWS) and signo == SIGCONT:
-        Screen.resume()
+        screen.resume()
         signal(SIGTSTP, signalHandler)
         return
     elif signo in signals:
         for ignored in signals:
             signal(ignored, SIG_IGN)
-        if confirmExit(Screen.stdscr):
+        if confirmExit(screen.stdscr):
             # logger.info(inspect.getframeinfo(_frame))
             logger.info(inspect.stack())
             exit(1)
         for ignored in signals:
             signal(ignored, signalHandler)
-        Screen.doRepaint += 1  # refresh..
+        screen.doRepaint += 1  # refresh..
         return
     elif signo == SIGTSTP:
-        Screen.suspend()
+        screen.suspend()
         signal(SIGTSTP, SIG_DFL)
         pause()
     elif signo == SIGWINCH:
         if oldWinchHandler:
             oldWinchHandler(signo, _frame)
-        Screen.doResize += 1
+        screen.doResize += 1

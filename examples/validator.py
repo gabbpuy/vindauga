@@ -17,7 +17,7 @@ from vindauga.widgets.input_line import InputLine
 from vindauga.widgets.label import Label
 from vindauga.widgets.static_text import StaticText
 
-from vindauga.types.validation import RangeValidator
+from vindauga.types.validation.range_validator import RangeValidator
 
 
 cmOpenDialog = 100

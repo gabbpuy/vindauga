@@ -87,15 +87,15 @@ class Program(Group):
     pending = queue.Queue()
 
     def __init__(self):
-        w = Screen.screenWidth
-        h = Screen.screenHeight
+        w = Screen.screen.screenWidth
+        h = Screen.screen.screenHeight
         super().__init__(Rect(0, 0, w, h))
 
         self.appPalette = self.apColor
         self.initScreen()
         self.state = sfVisible | sfSelected | sfFocused | sfModal | sfExposed
         self.options = 0
-        self.buffer = Screen.screenBuffer
+        self.buffer = Screen.screen.screenBuffer
         self.statusLine = None
         self.menuBar = None
 
@@ -107,7 +107,7 @@ class Program(Group):
 
         self.menuBar = self.initMenuBar(self.getExtent())
         self.insert(self.menuBar)
-        Screen.doRepaint += 1
+        Screen.screen.doRepaint += 1
 
     def shutdown(self):
         self.statusLine = None
@@ -170,7 +170,7 @@ class Program(Group):
 
         `getEvent()` first checks if `Program.putEvent()` has generated a
         pending event. If so, `getEvent()` returns that event. If there is no
-        pending event, `getEvent()` calls `Screen.getEvent()`.
+        pending event, `getEvent()` calls `screen.getEvent()`.
 
         If both calls return `evNothing`, indicating that no user input is
         available, `getEvent()` calls `Program.idle()` to allow "background"
@@ -182,21 +182,22 @@ class Program(Group):
 
         :param event: Event object to be modified
         """
+        screen = Screen.screen
         try:
             event.setFrom(Program.pending.get_nowait())
         except QueueEmptyException:
-            Screen.getEvent(event)
+            screen.getEvent(event)
             if event.what == evCommand:
                 c = event.message.command
                 if c == cmSysRepaint:
                     self.redraw()
                     self.clearEvent(event)
                 elif c == cmSysResize:
-                    Screen.curX = Screen.curY = 0
-                    self.buffer = Screen.screenBuffer
+                    screen.curX = screen.curY = 0
+                    self.buffer = screen.screenBuffer
                     self.changeBounds(Rect(0, 0,
-                                           Screen.screenWidth,
-                                           Screen.screenHeight))
+                                           screen.screenWidth,
+                                           screen.screenHeight))
 
                     self.setState(sfExposed, False)
                     self.setState(sfExposed, True)
@@ -328,15 +329,16 @@ class Program(Group):
         sides of menus and windows.
         """
         global showMarkers
-        if Screen.screenMode & 0x00FF != Display.smMono:
-            if Screen.screenMode & Display.smFont8x8:
+        screen = Screen.screen
+        if screen.screenMode & 0x00FF != Display.smMono:
+            if screen.screenMode & Display.smFont8x8:
                 SHADOW_SIZE.x = 1
             else:
                 SHADOW_SIZE.x = 2
 
             SHADOW_SIZE.y = 1
             showMarkers = False
-            if Screen.screenMode & 0x00FF == Display.smBW80:
+            if screen.screenMode & 0x00FF == Display.smBW80:
                 self.appPalette = self.apBlackWhite
             else:
                 self.appPalette = self.apColor
@@ -416,7 +418,7 @@ class Program(Group):
 
         :param _args: unused. Used to be screen mode.
         """
-        r = Rect(0, 0, Screen.screenWidth, Screen.screenHeight)
+        r = Rect(0, 0, Screen.screen.screenWidth, Screen.screen.screenHeight)
         self.changeBounds(r)
         self.setState(sfExposed, False)
         self.setState(sfExposed, True)

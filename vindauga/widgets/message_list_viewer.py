@@ -1,6 +1,8 @@
 # -*- coding: utf-8 -*-
 import logging
 
+import wcwidth
+
 from vindauga.types.collections.collection import Collection
 from vindauga.constants.drag_flags import dmDragGrow
 from vindauga.constants.grow_flags import gfGrowHiX, gfGrowHiY
@@ -32,7 +34,7 @@ class MessageListViewer(ListViewer):
     def insert(self, message):
         self.items.append(message)
         self.setRange(len(self.items))
-        textLen = max(len(s) for s in self.items)
+        textLen = max(wcwidth.wcswidth(s) for s in self.items)
         self.hScrollBar.setRange(0, textLen)
         self.focusItemNum(len(self.items) - 1)
         self.drawView()

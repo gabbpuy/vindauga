@@ -1,6 +1,8 @@
 # -*- coding: utf-8 -*-
 import logging
 
+import wcwidth
+
 from vindauga.constants.command_codes import (wnNoNumber,
                                               cmClose, cmZoom)
 from vindauga.constants.drag_flags import dmDragMove, dmDragGrow
@@ -81,7 +83,7 @@ class Frame(View):
         if self.owner:
             title = self.owner.getTitle(lineLength)
             if title:
-                lineLength = min(len(title), width - 10)  # min(nameLength(title), width - 10)
+                lineLength = min(wcwidth.wcswidth(title), width - 10)  # min(nameLength(title), width - 10)
                 lineLength = max(lineLength, 0)
                 i = (width - lineLength) >> 1
                 drawable.putChar(i - 1, ' ')

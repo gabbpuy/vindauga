@@ -3,6 +3,8 @@ import array
 import logging
 from functools import partial
 
+import wcwidth
+
 # The underlying datatype - 'L' gives 16 bits for unicode plus 8 for attributes / colours
 BufferArray = partial(array.array, 'L')
 
@@ -86,6 +88,9 @@ class DrawBuffer:
 
     def putCharOnly(self, indent: int, c: str):
         self._data[indent] = ord(c)
+
+    def putString(self, indent: int, source, count: int):
+        self._data[indent: indent + count] = BufferArray(source[:count])
 
     def __getitem__(self, *args):
         return self._data.__getitem__(*args)

@@ -82,11 +82,24 @@ BUTTON4 = (curses.BUTTON4_PRESSED |
            curses.BUTTON4_DOUBLE_CLICKED |
            curses.BUTTON4_TRIPLE_CLICKED)
 
+# def _setScreen():
+#     global screen
+#     if not screen:
+#         screen = Screen()
+#
+#
+# _setScreen()
 
 # noinspection PyUnresolvedReferences,PyUnresolvedReferences
-class TScreen:
+class Screen:
     eventQ_Size = 16
     evQueue = queue.Queue(eventQ_Size)
+    screen = None
+
+    @classmethod
+    def init(cls):
+        if not Screen.screen:
+            Screen.screen = cls()
 
     def __init__(self):
         self.msWhere = Point(0, 0)
@@ -142,8 +155,8 @@ class TScreen:
 
     @staticmethod
     def evLength():
-        # return len(TScreen.evQueue)
-        return TScreen.evQueue.qsize()
+        # return len(Screen.evQueue)
+        return Screen.evQueue.qsize()
 
     @staticmethod
     def kbReadShiftState(ch):
@@ -242,7 +255,7 @@ class TScreen:
         else:
             event.mouse.buttons = buttons
         EventQueue.mouse.copy(event.mouse)
-        TScreen.putEvent(event)
+        Screen.putEvent(event)
 
     def handleMouse(self):
         event = Event(evNothing)
@@ -366,7 +379,7 @@ class TScreen:
             event = Event(evKeyDown)
             event.keyDown.keyCode = code
             event.keyDown.controlKeyState = modifiers
-            TScreen.putEvent(event)
+            Screen.putEvent(event)
 
     def selectPalette(self):
         self.screenMode, self.attributeMap, self.highColourMap = setPalette()
@@ -386,8 +399,8 @@ class TScreen:
             self._setScreenSize()
             event.message.command = cmSysResize
             event.what = evCommand
-        elif not TScreen.evQueue.empty():
-            event.setFrom(TScreen.evQueue.get())
+        elif not Screen.evQueue.empty():
+            event.setFrom(Screen.evQueue.get())
         elif msAutoTimer.isExpired():
             msAutoTimer.start(DELAY_AUTOCLICK_NEXT)
             event.mouse.buttons = self.msOldButtons
@@ -408,7 +421,7 @@ class TScreen:
     @staticmethod
     def putEvent(event):
         try:
-            TScreen.evQueue.put(event)
+            Screen.evQueue.put(event)
         except queue.Full:
             logger.error('evQueue hit event limit')
             pass
@@ -546,15 +559,3 @@ class TScreen:
             wakeupTimer.start(DELAY_WAKEUP)
             event.message.command = cmSysWakeup
             event.what = evCommand
-
-
-Screen = None
-
-
-def _setScreen():
-    global Screen
-    if not Screen:
-        Screen = TScreen()
-
-
-_setScreen()

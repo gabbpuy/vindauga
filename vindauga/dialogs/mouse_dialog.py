@@ -1,4 +1,6 @@
 # -*- coding: utf-8 -*-
+from gettext import gettext as _
+
 from vindauga.constants.buttons import bfNormal, bfDefault
 from vindauga.constants.command_codes import cmOK, cmCancel, cmScrollBarChanged
 from vindauga.constants.event_codes import evMouseDown, meDoubleClick, evBroadcast, evCommand

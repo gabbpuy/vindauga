@@ -1,7 +1,8 @@
 # -*- coding: utf-8 -*-
 import logging
 import os
-import string
+
+import wcwidth
 
 from vindauga.constants.keys import (kbCtrlB, kbLeft, kbCtrlF, kbRight, kbCtrlP, kbUp, kbCtrlN, kbDown,
                                      kbCtrlA, kbHome, kbCtrlE, kbEnd, kbCtrlD, kbDel, kbCtrlQ, kbIns,
@@ -96,7 +97,7 @@ def nameLength(name):
     :param name: String to count
     :return: length of name without '~'
     """
-    return len(name) - name.count('~')
+    return wcwidth.wcswidth(name) - name.count('~')
 
 
 def clamp(val, minVal, maxVal):

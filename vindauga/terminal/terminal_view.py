@@ -2,6 +2,9 @@
 import curses
 import logging
 import os
+import unicodedata
+
+import wcwidth
 
 from vindauga.constants.command_codes import cmPaste
 from vindauga.constants.event_codes import evMouseUp, evKeyDown, evMouseDown, evCommand
@@ -10,7 +13,7 @@ from vindauga.constants.keys import *
 from vindauga.events.event import Event
 from vindauga.misc.clipboard import Clipboard
 from vindauga.types.collections.collection import Collection
-from vindauga.types.draw_buffer import DrawBuffer
+from vindauga.types.draw_buffer import DrawBuffer, BufferArray
 from vindauga.types.point import Point
 from vindauga.types.view import View
 
@@ -33,22 +36,29 @@ class TerminalView(View):
         self.terminal.setColors(curses.COLOR_WHITE, curses.COLOR_BLACK)
 
     def draw(self):
+        # TODO: Make this handle utf-8 better
         minY = min(self.size.y, self.terminal.rows)
         minX = min(self.size.x, self.terminal.cols)
 
         for y in range(minY):
             buffer = DrawBuffer(True)
-            for x in range(minX):
+            x = 0
+            right = minX
+            while x < right:
                 cell = self.terminal.cells[y][x]
+                c_w = wcwidth.wcwidth(chr(cell.char))
                 attr = cell.attr
                 c = cell.color
                 if attr & curses.A_REVERSE:
                     c = self.reverseColor(c)
-
-                buffer.putAttribute(x, c)
                 buffer.putChar(x, chr(cell.char))
-            self.writeLine(0, y, minX, 1, buffer)
-
+                if c_w > 0:
+                    buffer.putAttribute(x, c)
+                if c_w > 1:
+                    # handle glyphs wider than 1
+                    right -= (c_w -1)
+                x += 1
+            self.writeLine(0, y, min(x, minX), 1, buffer)
         self.setCursor(self.terminal.currCol, self.terminal.currRow)
 
         if self.terminal.state & STATE_CURSOR_INVIS:

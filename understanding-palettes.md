@@ -82,7 +82,7 @@ how they map into each other:
                              v     v     v     v     v     v
                    x01-x3F  x40   x41   x42   x43   x44   x45
      +------------+-------+-----+-----+-----+-----+-----+-----+
-     ?TTestApp    |  ...  | x3E | x2D | x72 | x5F | x68 | x4E |
+     |TTestApp    |  ...  | x3E | x2D | x72 | x5F | x68 | x4E |
      +------------+-------+-----+-----+-----+-----+-----+-----+
 
                                   Table I
@@ -235,7 +235,7 @@ characters (see documentation on writeCStr() for more details.)
   //
   #define cpTestView "\x9\xA\xB\xC\xD\xE" // SIX colors available
                                           // in this view.
-  TTestView::TTestView(`TRect`& r ) :`TView`( r )
+  TTestView::TTestView(TRect& r ) :TView( r )
   {
   }
   void TTestView::draw()
@@ -265,7 +265,7 @@ characters (see documentation on writeCStr() for more details.)
   //
   TPalette& TTestView::getPalette() const
   {
-      static`TPalette` palette( cpTestView, sizeof(cpTestView)-1 );
+      static TPalette palette( cpTestView, sizeof(cpTestView)-1 );
       return palette;
   }
   //
@@ -278,13 +278,13 @@ characters (see documentation on writeCStr() for more details.)
   #define cpCyanWindow "\x10\x11\x12\x13\x14\x15\x16\x17"
   #define cpGrayWindow "\x18\x19\x1A\x1B\x1C\x1D\x1E\x1F"
   TTestWindow::TTestWindow() :
-      TWindow(`TRect`(0, 0,`TEST`_WIDTH,`TEST`_HEIGHT), 0,
+      TWindow(TRect(0, 0,TEST_WIDTH,TEST_HEIGHT), 0,
                wnNoNumber),
       TWindowInit( initFrame )
   {
       TRect r = getExtent();
       r.grow(-2, -2);
-      insert( new`TTestView`(r) );
+      insert( new TTestView(r) );
       options |= ofCentered;
       flags = wfMove | wfClose;
   }
@@ -350,7 +350,7 @@ characters (see documentation on writeCStr() for more details.)
       TTestView(TRect& r );
       virtual ~TTestView() {}
       virtual void draw();
-      virtual`TPalette`& getPalette() const;
+      virtual TPalette& getPalette() const;
   private:
   };
   //
@@ -367,10 +367,10 @@ characters (see documentation on writeCStr() for more details.)
   //
   #define TEST_WIDTH   42
   #define TEST_HEIGHT  11
-  class TTestWindow : public`TWindow`
+  class TTestWindow : public TWindow
   {
   public:
-     `TTestWindow`();
+      TTestWindow();
       virtual ~TTestWindow() {}
       virtual TPalette& getPalette() const;
       virtual void sizeLimits(TPoint & min, TPoint & max )
@@ -397,13 +397,13 @@ characters (see documentation on writeCStr() for more details.)
   //      handleEvent - now handling menu events
   //      aboutDlg - creates and shows about box
   //
-  class TTestApp : public`TApplication`
+  class TTestApp : public TApplication
   {
   public:
       TTestApp();
-      static`TMenuBar` *initMenuBar(`TRect` r );
-      virtual void handleEvent(`TEvent`& event);
-      virtual`TPalette`& getPalette() const;
+      static TMenuBar *initMenuBar(TRect r );
+      virtual void handleEvent(TEvent& event);
+      virtual TPalette& getPalette() const;
   private:
       void aboutDlg();
       void paletteView();
@@ -449,7 +449,7 @@ characters (see documentation on writeCStr() for more details.)
   TMenuBar *TTestApp::initMenuBar(TRect bounds )
   {
       bounds.b.y = bounds.a.y + 1;
-      TMenuBar *mainMenu = new TMenuBar (bounds, new`TMenu`(
+      TMenuBar *mainMenu = new TMenuBar (bounds, new TMenu (
             *new TMenuItem("~A~bout...", cmAbout, kbAltA,
                            hcNoContext, 0,
            new TMenuItem("~P~alette", cmPaletteView, kbAltP,
@@ -462,7 +462,7 @@ characters (see documentation on writeCStr() for more details.)
   // handleEvent - Need to handle the event for the menu and status
   // line choices
   //
-  void`TTestApp::handleEvent`(TEvent& event)
+  void TTestApp::handleEvent(TEvent& event)
   {
      TApplication::handleEvent(event);
       switch(event.what)
@@ -520,7 +520,7 @@ characters (see documentation on writeCStr() for more details.)
   //
   void TTestApp::aboutDlg()
   {
-     `TDialog` *aboutDlgBox = new`TDialog`(TRect(0, 0, 47, 13),
+     TDialog *aboutDlgBox = new TDialog(TRect(0, 0, 47, 13),
                                         "About");
       if( validView( aboutDlgBox ) )
       {
@@ -546,13 +546,13 @@ characters (see documentation on writeCStr() for more details.)
   }
   void TTestApp::paletteView()
   {
-     `TView` *view = new`TTestWindow`;
+     TView *view = new TTestWindow;
       if( validView( view ) )
           deskTop->insert( view );
   }
   int main()
   {
-     `TTestApp` testApp;
+     TTestApp testApp;
       testApp.run();
       return 0;
   }

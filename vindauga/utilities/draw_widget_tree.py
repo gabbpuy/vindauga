@@ -2,9 +2,9 @@
 
 from io import StringIO
 
+treeLine =  '  │'
 nodeChild = '  ├─'
-nodeLast = '  └─'
-treeLine = '  │'
+nodeLast =  '  └─'
 
 
 def drawWidgetTree(node, prefix='', last=False):

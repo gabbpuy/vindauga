@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 from dataclasses import dataclass, field
+from gettext import gettext as _
 import logging
 from typing import Optional
 

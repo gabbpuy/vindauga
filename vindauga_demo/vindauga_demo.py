@@ -1,5 +1,4 @@
 # -*- coding: utf-8 -*-
-import itertools
 import logging
 import os
 import sys
@@ -11,8 +10,8 @@ from demo.help_contexts import HelpContexts
 from vindauga.constants.buttons import bfDefault, bfNormal
 from vindauga.constants.command_codes import cmMenu, cmQuit, cmClose, hcNoContext, cmNext, cmZoom, cmHelp, cmResize, \
     cmCancel, cmOK, cmCascade, cmTile
-from vindauga.constants.event_codes import evCommand, evMouseDown, evNothing
-from vindauga.constants.keys import kbF10, kbAltX, kbAltF3, kbF6, kbF3, kbNoKey, kbF11, kbF5, kbCtrlF5, kbCtrlW
+from vindauga.constants.event_codes import evCommand
+from vindauga.constants.keys import kbF10, kbAltX, kbF6, kbF3, kbNoKey, kbF11, kbF5, kbCtrlF5, kbCtrlW
 from vindauga.constants.option_flags import ofCentered
 from vindauga.constants.option_flags import ofTileable
 from vindauga.dialogs.calculator_dialog import CalculatorDialog
@@ -201,7 +200,7 @@ class VindaugaDemo(Application):
 
     def testMode(self, mode):
         width, height = (int(i) for i in mode.name.replace('cmTest', '').split('x'))
-        Screen.setScreenSize(width, height)
+        Screen.screen.setScreenSize(width, height)
 
     def idle(self):
         super().idle()
@@ -380,7 +379,7 @@ class VindaugaDemo(Application):
             if self.desktop.execView(c) != cmCancel:
                 pal = c.getData()
                 self.setPalette(pal)
-                self.setScreenMode(Screen.screenMode)
+                self.setScreenMode(Screen.screen.screenMode)
         self.destroy(c)
 
     def mouse(self):

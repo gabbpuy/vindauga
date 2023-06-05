@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
+import array
 from enum import IntEnum
 import curses
-import array
 import json
 import logging
 from pathlib import Path
@@ -52,7 +52,8 @@ def colour_256to16(c: int) -> int:
         9, 13, 11, 11, 11, 11, 11, 15, 0, 0, 0, 0, 0, 0, 8, 8,
         8, 8, 8, 8, 7, 7, 7, 7, 7, 7, 15, 15, 15, 15, 15, 15
     )
-    return table[c & 0xff]
+
+    return getColorMap()[table[c & 0xff]]
 
 
 def colourDistSquared(r1, g1, b1, r2, g2, b2) -> float:
@@ -131,42 +132,7 @@ def setPalette() -> Tuple[Display, array.array, Optional[array.array]]:
 
     attributeMap = array.array('L', [0] * 128)
 
-    if not PLATFORM_IS_WINDOWS or (PLATFORM_IS_WINDOWS and curses.can_change_color()):
-        colorMap = (Colours.Black,
-                    Colours.Cyan,
-                    Colours.Green,
-                    Colours.Red,
-                    Colours.Yellow,
-                    Colours.Magenta,
-                    Colours.Blue,
-                    Colours.White,
-                    Colours.Grey,
-                    Colours.LightCyan,
-                    Colours.LightGreen,
-                    Colours.LightRed,
-                    Colours.LightYellow,
-                    Colours.LightMagenta,
-                    Colours.LightBlue,
-                    Colours.LightWhite
-                    )
-    else:
-        colorMap = (Colours.Black,
-                    Colours.Yellow,
-                    Colours.Green,
-                    Colours.Cyan,
-                    Colours.Red,
-                    Colours.Magenta,
-                    Colours.Blue,
-                    Colours.White,
-                    Colours.Grey,
-                    Colours.LightYellow,
-                    Colours.LightGreen,
-                    Colours.LightCyan,
-                    Colours.LightRed,
-                    Colours.LightMagenta,
-                    Colours.LightBlue,
-                    Colours.LightWhite
-                    )
+    colorMap = getColorMap()
 
     if True or curses.COLOR_PAIRS < 257:
         i = 0
@@ -210,7 +176,8 @@ def setPalette() -> Tuple[Display, array.array, Optional[array.array]]:
     totalPairs = 65536
     try:
         curses.init_pair(65535, 0, 0)
-    except:
+    except Exception as e:
+        logger.exception('No 64K colours, trying 32K')
         useBold = True
         totalForeground = 128
         totalPairs = 32768
@@ -229,8 +196,11 @@ def setPalette() -> Tuple[Display, array.array, Optional[array.array]]:
         if useBold:
             bold = fore & 0x80
             fore >>= 1
-
-        attributeMap[i] = (curses.color_pair(fore * totalBackground + back))
+        try:
+            attributeMap[i] = (curses.color_pair(fore * totalBackground + back))
+        except Exception as e:
+            logger.exception('Error setting colour pair %s', i)
+            raise
         if bold:
             attributeMap[i] |= curses.A_BOLD
 
@@ -265,3 +235,43 @@ def setPalette() -> Tuple[Display, array.array, Optional[array.array]]:
             pair = (colorMap[fore] * totalBackground) + colorMap[back]
         lowMap[i] = curses.color_pair(pair) | attribute
     return Display.smCO256, lowMap, attributeMap
+
+
+def getColorMap():
+    if not PLATFORM_IS_WINDOWS or (PLATFORM_IS_WINDOWS and curses.can_change_color()):
+        colorMap = (Colours.Black,
+                    Colours.Cyan,
+                    Colours.Green,
+                    Colours.Red,
+                    Colours.Yellow,
+                    Colours.Magenta,
+                    Colours.Blue,
+                    Colours.White,
+                    Colours.Grey,
+                    Colours.LightCyan,
+                    Colours.LightGreen,
+                    Colours.LightRed,
+                    Colours.LightYellow,
+                    Colours.LightMagenta,
+                    Colours.LightBlue,
+                    Colours.LightWhite
+                    )
+    else:
+        colorMap = (Colours.Black,
+                    Colours.Yellow,
+                    Colours.Green,
+                    Colours.Cyan,
+                    Colours.Red,
+                    Colours.Magenta,
+                    Colours.Blue,
+                    Colours.White,
+                    Colours.Grey,
+                    Colours.LightYellow,
+                    Colours.LightGreen,
+                    Colours.LightCyan,
+                    Colours.LightRed,
+                    Colours.LightMagenta,
+                    Colours.LightBlue,
+                    Colours.LightWhite
+                    )
+    return colorMap

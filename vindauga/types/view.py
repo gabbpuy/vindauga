@@ -214,11 +214,11 @@ class View(VindaugaObject):
             View.disableCommands(commands)
 
     def doRefresh(self):
-        if Screen.lockRefresh:
+        if Screen.screen.lockRefresh:
             return
         if self.owner and self.owner.lockFlag:
             return
-        Screen.refresh()
+        Screen.screen.refresh()
 
     def shutdown(self):
         self.hide()
@@ -741,6 +741,8 @@ class View(VindaugaObject):
         """
         Resets the cursor
         """
+        screen = Screen.screen
+
         if self.state & (sfVisible | sfCursorVis | sfFocused) == (sfVisible | sfCursorVis | sfFocused):
             p = self
             cur = Point()
@@ -757,11 +759,11 @@ class View(VindaugaObject):
                 owner = p.owner
                 if not owner:
                     if self.state & sfCursorIns:
-                        Screen.setBigCursor()
+                        screen.setBigCursor()
                     else:
-                        Screen.setSmallCursor()
-                    Screen.moveCursor(cur.x, cur.y)
-                    Screen.drawCursor(1)
+                        screen.setSmallCursor()
+                    screen.moveCursor(cur.x, cur.y)
+                    screen.drawCursor(1)
                     return
 
                 if not (owner.state & sfVisible):
@@ -776,9 +778,9 @@ class View(VindaugaObject):
                     if ((p.state & sfVisible) and
                             p.origin.x <= cur.x < p.size.x + p.origin.x and
                             p.origin.y <= cur.y < p.size.y + p.origin.y):
-                        Screen.drawCursor(0)
+                        screen.drawCursor(0)
                         return
-        Screen.drawCursor(0)
+        screen.drawCursor(0)
 
     def setCursor(self, x, y):
         """
@@ -1210,12 +1212,12 @@ class View(VindaugaObject):
         :param buf: Buffer
         """
 
-        Screen.lockRefresh += 1
+        Screen.screen.lockRefresh += 1
         try:
             for row in range(h):
                 self.__writeView(x, x + w, y + row, buf[row * w: w * (row + 1)])
         finally:
-            Screen.lockRefresh -= 1
+            Screen.screen.lockRefresh -= 1
         self.doRefresh()
 
     def writeChar(self, x, y, c, color, count):
@@ -1256,12 +1258,12 @@ class View(VindaugaObject):
         if not h:
             return
         width = x + w
-        Screen.lockRefresh += 1
+        Screen.screen.lockRefresh += 1
         try:
             for row in range(y, y + h):
                 self.__writeView(x, width, row, buf)
         finally:
-            Screen.lockRefresh -= 1
+            Screen.screen.lockRefresh -= 1
         self.doRefresh()
 
     def writeStr(self, x, y, text, color):
@@ -1312,6 +1314,8 @@ class View(VindaugaObject):
         return point, size
 
     def __writeChildrenViewRec(self, left, right, children, shadowCounter, context):
+        screen = Screen.screen
+
         for i, view in enumerate(children):
             if view is context.target:
                 if view.owner.buffer:
@@ -1320,8 +1324,8 @@ class View(VindaugaObject):
                     else:  # Paint with shadow
                         self.__paintWithShadow(context, view, left, right)
 
-                    if view.owner.buffer is Screen.screenBuffer:
-                        Screen.drawMouse(True)
+                    if view.owner.buffer is screen.screenBuffer:
+                        screen.drawMouse(True)
                 if not view.owner.lockFlag:
                     self.__writeViewRec2(left, right, view.owner, shadowCounter)
                 return
@@ -1442,26 +1446,29 @@ class View(VindaugaObject):
         self.locate(r)
 
     def __paintWithoutShadow(self, context, view, left, right):
+        screen = Screen.screen
         width = (right - left)
         pOwner = view.owner
         offset = context.offset
         soff = left - offset
-        if pOwner.buffer is Screen.screenBuffer:
+        if pOwner.buffer is screen.screenBuffer:
             # Write something to the screen.
-            Screen.writeRow(left, context.y, self.savedBuffer[soff: soff + width], width)
+            screen.writeRow(left, context.y, self.savedBuffer[soff: soff + width], width)
 
         poff = pOwner.size.x * context.y + left
         pOwner.buffer[poff: poff + width] = BufferArray(self.savedBuffer[soff: soff + width])
 
     def __paintWithShadow(self, context, view, left, right):
+        screen = Screen.screen
+
         width = right - left
         dst1 = view.owner.size.x * context.y + left
         start = left - context.offset
         src = self.savedBuffer[start: start + width]
         for offset, d in enumerate(src):
             d = d & DrawBuffer.CHAR_MASK | (SHADOW_ATTR << DrawBuffer.CHAR_WIDTH)
-            if view.owner.buffer is Screen.screenBuffer:
-                Screen.writeRow(offset + left, context.y, [d], 1)
+            if view.owner.buffer is screen.screenBuffer:
+                screen.writeRow(offset + left, context.y, [d], 1)
             view.owner.buffer[dst1 + offset] = d
 
     def __handleMouseDownDrag(self, event, mode, limits, minSize, maxSize):

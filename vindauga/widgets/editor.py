@@ -3,6 +3,8 @@ import logging
 import string
 from typing import List, Optional
 
+import wcwidth
+
 from vindauga.constants.command_codes import *
 from vindauga.constants.edit_command_codes import *
 from vindauga.constants.event_codes import *
@@ -12,7 +14,6 @@ from vindauga.constants.option_flags import ofSelectable
 from vindauga.constants.state_flags import sfVisible, sfCursorIns, sfActive, sfExposed
 from vindauga.events.event import Event
 from vindauga.types.records.find_dialog_record import FindDialogRecord
-from vindauga.types.records.replace_dialog_record import ReplaceDialogRecord
 from vindauga.types.command_set import CommandSet
 from vindauga.types.palette import Palette
 from vindauga.types.point import Point
@@ -275,7 +276,7 @@ class Editor(View):
                 if i == cmYes:
                     self.lock()
                     try:
-                        self.insertText(self.replaceStr, len(self.replaceStr), False)
+                        self.insertText(self.replaceStr, wcwidth.wcswidth(self.replaceStr), False)
                         self.trackCursor(False)
                     finally:
                         self.unlock()

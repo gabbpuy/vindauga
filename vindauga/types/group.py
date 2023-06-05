@@ -1,7 +1,6 @@
 # -*- coding: utf-8-*-
 import copy
 from dataclasses import dataclass
-import datetime
 import logging
 from itertools import cycle, islice
 from typing import Optional
@@ -304,7 +303,7 @@ class Group(View):
                 if p:
                     self.doHandleEvent(p, hs)
                 elif event.what == evMouseDown:
-                    Screen.makeBeep()
+                    Screen.screen.makeBeep()
             else:
                 self.forEach(self.doHandleEvent, hs)
 

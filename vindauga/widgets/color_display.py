@@ -1,6 +1,8 @@
 # -*- coding: utf-8 -*-
 import logging
 
+import wcwidth
+
 from vindauga.constants.colors import cmColorBackgroundChanged, cmColorForegroundChanged, cmColorSet, cmSetColorIndex
 from vindauga.constants.event_codes import evBroadcast
 from vindauga.misc.message import message
@@ -37,8 +39,8 @@ class ColorDisplay(View):
             c = self.errorAttr
 
         b = DrawBuffer()
-        for i in range((self.size.x // len(self._text)) + 1):
-            b.moveStr(i * len(self._text), self._text, c)
+        for i in range((self.size.x // wcwidth.wcswidth(self._text)) + 1):
+            b.moveStr(i * wcwidth.wcswidth(self._text), self._text, c)
         self.writeLine(0, 0, self.size.x, self.size.y, b)
 
     def handleEvent(self, event):

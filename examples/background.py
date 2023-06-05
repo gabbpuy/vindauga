@@ -5,7 +5,7 @@ from vindauga.widgets.desktop import Desktop
 
 class Demo(Application):
     """
-    How to __change the background _pattern
+    How to change the background pattern
     """
     def __init__(self):
         Desktop.DEFAULT_BACKGROUND = '╬'

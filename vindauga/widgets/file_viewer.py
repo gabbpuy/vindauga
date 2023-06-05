@@ -4,6 +4,9 @@ import itertools
 import logging
 import textwrap
 
+import unicodedata
+import wcwidth
+
 from vindauga.types.collections.string_collection import StringCollection
 from vindauga.constants.message_flags import mfError, mfOKButton
 from vindauga.constants.grow_flags import gfGrowHiX, gfGrowHiY
@@ -33,14 +36,19 @@ class FileViewer(Scroller):
         for i in range(self.size.y):
             b = DrawBuffer()
             b.moveChar(0, ' ', c, self.size.x)
+            lineWidth = self.size.x
             if self.delta.y + i < len(self.fileLines):
                 p = self.fileLines[self.delta.y + i]
                 if (not p) or len(p) < self.delta.x:
                     s = ''
                 else:
                     s = p[self.delta.x: self.delta.x + self.size.x].rstrip()
+                    s = unicodedata.normalize('NFC', s)
+                    s_w = sum(1 for c in s if wcwidth.wcwidth(c) > 1)
+                    if s_w:
+                        lineWidth -= s_w
                 b.moveStr(0, s, c)
-            self.writeBuf(0, i, self.size.x, 1, b)
+            self.writeBuf(0, i, lineWidth, 1, b)
 
     def scrollDraw(self):
         super().scrollDraw()
@@ -54,7 +62,7 @@ class FileViewer(Scroller):
         try:
             fileToView = open(fName, 'rt', encoding='utf-8')
         except OSError:
-            messageBox(_('Invalid drive or directory'), 1, mfError | mfOKButton)
+            messageBox(_('Invalid drive or directory'), mfError, [mfOKButton,])
             self.isValid = False
             return
 
@@ -68,7 +76,7 @@ class FileViewer(Scroller):
         self.fileLines.extend(lines)
         self._limit.y = len(self.fileLines)
         if self.fileLines:
-            self._limit.x = max(len(line) for line in self.fileLines)
+            self._limit.x = max(wcwidth.wcswidth(line) for line in self.fileLines)
 
     def setState(self, state, enable):
         super().setState(state, enable)

@@ -1,9 +1,9 @@
 # -*- coding: utf-8 -*-
 import logging
 
+import wcwidth
 from vindauga.constants.option_flags import ofPreProcess
 from vindauga.constants.state_flags import sfShadow
-from vindauga.misc.cp437 import cp437ToUnicode
 from vindauga.misc.util import nameLength
 from vindauga.types.draw_buffer import DrawBuffer
 from vindauga.types.rect import Rect
@@ -94,7 +94,7 @@ class MenuBox(MenuView):
                     if not p.command:
                         b.putChar(self.size.x - 4, self.subMenuIndicator)
                     elif p.param:
-                        b.moveStr(self.size.x - 3 - len(p.param), p.param, color)
+                        b.moveStr(self.size.x - 3 - wcwidth.wcswidth(p.param), p.param, color)
                 self.writeBuf(0, y, self.size.x, 1, b)
                 y += 1
         color = self.cNormal

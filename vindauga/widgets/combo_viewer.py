@@ -71,7 +71,7 @@ class ComboViewer(ListViewer):
                     self.focusItemNum(self.collection.indexOf(tempData))
                 else:
                     self.testChar = self.testChar[:-1]
-                    Screen.makeBeep()
+                    Screen.screen.makeBeep()
                 self.clearEvent(event)
                 return
             elif event.keyDown.keyCode == kbTab:

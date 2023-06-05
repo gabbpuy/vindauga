@@ -1,7 +1,10 @@
 # -*- coding: utf-8 -*-
+import wcwidth
+
 from vindauga.types.draw_buffer import DrawBuffer
 from vindauga.types.palette import Palette
 from vindauga.types.view import View
+
 
 
 class DynamicText(View):
@@ -16,7 +19,7 @@ class DynamicText(View):
     def draw(self):
         b = DrawBuffer()
         color = self.getColor(0x01)
-        offset = self.size.x - len(self._text) if self._rightJustify else 0
+        offset = self.size.x - wcwidth.wcswidth(self._text) if self._rightJustify else 0
 
         b.moveChar(0, ' ', color, self.size.x)
         b.moveStr(offset, self._text, color)

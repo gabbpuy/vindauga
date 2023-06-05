@@ -1,4 +1,7 @@
 # -*- coding: utf-8 -*-
+
+import wcwidth
+
 from vindauga.constants.command_codes import cmOK, cmCancel
 from vindauga.constants.event_codes import evMouseDown, evKeyDown, evCommand, meDoubleClick
 from vindauga.constants.keys import kbEnter, kbEsc, kbTab
@@ -46,5 +49,5 @@ class HistoryViewer(ListViewer):
     def historyWidth(self):
         history = getHistory(self._historyId)
         if history:
-            return max(len(h) for h in history)
+            return max(wcwidth.wcswidth(h) for h in history)
         return 20

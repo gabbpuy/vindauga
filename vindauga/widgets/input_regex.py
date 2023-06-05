@@ -44,7 +44,7 @@ class InputRegex(InputLine):
                     key = self.newCase(key)
                 if self.keySet and not re.match(self.keySet, key):
                     logger.info('No regex match')
-                    Screen.beep()
+                    Screen.screen.beep()
                     self.clearEvent(event)
                     return
         super().handleEvent(event)

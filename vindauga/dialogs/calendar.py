@@ -1,4 +1,6 @@
 # -*- coding: utf-8 -*-
+from gettext import gettext as _
+
 from vindauga.constants.command_codes import wnNoNumber, wpCyanWindow
 from vindauga.constants.window_flags import wfGrow, wfZoom
 from vindauga.gadgets.calendar import Calendar
