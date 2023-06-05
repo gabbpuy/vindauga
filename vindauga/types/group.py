@@ -1,11 +1,12 @@
 # -*- coding: utf-8-*-
 import copy
 from dataclasses import dataclass
+from enum import Enum, auto
 import logging
 from itertools import cycle, islice
 from typing import Optional
 
-from vindauga.constants.command_codes import cmCancel, hcNoContext, cmReleasedFocus, cmLoseFocus, cmQuit
+from vindauga.constants.command_codes import cmCancel, hcNoContext, cmReleasedFocus, cmLoseFocus
 from vindauga.constants.event_codes import positionalEvents, focusedEvents, evNothing, evMouseDown
 from vindauga.constants.option_flags import (ofSelectable, ofPreProcess, ofPostProcess, ofBuffered, ofValidate,
                                              ofCenterY, ofCenterX)
@@ -32,9 +33,14 @@ class HandleStruct:
 
 @dataclass
 class SetBlock:
-    def __init__(self):
-        self.state = 0
-        self.enable = False
+    state: int = 0
+    enable: bool = False
+
+
+class Phases(Enum):
+    Focused = auto()
+    Preprocess = auto()
+    Postprocess = auto()
 
 
 class Group(View):
@@ -78,7 +84,7 @@ class Group(View):
 
     def __init__(self, bounds):
         super().__init__(bounds)
-        self.phase = self.phFocused
+        self.phase = Phases.Focused
         self.buffer = None
         self.lockFlag = 0
         self.endState = 0
@@ -122,9 +128,9 @@ class Group(View):
             return
 
         phase = eventHandle.group.phase
-        if phase == self.phPreProcess and not (child.options & ofPreProcess):
+        if phase == Phases.Preprocess and not (child.options & ofPreProcess):
             return
-        elif phase == self.phPostProcess and not (child.options & ofPostProcess):
+        elif phase == Phases.Postprocess and not (child.options & ofPostProcess):
             return
 
         if eventHandle.event.what & child.eventMask:
@@ -288,16 +294,16 @@ class Group(View):
         hs = HandleStruct(event, self)
 
         if event.what & focusedEvents:
-            self.phase = self.phPreProcess
+            self.phase = Phases.Preprocess
             self.forEach(self.doHandleEvent, hs)
 
-            self.phase = self.phFocused
+            self.phase = Phases.Focused
             self.doHandleEvent(self.current, hs)
 
-            self.phase = self.phPostProcess
+            self.phase = Phases.Postprocess
             self.forEach(self.doHandleEvent, hs)
         else:
-            self.phase = self.phFocused
+            self.phase = Phases.Focused
             if event.what & positionalEvents:
                 p = self.firstThat(self.hasMouse, event)
                 if p:
@@ -307,7 +313,7 @@ class Group(View):
             else:
                 self.forEach(self.doHandleEvent, hs)
 
-    def drawSubViews(self, start, bottom=None):
+    def drawSubViews(self, start: View, bottom: View = None):
         while start and start is not bottom:
             start.drawView()
             start = start.nextView()

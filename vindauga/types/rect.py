@@ -13,19 +13,19 @@ class Rect:
     """
     __slots__ = ('topLeft', 'bottomRight')
 
-    def __init__(self, ax, ay, bx, by):
+    def __init__(self, ax: int, ay: int, bx: int, by: int):
         self.topLeft = Point(ax, ay)
         self.bottomRight = Point(bx, by)
 
     @property
-    def width(self):
+    def width(self) -> int:
         return self.bottomRight.x - self.topLeft.x
 
     @property
-    def height(self):
+    def height(self) -> int:
         return self.bottomRight.y - self.topLeft.y
 
-    def move(self, deltaX, deltaY):
+    def move(self, deltaX: int, deltaY: int):
         """
         Moves the rectangle to a new position.
        
@@ -103,7 +103,7 @@ class Rect:
     def __eq__(self, other: 'Rect') -> bool:
         return self.topLeft == other.topLeft and self.bottomRight == other.bottomRight
 
-    def __ne__(self, other: 'Rect'):
+    def __ne__(self, other: 'Rect') -> bool:
         return self.topLeft != other.topLeft or self.bottomRight != other.bottomRight
 
     def __repr__(self):

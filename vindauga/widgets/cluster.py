@@ -9,6 +9,7 @@ from vindauga.constants.state_flags import sfSelected, sfFocused
 from vindauga.misc.character_codes import SPECIAL_CHARS, getAltCode
 from vindauga.misc.util import ctrlToArrow, nameLength, hotKey
 from vindauga.types.draw_buffer import DrawBuffer
+from vindauga.types.group import Phases
 from vindauga.types.palette import Palette
 from vindauga.types.records.data_record import DataRecord
 from vindauga.types.view import View
@@ -179,7 +180,7 @@ class Cluster(View):
             for i, s in enumerate(self._strings):
                 c = hotKey(s)
 
-                if getAltCode(c) == event.keyDown.keyCode or ((self.owner.phase == self.phPostProcess or
+                if getAltCode(c) == event.keyDown.keyCode or ((self.owner.phase == Phases.Postprocess or
                                                                (self.state & sfFocused) != 0) and c != 0 and
                                                               event.keyDown.charScan.charCode.upper() == c):
                     if self.buttonState(i):

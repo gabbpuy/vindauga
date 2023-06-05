@@ -8,13 +8,14 @@ from vindauga.constants.option_flags import ofSelectable, ofFirstClick, ofPrePro
 from vindauga.constants.state_flags import sfActive, sfSelected, sfFocused, sfDisabled
 from vindauga.events.event import Event
 from vindauga.misc.character_codes import SPECIAL_CHARS, getAltCode
-from vindauga.misc.cp437 import cp437ToUnicode
 from vindauga.misc.message import message
 from vindauga.misc.util import hotKey
 from vindauga.misc.util import nameLength
 from vindauga.types.draw_buffer import DrawBuffer
+from vindauga.types.group import Phases
 from vindauga.types.palette import Palette
 from vindauga.types.view import View
+
 
 logger = logging.getLogger(__name__)
 
@@ -134,7 +135,7 @@ class Button(View):
 
         elif event.what == evKeyDown:
             if ((event.keyDown.keyCode == getAltCode(c)) or
-                    (self.owner.phase == self.phPostProcess and c and event.keyDown.charScan.charCode.upper() == c) or
+                    (self.owner.phase == Phases.Postprocess and c and event.keyDown.charScan.charCode.upper() == c) or
                     ((self.state & sfFocused) and event.keyDown.charScan.charCode == ' ')):
                 self.press()
                 self.clearEvent(event)

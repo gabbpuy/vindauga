@@ -58,7 +58,7 @@ class CollectionBase(list):
             except:
                 logger.exception('forEach(): %s(%s,%s)', action, item, args)
 
-    def search(self, key):
+    def search(self, key: int):
         try:
             return self.index(key)
         except ValueError:

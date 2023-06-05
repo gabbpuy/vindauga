@@ -11,7 +11,6 @@ class VindaugaObject:
 
     _registry = {}
 
-    @classmethod
     def __init_subclass__(cls, **kwargs):
         super().__init_subclass__()
         try:

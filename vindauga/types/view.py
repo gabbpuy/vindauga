@@ -1,6 +1,9 @@
 # -*- coding: utf-8 -*-
+from enum import Enum, auto
 import logging
 import sys
+
+import wcwidth
 
 from vindauga.constants.command_codes import (cmClose, cmNext, cmPrev, cmZoom, cmResize, cmReleasedFocus, cmCancel,
                                               cmReceivedFocus,
@@ -78,10 +81,6 @@ class View(VindaugaObject):
     """
     name = 'View'
 
-    phFocused = 0
-    phPreProcess = 1
-    phPostProcess = 2
-
     normalSelect = 0
     enterSelect = 1
     leaveSelect = 2
@@ -119,17 +118,17 @@ class View(VindaugaObject):
         self.children = []
 
     @property
-    def next(self):
+    def next(self) -> 'View':
         children = self.owner.children
         return children[(children.index(self) + 1) % len(children)]
 
     @property
-    def prev(self):
+    def prev(self) -> 'View':
         children = self.owner.children
         return children[(children.index(self) - 1) % len(children)]
 
     @property
-    def TopView(self):
+    def TopView(self) -> 'View':
         if View.TheTopView:
             return View.TheTopView
         p = self
@@ -138,7 +137,7 @@ class View(VindaugaObject):
         return p
 
     @staticmethod
-    def commandEnabled(command):
+    def commandEnabled(command) -> bool:
         return command > 255 or command in View.curCommandSet
 
     @staticmethod
@@ -183,7 +182,7 @@ class View(VindaugaObject):
         View.curCommandSet.enableCmd(command)
 
     @staticmethod
-    def getCommands():
+    def getCommands() -> CommandSet:
         """
         Returns the current command set
         :return: `CommandSet` object
@@ -245,7 +244,7 @@ class View(VindaugaObject):
         else:
             maxLimit.x = maxLimit.y = sys.maxsize
 
-    def getBounds(self):
+    def getBounds(self) -> Rect:
         """
         Returns the current value of size, the bounding rectangle of the view
         in its owner's coordinate system.
@@ -255,7 +254,7 @@ class View(VindaugaObject):
         os = self.origin + self.size
         return Rect(self.origin.x, self.origin.y, os.x, os.y)
 
-    def getExtent(self):
+    def getExtent(self) -> Rect:
         """
         Returns the extent rectangle of the view with 0, 0 in the topLeft
 
@@ -263,7 +262,7 @@ class View(VindaugaObject):
         """
         return Rect(0, 0, self.size.x, self.size.y)
 
-    def getClipRect(self):
+    def getClipRect(self) -> Rect:
         """
         Returns the clipping rectangle: the smallest rectangle which needs
         to be redrawn in a `draw()` call.
@@ -279,7 +278,7 @@ class View(VindaugaObject):
         clip.move(-self.origin.x, -self.origin.y)
         return clip
 
-    def mouseInView(self, mouse):
+    def mouseInView(self, mouse: Point) -> bool:
         """
         Returns True if the `mouse` argument (given in global coordinates) is
         within the calling view. Call `makeGlobal` and `makeLocal` to
@@ -292,7 +291,7 @@ class View(VindaugaObject):
         r = self.getExtent()
         return mouse in r
 
-    def containsMouse(self, event):
+    def containsMouse(self, event: Event) -> bool:
         """
         Returns True if a mouse event occurs inside the calling view, otherwise
         returns False. Returns True if the view is visible and the mouse
@@ -304,7 +303,7 @@ class View(VindaugaObject):
 
         return (self.state & sfVisible) and self.mouseInView(event.mouse.where)
 
-    def locate(self, bounds):
+    def locate(self, bounds: Rect):
         """
         Changes the bounds of the view to those of the `bounds` argument.
         The view is redrawn in its new location.
@@ -334,7 +333,7 @@ class View(VindaugaObject):
                     r.bottomRight += SHADOW_SIZE
                 self.drawUnderRect(r, None)
 
-    def dragView(self, event, mode, limits, minSize, maxSize):
+    def dragView(self, event: Event, mode: int, limits: Rect, minSize: int, maxSize: int):
         """
         Drags the view in the ways specified by the `mode` argument, that is
         interpreted like the `growMode` data member.
@@ -361,7 +360,7 @@ class View(VindaugaObject):
 
         self.setState(sfDragging, False)
 
-    def calcBounds(self, delta):
+    def calcBounds(self, delta: Rect):
         """
         When a view's owner changes size, the owner repeatedly calls
         `calcBounds()` and `changeBounds()` for all its subviews.
@@ -402,7 +401,7 @@ class View(VindaugaObject):
         bounds.bottomRight.y = bounds.topLeft.y + clamp(bounds.bottomRight.y - bounds.topLeft.y, minLim.y, maxLim.y)
         return bounds
 
-    def changeBounds(self, bounds):
+    def changeBounds(self, bounds: Rect):
         """
         `changeBounds()` changes the view's bounds (`origin` and `size`
         data members) to the rectangle given by the `bounds` parameter.
@@ -418,7 +417,7 @@ class View(VindaugaObject):
         self.setBounds(bounds)
         self.drawView()
 
-    def growTo(self, x, y):
+    def growTo(self, x: int, y: int):
         """
         Grows or shrinks the view to the given size using a call to `locate().`
 
@@ -428,7 +427,7 @@ class View(VindaugaObject):
         r = Rect(self.origin.x, self.origin.y, self.origin.x + x, self.origin.y + y)
         self.locate(r)
 
-    def moveTo(self, x, y):
+    def moveTo(self, x: int, y: int):
         """
         Moves the origin to the point (x,y) relative to the owner's view. The view's size is unchanged.
 
@@ -438,7 +437,7 @@ class View(VindaugaObject):
         r = Rect(x, y, x + self.size.x, y + self.size.y)
         self.locate(r)
 
-    def setBounds(self, bounds):
+    def setBounds(self, bounds: Rect):
         """
         Sets the bounding rectangle of the view to the value given by the
         `bounds` parameter. The `origin` data member is set to `bounds.topLeft',
@@ -452,7 +451,7 @@ class View(VindaugaObject):
         self.origin = Point(bounds.topLeft.x, bounds.topLeft.y)
         self.size = bounds.bottomRight - bounds.topLeft
 
-    def getHelpCtx(self):
+    def getHelpCtx(self) -> int:
         """
         `getHelpCtx()` returns the view's help context. The default `getHelpCtx()`
         returns the value in the `helpCtx` data member, or returns `hcDragging` if the view is being dragged
@@ -541,7 +540,7 @@ class View(VindaugaObject):
             self.draw()
             self.drawCursor()
 
-    def exposedChildren(self, left, right, siblings, context):
+    def exposedChildren(self, left: int, right: right, siblings, context):
         for i, child in enumerate(siblings):
             if child is context.target:
                 return self.exposedParent(left, right, child.owner)
@@ -566,7 +565,7 @@ class View(VindaugaObject):
                     if left >= right:
                         return False
 
-    def exposedParent(self, left, right, item):
+    def exposedParent(self, left: int, right: int, item):
         if not (item.state & sfVisible):
             return False
 
@@ -593,7 +592,7 @@ class View(VindaugaObject):
 
             return self.exposedChildren(left, right, group.children, context)
 
-    def exposed(self):
+    def exposed(self) -> bool:
         """
         Checks if the view is exposed.
 
@@ -611,7 +610,7 @@ class View(VindaugaObject):
 
         return any(self.exposedParent(0, self.size.x, self) for self.context.y in range(self.size.y))
 
-    def focus(self):
+    def focus(self) -> bool:
         """
         Tries to grab the focus.
 
@@ -646,7 +645,7 @@ class View(VindaugaObject):
         """
         self.setState(sfCursorVis, False)
 
-    def drawHide(self, lastView):
+    def drawHide(self, lastView: 'View'):
         """
         Calls `drawCursor()` followed by `drawUnderView()`. The latter
         redraws all subviews (with shadows if required) until the given
@@ -657,7 +656,7 @@ class View(VindaugaObject):
         self.drawCursor()
         self.drawUnderView(bool(self.state & sfShadow), lastView)
 
-    def drawShow(self, lastView):
+    def drawShow(self, lastView: 'View'):
         """
         Calls `drawView()`, then if `state` data member has the
         `sfShadow` bit set, `drawUnderView()` is called to draw the
@@ -669,7 +668,7 @@ class View(VindaugaObject):
         if self.state & sfShadow:
             self.drawUnderView(True, lastView)
 
-    def drawUnderRect(self, r, lastView):
+    def drawUnderRect(self, r: Rect, lastView: 'View'):
         """
         Calls `owner.clip.intersect(r)` to set the area that needs drawing.
         Then, all the subviews from the next view to the given `lastView` are
@@ -683,7 +682,7 @@ class View(VindaugaObject):
         self.owner.drawSubViews(self.nextView(), lastView)
         self.owner.clip = self.owner.getExtent()
 
-    def drawUnderView(self, doShadow, lastView):
+    def drawUnderView(self, doShadow: bool, lastView: 'View'):
         """
         Calls `drawUnderRect(r, lastView)`, where `r` is the calling view's
         current bounds. If `doShadow` is True, the view's bounds are first
@@ -697,7 +696,7 @@ class View(VindaugaObject):
             r.bottomRight += SHADOW_SIZE
         self.drawUnderRect(r, lastView)
 
-    def consumesData(self):
+    def consumesData(self) -> bool:
         """
         Any non-zero returns indicates the view can get and set data
         :return:
@@ -782,7 +781,7 @@ class View(VindaugaObject):
                         return
         screen.drawCursor(0)
 
-    def setCursor(self, x, y):
+    def setCursor(self, x: int, y: int):
         """
         Moves the (virtual) hardware cursor to the point (x, y) using view-relative
         (local) coordinates. (0, 0) is the top-left corner.
@@ -875,7 +874,7 @@ class View(VindaugaObject):
                 if not self.focus() or not (self.options & ofFirstClick):
                     self.clearEvent(event)
 
-    def putEvent(self, event):
+    def putEvent(self, event: Event):
         """
         Puts the event given by `event` into the event queue, causing it to be
         available to be returned by `getEvent()`.
@@ -911,7 +910,7 @@ class View(VindaugaObject):
         if self.TopView:
             self.TopView.endModal(command)
 
-    def execute(self):
+    def execute(self) -> int:
         """
         Is called from `Group.execView()` whenever a view becomes modal.
         If a view is to allow modal execution, it must override `execute()` to
@@ -923,7 +922,7 @@ class View(VindaugaObject):
         """
         return cmCancel
 
-    def getColor(self, color):
+    def getColor(self, color) -> int:
         """
         Maps the palette indices in the low and high bytes of `color` into
         physical character attributes by tracing through the palette of the
@@ -938,7 +937,7 @@ class View(VindaugaObject):
         colorPair |= self.mapColor(color & 0xFF)
         return colorPair
 
-    def getPalette(self):
+    def getPalette(self) -> Palette:
         """
         `getPalette()` returns `Palette` object representing the view's palette.
 
@@ -954,7 +953,7 @@ class View(VindaugaObject):
         """
         return Palette('')
 
-    def mapColor(self, color):
+    def mapColor(self, color: int) -> int:
         """
         Maps the given color to an offset into the current palette. `mapColor()`
         works by calling `getPalette()` for each owning group in the chain.
@@ -984,7 +983,7 @@ class View(VindaugaObject):
             current = current.owner
         return color
 
-    def getState(self, state):
+    def getState(self, state) -> bool:
         """
         Returns True if the state given in `state` is set in the data member
         `state.`
@@ -1010,7 +1009,7 @@ class View(VindaugaObject):
         elif self.owner:
             self.owner.setCurrent(self, self.normalSelect)
 
-    def setState(self, state, enable):
+    def setState(self, state: int, enable: bool):
         """
         Sets or clears a state flag in the `state` data member.
         The `state` parameter specifies the state flag to modify, and the
@@ -1058,7 +1057,7 @@ class View(VindaugaObject):
             command = cmReceivedFocus if enable else cmReleasedFocus
             message(self.owner, evBroadcast, command, self)
 
-    def keyEvent(self, event):
+    def keyEvent(self, event: Event):
         """
         Returns, in the `event` variable, the next `evKeyDown` event.
         It waits, ignoring all other events, until a keyboard event becomes
@@ -1071,7 +1070,7 @@ class View(VindaugaObject):
             self.getEvent(event)
             keyIsDown = (event.what == evKeyDown)
 
-    def mouseEvent(self, event, mask):
+    def mouseEvent(self, event: Event, mask: int):
         """
         Sets the next mouse event in the `event` argument.
         Returns True if this event is in the `mask` argument. Also returns
@@ -1091,7 +1090,7 @@ class View(VindaugaObject):
             mouseIsMasked = not (event.what & mask)
         return event.what != evMouseUp
 
-    def makeGlobal(self, source):
+    def makeGlobal(self, source: Point) -> Point:
         """
         Converts the `source` point coordinates from local (view) to global
         (screen) and returns the result.
@@ -1106,7 +1105,7 @@ class View(VindaugaObject):
             temp += cur.origin
         return temp
 
-    def makeLocal(self, source):
+    def makeLocal(self, source: Point) -> Point:
         """
         Converts the `source` point coordinates from global (screen) to local
         (view) and returns the result.
@@ -1124,7 +1123,7 @@ class View(VindaugaObject):
             temp -= cur.origin
         return temp
 
-    def nextView(self):
+    def nextView(self) -> 'View':
         """
         Returns the next subview in the owner's subview list. None is returned if the
         calling view is the last one in its owner's list.
@@ -1135,7 +1134,7 @@ class View(VindaugaObject):
             return None
         return self.next
 
-    def prevView(self):
+    def prevView(self) -> 'View':
         """
         Returns the previous subview in the owner's subview list. None is returned if the
         calling view is the first one in its owner's list.
@@ -1199,7 +1198,7 @@ class View(VindaugaObject):
                 if self.options & ofSelectable:
                     self.owner.resetCurrent()
 
-    def writeBuf(self, x, y, w, h, buf):
+    def writeBuf(self, x: int, y: int, w: int, h: int, buf):
         """
         Writes the given buffer to the screen starting at the coordinates
         (x, y), and filling the region of width `w` and height `h`. Should only
@@ -1220,7 +1219,7 @@ class View(VindaugaObject):
             Screen.screen.lockRefresh -= 1
         self.doRefresh()
 
-    def writeChar(self, x, y, c, color, count):
+    def writeChar(self, x: int, y: int, c: int, color: int, count: int):
         """
         Beginning at the point (x, y), writes `count` copies of the character
         `c` in the color determined by the color'th entry in the current view's
@@ -1242,7 +1241,7 @@ class View(VindaugaObject):
         b.moveChar(0, c, self.mapColor(color), count)
         self.__writeView(x, x + count, y, b)
 
-    def writeLine(self, x, y, w, h, buf):
+    def writeLine(self, x: int, y: int, w: int, h: int, buf):
         """
         Writes the line contained in the buffer `b` to the screen, beginning at
         the point (x, y) within the rectangle defined by the width `w` and the
@@ -1266,7 +1265,7 @@ class View(VindaugaObject):
             Screen.screen.lockRefresh -= 1
         self.doRefresh()
 
-    def writeStr(self, x, y, text, color):
+    def writeStr(self, x: int, y: int, text: str, color: int):
         """
         Writes the string `text` with the color attributes of the color'th entry
         in the view's palette, beginning at the point (x, y). Should only be
@@ -1280,15 +1279,15 @@ class View(VindaugaObject):
         if not text:
             return
 
-        textLen = len(text)
+        textLen = wcwidth.wcswidth(text)
         b = DrawBuffer()
         b.moveStr(0, text, color)
         self.__writeView(x, x + textLen, y, b)
 
-    def at(self, index):
+    def at(self, index) -> 'View':
         return self.children[index]
 
-    def _grow(self, initial, size, delta):
+    def _grow(self, initial: int, size: int, delta: int) -> int:
         if self.growMode & gfGrowRel:
             initial = (initial * size + ((size - delta) >> 1)) // (size - delta)
         else:
@@ -1296,7 +1295,7 @@ class View(VindaugaObject):
         return initial
 
     @staticmethod
-    def __change(mode, delta, point, size, ctrlState):
+    def __change(mode: int, delta: int, point: Point, size: Point, ctrlState: int):
         """
         Alter point and size depending on the drag/move mode
 
@@ -1313,7 +1312,7 @@ class View(VindaugaObject):
             size += delta
         return point, size
 
-    def __writeChildrenViewRec(self, left, right, children, shadowCounter, context):
+    def __writeChildrenViewRec(self, left: int, right: int, children, shadowCounter: int, context):
         screen = Screen.screen
 
         for i, view in enumerate(children):
@@ -1380,7 +1379,7 @@ class View(VindaugaObject):
                     left = view.origin.x + view.size.x + SHADOW_SIZE.x
                     shadowCounter -= 1
 
-    def __writeViewRec2(self, left, right, view, shadowCounter):
+    def __writeViewRec2(self, left: int, right: int, view: 'View', shadowCounter: int):
         if not (view.state & sfVisible) or not view.owner:
             return
 
@@ -1404,7 +1403,7 @@ class View(VindaugaObject):
 
             self.__writeChildrenViewRec(left, right, group.children, shadowCounter, context)
 
-    def __writeView(self, left, right, y, buf):
+    def __writeView(self, left: int, right: int, y: int, buf):
 
         if not (0 <= y < self.size.y):
             return
@@ -1423,7 +1422,7 @@ class View(VindaugaObject):
             self.__writeViewRec2(left, right, self, 0)
             self.doRefresh()
 
-    def __moveGrow(self, point, size, limits, minSize, maxSize, mode):
+    def __moveGrow(self, point: Point, size: Point, limits: Rect, minSize: int, maxSize: int, mode: int):
         size.x = min(max(size.x, minSize.x), maxSize.x)
         size.y = min(max(size.y, minSize.y), maxSize.y)
 
@@ -1445,7 +1444,7 @@ class View(VindaugaObject):
         r = Rect(point.x, point.y, point.x + size.x, point.y + size.y)
         self.locate(r)
 
-    def __paintWithoutShadow(self, context, view, left, right):
+    def __paintWithoutShadow(self, context, view: 'View', left: int, right: int):
         screen = Screen.screen
         width = (right - left)
         pOwner = view.owner
@@ -1458,7 +1457,7 @@ class View(VindaugaObject):
         poff = pOwner.size.x * context.y + left
         pOwner.buffer[poff: poff + width] = BufferArray(self.savedBuffer[soff: soff + width])
 
-    def __paintWithShadow(self, context, view, left, right):
+    def __paintWithShadow(self, context, view: 'View', left: int, right: int):
         screen = Screen.screen
 
         width = right - left
@@ -1471,7 +1470,7 @@ class View(VindaugaObject):
                 screen.writeRow(offset + left, context.y, [d], 1)
             view.owner.buffer[dst1 + offset] = d
 
-    def __handleMouseDownDrag(self, event, mode, limits, minSize, maxSize):
+    def __handleMouseDownDrag(self, event: Event, mode: int, limits: Rect, minSize: int, maxSize: int):
         """
         Handle mouse down event
         """
@@ -1496,7 +1495,7 @@ class View(VindaugaObject):
             event.mouse.where += point
             self.__moveGrow(self.origin, event.mouse.where, limits, minSize, maxSize, mode)
 
-    def __handleKeyDownDrag(self, event, mode, limits, minSize, maxSize):
+    def __handleKeyDownDrag(self, event: Event, mode: int, limits: Rect, minSize: int, maxSize: int):
         """
         Handle key down event
         """

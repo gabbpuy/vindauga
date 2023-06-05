@@ -15,7 +15,7 @@ class Timer:
         self._running: bool = False
         self._expired: bool = True
 
-    def start(self, timeout) -> None:
+    def start(self, timeout: float) -> float:
         self.stop()
         with self.__lock:
             self._timer = _Timer(timeout, self.expire)

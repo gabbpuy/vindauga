@@ -23,7 +23,7 @@ class FilterValidator(Validator):
     def isValid(self, s) -> bool:
         return all(c in self.validChars for c in s)
 
-    def isValidInput(self, item, flag) -> bool:
+    def isValidInput(self, item, _flag) -> bool:
         return self.isValid(item)
 
     def error(self):

@@ -11,7 +11,7 @@ from vindauga.constants.option_flags import ofCentered
 from vindauga.constants.std_dialog_commands import (cmFileOpen, cmFileReplace, cmFileClear, cmFileDoubleClicked,
                                                     cmFileInit)
 from vindauga.dialogs.message_box import messageBox
-from vindauga.misc.util import relativePath, isWild, splitPath, validFileName, getCurDir, pathValid, fexpand, nameLength
+from vindauga.misc.util import isRelativePath, isWild, splitPath, isValidFileName, getCurDir, isDirectory, fexpand, nameLength
 from vindauga.types.rect import Rect
 from vindauga.widgets.button import Button
 from vindauga.widgets.dialog import Dialog
@@ -102,7 +102,7 @@ class FileDialog(Dialog):
 
     def getFilename(self):
         buf = self.filename.getDataString().strip()
-        if relativePath(buf):
+        if isRelativePath(buf):
             buf = os.path.join(self.directory, buf)
         return fexpand(buf)
 
@@ -151,7 +151,7 @@ class FileDialog(Dialog):
                 if command != cmFileInit:
                     self.fileList.select()
                 self.fileList.readDirectory(self.directory, self.wildCard)
-        elif validFileName(filename):
+        elif isValidFileName(filename):
             return True
         else:
             messageBox(self.invalidFileText, mfError, [mfOKButton])
@@ -168,7 +168,7 @@ class FileDialog(Dialog):
         self.fileList.readDirectory(self.directory, self.wildCard)
 
     def checkDirectory(self, path):
-        if pathValid(path):
+        if isDirectory(path):
             return True
 
         messageBox(self.invalidDriveText, mfError, [mfOKButton])

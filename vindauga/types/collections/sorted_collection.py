@@ -31,7 +31,7 @@ class SortedCollection(Collection):
         super().append(value)
         self.sort()
 
-    def sort(self, reverse=False):
+    def sort(self, reverse: bool = False):
         super().sort(key=cmp_to_key(self._compare), reverse=reverse)
 
     def _compare(self, key1, key2):

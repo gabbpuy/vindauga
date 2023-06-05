@@ -13,9 +13,9 @@ class StringLookupValidator(LookupValidator):
         self.strings = collection
 
     def error(self):
-        messageBox(self.errorMsg, mfError, (mfOKButton,))
+        messageBox(self.errorMsg, mfError, [mfOKButton])
 
-    def lookup(self, s: str):
+    def lookup(self, s: str) -> bool:
         return s in self.strings
 
     def newStringList(self, collection):

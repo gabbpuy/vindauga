@@ -6,7 +6,7 @@ from vindauga.constants.state_flags import sfFocused
 from vindauga.misc.character_codes import SPECIAL_CHARS, getAltCode
 from vindauga.misc.util import hotKey
 from vindauga.types.draw_buffer import DrawBuffer
-from vindauga.types.group import Group
+from vindauga.types.group import Group, Phases
 from vindauga.types.palette import Palette
 from .static_text import StaticText
 
@@ -59,7 +59,7 @@ class Label(StaticText):
         elif event.what == evKeyDown:
             c = hotKey(self._text)
 
-            if (getAltCode(c) == event.keyDown.keyCode or c != 0 and self.owner.phase == Group.phPostProcess and
+            if (getAltCode(c) == event.keyDown.keyCode or c != 0 and self.owner.phase == Phases.Postprocess and
                     event.keyDown.charScan.charCode.upper() == c):
                 self.focusLink(event)
         elif event.what == evBroadcast and self._linkedWidget and event.message.command in {cmReceivedFocus, cmReleasedFocus}:

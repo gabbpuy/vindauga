@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 import logging
 import os
+from typing import Tuple
 
 import wcwidth
 
@@ -15,17 +16,17 @@ def fexpand(path: str) -> str:
     return os.path.normpath(os.path.expanduser(path))
 
 
-def splitPath(path):
+def splitPath(path) -> Tuple[str, str]:
     dirname, filename = os.path.split(path)
     if not dirname:
         dirname = '.'
-    if dirname[-1] != os.path.sep:
+    if not dirname.endswith(os.path.sep):
         dirname += os.path.sep
 
     return dirname, filename
 
 
-def ctrlToArrow(keyCode):
+def ctrlToArrow(keyCode: int) -> int:
     """
     Map control keys to directions
 
@@ -60,22 +61,22 @@ def hotKey(s):
     return None
 
 
-def getCurDir():
+def getCurDir() -> str:
     theDir = os.path.normpath(os.getcwd())
     if not theDir.endswith(os.path.sep):
         theDir += os.path.sep
     return theDir
 
 
-def isWild(f):
+def isWild(f: str) -> bool:
     return any(c in {'?', '*'} for c in reversed(f))
 
 
-def relativePath(path):
+def isRelativePath(path) -> bool:
     return not os.path.isabs(path)
 
 
-def validFileName(fileName):
+def isValidFileName(fileName) -> bool:
     if os.path.exists(fileName):
         return os.access(fileName, os.R_OK)
     try:
@@ -87,11 +88,11 @@ def validFileName(fileName):
         return False
 
 
-def pathValid(path):
+def isDirectory(path) -> bool:
     return os.path.isdir(os.path.dirname(path))
 
 
-def nameLength(name):
+def nameLength(name: str) -> int:
     """
     Remove the '~' from strings and count the letters.
     :param name: String to count
