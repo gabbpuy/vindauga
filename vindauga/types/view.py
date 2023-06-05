@@ -540,7 +540,7 @@ class View(VindaugaObject):
             self.draw()
             self.drawCursor()
 
-    def exposedChildren(self, left: int, right: right, siblings, context):
+    def exposedChildren(self, left: int, right: int, siblings, context):
         for i, child in enumerate(siblings):
             if child is context.target:
                 return self.exposedParent(left, right, child.owner)
