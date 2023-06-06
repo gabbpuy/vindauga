@@ -127,13 +127,13 @@ def setPalette() -> Tuple[Display, array.array, Optional[array.array]]:
     initPaletteColours()
 
     if not curses.has_colors():
-        attributeMap = array.array('L', [0] * 128)
+        attributeMap = array.array('L', [0] * 256)
         attributeMap[0x07] = curses.A_NORMAL
         attributeMap[0x0f] = curses.A_BOLD
         attributeMap[0x70] = curses.A_REVERSE
         return Display.smMono, attributeMap, None
 
-    attributeMap = array.array('L', [0] * 128)
+    attributeMap = array.array('L', [0] * 256)
 
     colorMap = getColorMap()
 
@@ -164,6 +164,7 @@ def setPalette() -> Tuple[Display, array.array, Optional[array.array]]:
             else:
                 pair = (7 - colorMap[fore]) * 8 + colorMap[back]
             attributeMap[i] = curses.color_pair(pair) | attribute
+            attributeMap[i + 128] = attributeMap[i]
         return Display.smCO80, attributeMap, None
 
     # Below here has issues due to various bugs in various platforms method of setting color pairs and colors
@@ -237,6 +238,7 @@ def setPalette() -> Tuple[Display, array.array, Optional[array.array]]:
         else:
             pair = (colorMap[fore] * totalBackground) + colorMap[back]
         lowMap[i] = curses.color_pair(pair) | attribute
+
     return Display.smCO256, lowMap, attributeMap
 
 

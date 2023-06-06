@@ -89,7 +89,7 @@ class View(VindaugaObject):
     curCommandSet = initCommands()
     commandSetChanged = False
     showMarkers = False
-    errorAttr = 0xCF
+    errorAttr = 0x4F  # 0xCF
 
     MOVE_COMMANDS = {kbLeft: Point(-1, 0),
                      kbRight: Point(1, 0),
@@ -360,7 +360,7 @@ class View(VindaugaObject):
 
         self.setState(sfDragging, False)
 
-    def calcBounds(self, delta: Rect):
+    def calcBounds(self, delta: Point) -> Rect:
         """
         When a view's owner changes size, the owner repeatedly calls
         `calcBounds()` and `changeBounds()` for all its subviews.
@@ -372,7 +372,7 @@ class View(VindaugaObject):
         `calcBounds()` calculates the new bounds using the flags specified
         in `growMode` data member.
 
-        :param delta: `Rect` with the change in size
+        :param delta: `Point` with the change in size
         :return: `Rect` with new bounds
         """
         bounds = self.getBounds()
