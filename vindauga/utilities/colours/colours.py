@@ -4,6 +4,7 @@ from enum import IntEnum
 import curses
 import json
 import logging
+import os
 from pathlib import Path
 import platform
 from typing import Dict, List, Tuple, Optional
@@ -12,6 +13,8 @@ from vindauga.types.display import Display
 
 logger = logging.getLogger(__name__)
 PLATFORM_IS_WINDOWS = platform.system().lower() == 'windows'
+PLATFORM_IS_CYGWIN = platform.system().lower().startswith('cygwin')
+PLATFORM_IS_CYGWIN = PLATFORM_IS_CYGWIN or (PLATFORM_IS_WINDOWS and ('TERM' in os.environ or 'MINTTY_SHORTCUT' in os.environ))
 
 
 class Colours(IntEnum):
@@ -238,7 +241,8 @@ def setPalette() -> Tuple[Display, array.array, Optional[array.array]]:
 
 
 def getColorMap():
-    if not PLATFORM_IS_WINDOWS or (PLATFORM_IS_WINDOWS and curses.can_change_color()):
+    logger.info('Win? %s, Cyg %s', PLATFORM_IS_WINDOWS, PLATFORM_IS_CYGWIN)
+    if not PLATFORM_IS_CYGWIN and (not PLATFORM_IS_WINDOWS or (PLATFORM_IS_WINDOWS and curses.can_change_color())):
         colorMap = (Colours.Black,
                     Colours.Cyan,
                     Colours.Green,
