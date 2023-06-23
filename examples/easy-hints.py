@@ -34,23 +34,18 @@ hcFile = 1002
 hcFileExit = 1003
 hcFileNew = 1004
 
-strRef = {
-    hcSystem: "system commands",
-    hcAbout: "show version and copyright information",
-    hcFile: "file-management commands (Open, Save, etc)",
-    hcFileExit: "exit the program",
-    hcFileNew: "create a new file in a new Edit window"
-}
-
 
 class HintStatusLine(StatusLine):
-
-    def __init__(self, bounds, defs):
-        super().__init__(bounds, defs)
-        self.s = strRef
+    strRef = {
+        hcSystem: "system commands",
+        hcAbout: "show version and copyright information",
+        hcFile: "file-management commands (Open, Save, etc)",
+        hcFileExit: "exit the program",
+        hcFileNew: "create a new file in a new Edit window"
+    }
 
     def hint(self, helpCtx):
-        p = self.s.get(helpCtx)
+        p = self.strRef.get(helpCtx)
         if not p:
             return super().hint(helpCtx)
         return p

@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 import logging
 from enum import Enum, auto
+from typing import Optional, Type, Union, List
 
 from vindauga.constants.command_codes import cmMenu, hcNoContext, cmCommandSetChanged
 from vindauga.constants.event_codes import (evBroadcast, evMouseUp, evMouseMove, evMouseDown, evKeyDown, evCommand,
@@ -9,11 +10,12 @@ from vindauga.constants.keys import kbEnter, kbEsc, kbNoKey
 from vindauga.events.event import Event
 from vindauga.misc.character_codes import getAltChar
 from vindauga.misc.util import *
-from vindauga.utilities.draw_widget_tree import drawWidgetTree
 from vindauga.types.palette import Palette
 from vindauga.types.point import Point
 from vindauga.types.rect import Rect
 from vindauga.types.view import View
+
+from .menu_item import MenuItem
 
 logger = logging.getLogger(__name__)
 
@@ -42,7 +44,7 @@ class MenuView(View):
 
     cpMenuView = "\x02\x03\x04\x05\x06\x07"
 
-    def __init__(self, bounds, menu=None, parent=None):
+    def __init__(self, bounds: Rect, menu=None, parent: Optional[View] = None):
         super().__init__(bounds)
         self._parentMenu = parent
         self._current = None
@@ -50,11 +52,11 @@ class MenuView(View):
         self.eventMask |= evBroadcast
 
     @staticmethod
-    def newSubView(bounds, menu, parentMenu):
+    def newSubView(bounds: Rect, menu, parentMenu) -> 'MenuBox':
         from .menu_box import MenuBox
         return MenuBox(bounds, menu, parentMenu)
 
-    def getItemRect(self, item):
+    def getItemRect(self, item) -> Rect:
         """
         Classes derived from `MenuView` must override this member function in
         order to respond to mouse events. Your overriding functions in derived
@@ -65,7 +67,7 @@ class MenuView(View):
         """
         return Rect(0, 0, 0, 0)
 
-    def execute(self):
+    def execute(self) -> int:
         """
         Executes a menu view until the user selects a menu item or cancels the
         process. Returns the command assigned to the selected menu item, or
@@ -130,7 +132,7 @@ class MenuView(View):
 
         return result
 
-    def findItem(self, ch):
+    def findItem(self, ch: Union[str, int]):
         """
         Returns a pointer to the menu item that has code.upper() as its hot key
         (the highlighted character). Returns None if no such menu item is found or
@@ -169,11 +171,11 @@ class MenuView(View):
             return c._current.helpCtx
         return hcNoContext
 
-    def getPalette(self):
+    def getPalette(self) -> Palette:
         palette = Palette(self.cpMenuView)
         return palette
 
-    def updateMenu(self, menu):
+    def updateMenu(self, menu) -> bool:
         res = False
         if menu:
             items = (p for p in menu.items if p.name)
@@ -188,7 +190,7 @@ class MenuView(View):
                         res = True
         return res
 
-    def executeMenu(self, event):
+    def executeMenu(self, event: Event):
         self.putEvent(event)
         emc = self.owner.execView(self)
         if emc and self.commandEnabled(emc):
@@ -198,7 +200,7 @@ class MenuView(View):
             self.putEvent(event)
         self.clearEvent(event)
 
-    def handleEvent(self, event):
+    def handleEvent(self, event: Event):
         if self.menu:
             what = event.what
             if what == evMouseDown:
@@ -222,7 +224,7 @@ class MenuView(View):
                     if self.updateMenu(self.menu):
                         self.drawView()
 
-    def findHotKey(self, items, keyCode):
+    def findHotKey(self, items: List[MenuItem], keyCode) -> MenuItem:
         if items:
             items = (p for p in items if p.name)
             for p in items:
@@ -234,7 +236,7 @@ class MenuView(View):
                     return p
         return None
 
-    def hotKey(self, keyCode):
+    def hotKey(self, keyCode) -> MenuItem:
         """
         Returns a pointer to the menu item associated with the hot key given
         by `keyCode`. Returns None if no such menu item exists, or if the item is
@@ -246,7 +248,7 @@ class MenuView(View):
         """
         return self.findHotKey(self.menu.items, keyCode)
 
-    def __handleMouseUp(self, action, e):
+    def __handleMouseUp(self, action: MenuAction, e: Event) -> MenuAction:
         mouseActive = self.__trackMouse(e)
         if self.__mouseInOwner(e):
             self._current = self.menu.default
@@ -261,7 +263,8 @@ class MenuView(View):
             action = MenuAction.doNothing
         return action
 
-    def __handleEventKeyDown(self, action, autoSelect, e, result):
+    def __handleEventKeyDown(self, action: MenuAction, autoSelect: bool, e: Event, 
+                             result: int) -> Tuple[MenuAction, bool, int]:
         cta = ctrlToArrow(e.keyDown.keyCode)
         if cta in {kbUp, kbDown}:
             if self.size.y != 1:
@@ -312,7 +315,7 @@ class MenuView(View):
                 action = MenuAction.doReturn
         return action, autoSelect, result
 
-    def __handleMenuAction(self, action, autoSelect, e, result):
+    def __handleMenuAction(self, action: MenuAction, autoSelect: bool, e: Event, result: int) -> int:
         if ((action == MenuAction.doSelect or (action == MenuAction.doNothing and autoSelect))
                 and (self._current and self._current.name)):
             if not self._current.command:
@@ -334,7 +337,7 @@ class MenuView(View):
                 result = self._current.command
         return result
 
-    def __trackMouse(self, e):
+    def __trackMouse(self, e: Event) -> bool:
         mouse = self.makeLocal(e.mouse.where)
         # Because any bails if the first thing matches... self._current will point to the thing that
         # matches
@@ -366,9 +369,9 @@ class MenuView(View):
         while self._current.next is not p:
             self.__nextItem()
 
-    def __trackKey(self, findNext):
+    def __trackKey(self, findNext: bool):
         if not self._current:
-            return False
+            return
 
         action = self.__nextItem if findNext else self.__prevItem
         done = False
@@ -376,7 +379,7 @@ class MenuView(View):
             action()
             done = bool(self._current.name)
 
-    def __mouseInOwner(self, e):
+    def __mouseInOwner(self, e: Event) -> bool:
         if not self._parentMenu or self._parentMenu.size.y != 1:
             return False
 
@@ -384,13 +387,13 @@ class MenuView(View):
         r = self._parentMenu.getItemRect(self._parentMenu._current)
         return mouse in r
 
-    def __mouseInMenus(self, e):
+    def __mouseInMenus(self, e: Event) -> bool:
         p = self._parentMenu
         while p and not p.mouseInView(e.mouse.where):
             p = p.parentMenu
         return p is not None
 
-    def __topMenu(self):
+    def __topMenu(self) -> View:
         p = self
         while p._parentMenu:
             p = p._parentMenu

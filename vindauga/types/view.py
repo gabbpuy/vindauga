@@ -138,7 +138,8 @@ class View(VindaugaObject):
 
     @staticmethod
     def commandEnabled(command) -> bool:
-        return command > 255 or command in View.curCommandSet
+        # return command > 255 or command in View.curCommandSet
+        return command in View.curCommandSet
 
     @staticmethod
     def disableCommands(commands):

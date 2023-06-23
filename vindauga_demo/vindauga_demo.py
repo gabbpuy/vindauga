@@ -184,10 +184,6 @@ class VindaugaDemo(Application):
                     self.changeDir()
                 elif emc == AppCommands.cmShellCmd:
                     self.doShellWindow()
-                elif emc == cmTile:
-                    self.tile()
-                elif emc == cmCascade:
-                    self.cascade()
                 elif emc == AppCommands.cmMouseCmd:
                     self.mouse()
                 elif emc == AppCommands.cmColorCmd:
@@ -196,7 +192,12 @@ class VindaugaDemo(Application):
                     self.newDialog()
                 elif AppCommands.cmTest80x25 <= emc <= AppCommands.cmTest160x60:
                     self.testMode(emc)
-                return
+            elif emc == cmTile:
+                self.clearEvent(event)
+                self.tile()
+            elif emc == cmCascade:
+                self.clearEvent(event)
+                self.cascade()
 
     def testMode(self, mode):
         width, height = (int(i) for i in mode.name.replace('cmTest', '').split('x'))

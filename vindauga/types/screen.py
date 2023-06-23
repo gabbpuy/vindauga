@@ -477,7 +477,7 @@ class Screen:
         stdscr.refresh()
 
     def writeRow(self, x, y, src, rowLen):
-        if self.__rawMode and self.screenMode == Display.smCO256:
+        if self.__rawMode: # and self.screenMode == Display.smCO256:
             return self.writeRowRaw(x, y, src, rowLen)
 
         with self.__draw_lock:
@@ -510,10 +510,11 @@ class Screen:
                 code = chr(sc & 0xFFFF)
                 color = ((sc & 0xFFFF0000) >> 16) & 0xFFFF
                 try:
-                    addstr(code, attributeMap[color])
+                    addstr(code, color) # attributeMap[color])
                 except curses.error as e:
                     # Writing to the bottom right corner throws an error after it is drawn
                     pass
+
             stdscr.move(self.curY, self.curX)
 
     @contextlib.contextmanager

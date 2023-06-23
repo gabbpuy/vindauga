@@ -1,20 +1,21 @@
 # -*- coding: utf-8 -*-
+from typing import Optional, Union
 
 
 class CommandSet:
 
-    def __init__(self, tc=None):
+    def __init__(self, tc: Optional['CommandSet'] = None):
         if not tc:
             self.cmds = set()
         else:
-            self.cmds = tc.cmds.copy()
+            self.cmds = set(tc.cmds)
 
-    def __contains__(self, cmd):
+    def __contains__(self, cmd) -> bool:
         return cmd in self.cmds
 
     has = __contains__
 
-    def __iadd__(self, other):
+    def __iadd__(self, other: 'CommandSet') -> 'CommandSet':
         """
         Emables all commands in the `other` set (or a single command) to this command set
 
@@ -24,7 +25,7 @@ class CommandSet:
         self.enableCmd(other)
         return self
 
-    def __isub__(self, other):
+    def __isub__(self, other: 'CommandSet') -> 'CommandSet':
         """
         Removes all commands in the `other` set (or a single command) from this command set
 
@@ -34,7 +35,7 @@ class CommandSet:
         self.disableCmd(other)
         return self
 
-    def __iand__(self, other):
+    def __iand__(self, other: 'CommandSet') -> 'CommandSet':
         """
         Calculates the intersection of this and the `other` set
 
@@ -44,7 +45,7 @@ class CommandSet:
         self.cmds.intersection_update(other.cmds)
         return self
 
-    def __ior__(self, other):
+    def __ior__(self, other: 'CommandSet') -> 'CommandSet':
         """
         Calculates the union of this set and the `other` set
 
@@ -54,7 +55,7 @@ class CommandSet:
         self.cmds = self.cmds.union(other.cmds)
         return self
 
-    def __and__(self, other):
+    def __and__(self, other: 'CommandSet') -> 'CommandSet':
         """
         Calculates the intersection of this set and the `other` set
 
@@ -65,7 +66,7 @@ class CommandSet:
         temp &= other
         return temp
 
-    def __or__(self, other):
+    def __or__(self, other: 'CommandSet') -> 'CommandSet':
         """
         Calculates the union of this set and the `other` set.
 
@@ -76,13 +77,13 @@ class CommandSet:
         temp |= other
         return temp
 
-    def __eq__(self, other):
+    def __eq__(self, other: 'CommandSet') -> bool:
         return self.cmds == other.cmds
 
-    def __ne__(self, other):
+    def __ne__(self, other: 'CommandSet') -> bool:
         return self.cmds != other.cmds
 
-    def __bool__(self):
+    def __bool__(self) -> bool:
         return len(self.cmds) != 0
 
     def __iter__(self):
@@ -91,7 +92,7 @@ class CommandSet:
     def __repr__(self):
         return 'CommandSet: {}'.format(self.cmds)
 
-    def disableCmd(self, cmd):
+    def disableCmd(self, cmd: Union[int,  'CommandSet']):
         """
         Removes cmd from the set
         :param cmd:
@@ -105,7 +106,7 @@ class CommandSet:
             except KeyError:
                 pass
 
-    def enableCmd(self, cmd):
+    def enableCmd(self, cmd: Union[int,  'CommandSet']):
         """
         Adds cmd to the set
         :param cmd:
@@ -116,6 +117,6 @@ class CommandSet:
         else:
             self.cmds.add(cmd)
 
-    def isEmpty(self):
+    def isEmpty(self) -> bool:
         return not self.cmds
 

@@ -20,6 +20,7 @@ from vindauga.types.validation.validator import Validator
 
 logger = logging.getLogger(__name__)
 
+
 class State:
     def __init__(self):
         self.pos = 0
@@ -332,4 +333,3 @@ class InputLine(View):
             if self.current.pos >= oldLen and len(self.current.data) > oldLen:
                 self.current.pos = len(self.current.data)
         return True
-

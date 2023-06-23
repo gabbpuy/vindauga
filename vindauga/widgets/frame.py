@@ -26,6 +26,7 @@ class Frame(View):
 
     initFrame = "\x06\x0A\x0C\x05\x00\x05\x03\x0A\x09\x16\x1A\x1C\x15\x00\x15\x13\x1A\x19"
     frameChars = '   └ │┌├ ┘─┴┐┤┬┼   ╚ ║╔╟ ╝═╧╗╢╤ '
+    # frameChars = '   ╰ │╭├ ╯─┴╮┤┬┼   ╚ ║╔╟ ╝═╧╗╢╤ '
 
     closeIcon = '[~X~]'
     zoomIcon = '[~↕~]'

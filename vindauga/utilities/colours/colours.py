@@ -5,6 +5,7 @@ import curses
 import json
 import logging
 import os
+from functools import cached_property, lru_cache
 from pathlib import Path
 import platform
 from typing import Dict, List, Tuple, Optional
@@ -165,7 +166,8 @@ def setPalette() -> Tuple[Display, array.array, Optional[array.array]]:
                 pair = (7 - colorMap[fore]) * 8 + colorMap[back]
             attributeMap[i] = curses.color_pair(pair) | attribute
             attributeMap[i + 128] = attributeMap[i]
-        return Display.smCO80, attributeMap, None
+        logger.info('AttributeMap: %s', [hex(a) for a in attributeMap])
+        return Display.smCO80, attributeMap, attributeMap
 
     # Below here has issues due to various bugs in various platforms method of setting color pairs and colors
     # Cygwin lies about colour pairs, it says 65536 pairs but really only 256, setting anything > 32768 causes an error
@@ -242,8 +244,8 @@ def setPalette() -> Tuple[Display, array.array, Optional[array.array]]:
     return Display.smCO256, lowMap, attributeMap
 
 
+@lru_cache(1)
 def getColorMap():
-    logger.info('Win? %s, Cyg %s', PLATFORM_IS_WINDOWS, PLATFORM_IS_CYGWIN)
     if not PLATFORM_IS_CYGWIN and (not PLATFORM_IS_WINDOWS or (PLATFORM_IS_WINDOWS and curses.can_change_color())):
         colorMap = (Colours.Black,
                     Colours.Cyan,
