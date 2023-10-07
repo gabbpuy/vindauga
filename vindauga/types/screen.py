@@ -477,44 +477,42 @@ class Screen:
         stdscr.refresh()
 
     def writeRow(self, x, y, src, rowLen):
-        if self.__rawMode: # and self.screenMode == Display.smCO256:
+        if self.__rawMode and self.screenMode == Display.smCO256:
             return self.writeRowRaw(x, y, src, rowLen)
 
         with self.__draw_lock:
             stdscr = self.stdscr
             stdscr.move(y, x)
             attributeMap = self.attributeMap
-            addstr = stdscr.addstr
+            addstr = stdscr.addnstr
             for sc in itertools.islice(src, rowLen):
                 code = chr(sc & 0xFFFF)
-                color = ((sc & 0xFFFF0000) >> 16) & 0xFFFF
+                color = (sc >> 16) & 0xFF
                 try:
-                    addstr(code, attributeMap[color])
+                    addstr(code, 1, attributeMap[color])
                 except curses.error as e:
                     # Writing to the bottom right corner throws an error after it is drawn
                     pass
-
             stdscr.move(self.curY, self.curX)
 
     def writeRowRaw(self, x, y, src, rowLen):
         """
         Write a row with high colours, instead of the 8x16 text-ui palette.
-        This needs `smCO256` Display type and 64K colour pairs to be worth using.
+        This needs `smCO256` Display type and 64K colour pairs to be worth usinqg.
         """
         with self.__draw_lock:
             stdscr = self.stdscr
             stdscr.move(y, x)
             attributeMap = self.highColourMap
-            addstr = stdscr.addstr
+            addstr = stdscr.addnstr
             for sc in itertools.islice(src, rowLen):
                 code = chr(sc & 0xFFFF)
-                color = ((sc & 0xFFFF0000) >> 16) & 0xFFFF
+                color = sc >> 16
                 try:
-                    addstr(code, color) # attributeMap[color])
+                    addstr(code, 1, attributeMap[color])
                 except curses.error as e:
                     # Writing to the bottom right corner throws an error after it is drawn
                     pass
-
             stdscr.move(self.curY, self.curX)
 
     @contextlib.contextmanager

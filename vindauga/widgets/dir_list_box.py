@@ -53,7 +53,7 @@ class DirListBox(ListBox):
     def __absolute(self, directory):
         if PLATFORM_IS_CYGWIN:
             directory = re.sub(r'^([A-Za-z]):', r'/cygdrive/\1', directory)
-        return pathlib.Path(directory).absolute()
+        return pathlib.Path(directory).resolve()
 
     def newDirectory(self, directory):
         self.dir = self.__absolute(directory)

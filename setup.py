@@ -6,15 +6,15 @@ with open('README.md', 'r') as fh:
 
 dependencies = [
     "pyperclip >= 1.8.2",
-
+    "wcwidth >= 0.2.6",
     # Windows
-    "pywin32 >= 304; sys_platform == 'win32'",
+    "pywin32 >= 306; sys_platform == 'win32'",
     "windows_curses >= 2.3.0 ; sys_platform == 'win32'",
 ]
 
 setup(
     name='vindauga',
-    version='0.1.4',
+    version='0.1.5',
     packages=find_packages(exclude=('test', 'build', 'dist')),
     long_description=long_description,
     long_description_content_type='text/markdown',

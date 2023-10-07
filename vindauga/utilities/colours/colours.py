@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 import array
+import itertools
 from enum import IntEnum
 import curses
 import json
@@ -15,7 +16,8 @@ from vindauga.types.display import Display
 logger = logging.getLogger(__name__)
 PLATFORM_IS_WINDOWS = platform.system().lower() == 'windows'
 PLATFORM_IS_CYGWIN = platform.system().lower().startswith('cygwin')
-PLATFORM_IS_CYGWIN = PLATFORM_IS_CYGWIN or (PLATFORM_IS_WINDOWS and ('TERM' in os.environ or 'MINTTY_SHORTCUT' in os.environ))
+PLATFORM_IS_CYGWIN = PLATFORM_IS_CYGWIN or (
+            PLATFORM_IS_WINDOWS and ('TERM' in os.environ or 'MINTTY_SHORTCUT' in os.environ))
 
 
 class Colours(IntEnum):
@@ -35,6 +37,24 @@ class Colours(IntEnum):
     LightMagenta = 13
     LightYellow = 14
     LightWhite = 15
+
+
+xtermColourMap = (Colours.Black,
+                  Colours.Red,
+                  Colours.Green,
+                  Colours.Yellow,
+                  Colours.Blue,
+                  Colours.Magenta,
+                  Colours.Cyan,
+                  Colours.White,
+                  Colours.Grey,
+                  Colours.LightRed,
+                  Colours.LightGreen,
+                  Colours.LightYellow,
+                  Colours.LightBlue,
+                  Colours.LightMagenta,
+                  Colours.LightCyan,
+                  Colours.LightWhite)
 
 
 def colour_256to16(c: int) -> int:
@@ -57,7 +77,8 @@ def colour_256to16(c: int) -> int:
         8, 8, 8, 8, 7, 7, 7, 7, 7, 7, 15, 15, 15, 15, 15, 15
     )
 
-    return getColorMap()[table[c & 0xff]]
+    # return getColourMap()[table[c & 0xff]]
+    return xtermColourMap[table[c & 0xff]]
 
 
 def colourDistSquared(r1, g1, b1, r2, g2, b2) -> float:
@@ -102,28 +123,26 @@ def colourFindRGB(r: int, g: int, b: int) -> int:
     return idx
 
 
-def loadColours() -> List[Dict]:
-    jsonPalette = Path(__file__).parent.joinpath('256-colors.json')
-    with jsonPalette.open('rt', encoding='utf8') as paletteFP:
-        palette = json.load(paletteFP)
-    return palette
-
-
 def initPaletteColours():
     if curses.can_change_color():
         # If we can change colours, set the x-term colour palette
         from .xterm_colors import palette
         for colour in sorted(palette, key=lambda c: c['colorId'])[:curses.COLORS]:
-            r = int(colour['rgb']['r'] * 1000 / 256)
-            g = int(colour['rgb']['g'] * 1000 / 256)
-            b = int(colour['rgb']['b'] * 1000 / 256)
+            r = colour['rgb']['r'] * 1000 // 256
+            g = colour['rgb']['g'] * 1000 // 256
+            b = colour['rgb']['b'] * 1000 // 256
             curses.init_color(colour['colorId'], r, g, b)
 
 
 def setPalette() -> Tuple[Display, array.array, Optional[array.array]]:
-    logger.info('CURSES: Colours: %s, Pairs: %s, Color?: %s, Change?: %s', curses.COLORS, curses.COLOR_PAIRS,
-                curses.has_colors(),
-                curses.can_change_color())
+    has_extended_support = False
+    try:
+        has_extended_support = curses.has_extended_color_support()
+    except:
+        pass
+
+    logger.info('CURSES: Colours: %s, Pairs: %s, Color?: %s, Change?: %s, Extended?: %s', curses.COLORS,
+                curses.COLOR_PAIRS, curses.has_colors(), curses.can_change_color(), has_extended_support)
 
     initPaletteColours()
 
@@ -134,21 +153,27 @@ def setPalette() -> Tuple[Display, array.array, Optional[array.array]]:
         attributeMap[0x70] = curses.A_REVERSE
         return Display.smMono, attributeMap, None
 
-    attributeMap = array.array('L', [0] * 256)
+    attributeMap = array.array('Q', [0] * 256)
 
-    colorMap = getColorMap()
+    colourMap = getColourMap()
 
-    if True or curses.COLOR_PAIRS < 257:
+    if not has_extended_support:
         i = 0
-        for fore in reversed(colorMap[:8]):
-            for back in colorMap[:8]:
-                if i:
+        for fore in reversed(colourMap[:8]):
+            for back in colourMap[:8]:
+                try:
                     curses.init_pair(i, fore, back)
+                except curses.error:
+                    if not i:
+                        pass
+                    else:
+                        raise
                 i += 1
+
         if curses.COLORS >= 16:
             # Use bright colours instead of bold
-            for fore in reversed(colorMap[8:]):
-                for back in colorMap[:8]:
+            for fore in reversed(colourMap[8:]):
+                for back in colourMap[:8]:
                     curses.init_pair(i, fore, back)
                     i += 1
 
@@ -158,15 +183,15 @@ def setPalette() -> Tuple[Display, array.array, Optional[array.array]]:
             fore = i & 0x07
             attribute = 0
             if bold and curses.COLORS >= 16:
-                pair = (15 - colorMap[fore]) * 8 + colorMap[back]
+                pair = (15 - colourMap[fore]) * 8 + colourMap[back]
             elif bold:
-                pair = (7 - colorMap[fore]) * 8 + colorMap[back]
+                pair = (7 - colourMap[fore]) * 8 + colourMap[back]
                 attribute = curses.A_BOLD
             else:
-                pair = (7 - colorMap[fore]) * 8 + colorMap[back]
+                pair = (7 - colourMap[fore]) * 8 + colourMap[back]
             attributeMap[i] = curses.color_pair(pair) | attribute
             attributeMap[i + 128] = attributeMap[i]
-        logger.info('AttributeMap: %s', [hex(a) for a in attributeMap])
+
         return Display.smCO80, attributeMap, attributeMap
 
     # Below here has issues due to various bugs in various platforms method of setting color pairs and colors
@@ -175,111 +200,67 @@ def setPalette() -> Tuple[Display, array.array, Optional[array.array]]:
     # Windows color pairs need to be shifted by 16 bits sometimes and cannot change colours... but it has 768 colours
     # But only reports 256 pairs
 
-    lowMap = array.array('L', [0] * 256)
-    useBold = False
-    totalForeground = 256
-    totalBackground = 256
-    totalPairs = 65536
+    lowMap = array.array('Q', [0] * 256)
+    totalForeground = curses.COLORS
+    totalBackground = curses.COLORS
+    totalPairs = curses.COLOR_PAIRS
     try:
         curses.init_pair(65535, 0, 0)
     except Exception as e:
-        logger.exception('No 64K colours, trying 32K')
-        useBold = True
-        totalForeground = 128
+        totalBackground = 128
         totalPairs = 32768
 
-    i = 0
-    for fore in range(totalForeground):
-        for back in range(totalBackground):
-            if i:
-                curses.init_pair(i, fore, back)
-            i += 1
+    attributeMap = array.array('Q', [0] * totalPairs)
 
-    for i in range(totalPairs):
-        back = (i >> 8) & 0xFF
-        fore = i & 0xFF
-        bold = 0
-        if useBold:
-            bold = fore & 0x80
-            fore >>= 1
-        try:
-            attributeMap[i] = (curses.color_pair(fore * totalBackground + back))
-        except Exception as e:
-            logger.exception('Error setting colour pair %s', i)
-            raise
-        if bold:
-            attributeMap[i] |= curses.A_BOLD
+    # Keep track of the fore/back pairs for the low-map
+    palette = {}
+    for i, (fore, back) in enumerate(itertools.product(range(totalBackground), range(totalForeground))):
+        curses.init_pair(i, fore, back)
+        palette[(fore, back)] = i
+        attributeMap[i] = curses.color_pair(i)
 
-    colorMap = (Colours.Black,
-                Colours.Red,
-                Colours.Green,
-                Colours.Yellow,
-                Colours.Blue,
-                Colours.Magenta,
-                Colours.Cyan,
-                Colours.White,
-                Colours.Grey,
-                Colours.LightRed,
-                Colours.LightGreen,
-                Colours.LightYellow,
-                Colours.LightBlue,
-                Colours.LightMagenta,
-                Colours.LightCyan,
-                Colours.LightWhite)
-
-    for i in range(256):
-        back = (i >> 4) & 0x07
-        bold = i & 0x08
-        fore = i & 0x07
-        attribute = 0
-        if bold and curses.COLORS >= 16:
-            pair = (colorMap[fore + 8] * totalBackground) + colorMap[back]
-        elif bold:
-            pair = (colorMap[fore] * totalBackground) + colorMap[back]
-            attribute = curses.A_BOLD
-        else:
-            pair = (colorMap[fore] * totalBackground) + colorMap[back]
-        lowMap[i] = curses.color_pair(pair) | attribute
+    for i, (back, fore) in enumerate(itertools.product(range(16), range(16))):
+        lowMap[i] = curses.color_pair(palette[(xtermColourMap[fore], xtermColourMap[back])])
 
     return Display.smCO256, lowMap, attributeMap
 
 
 @lru_cache(1)
-def getColorMap():
-    if not PLATFORM_IS_CYGWIN and (not PLATFORM_IS_WINDOWS or (PLATFORM_IS_WINDOWS and curses.can_change_color())):
-        colorMap = (Colours.Black,
-                    Colours.Cyan,
-                    Colours.Green,
-                    Colours.Red,
-                    Colours.Yellow,
-                    Colours.Magenta,
-                    Colours.Blue,
-                    Colours.White,
-                    Colours.Grey,
-                    Colours.LightCyan,
-                    Colours.LightGreen,
-                    Colours.LightRed,
-                    Colours.LightYellow,
-                    Colours.LightMagenta,
-                    Colours.LightBlue,
-                    Colours.LightWhite
-                    )
+def getColourMap():
+    if PLATFORM_IS_CYGWIN or (not PLATFORM_IS_WINDOWS or (PLATFORM_IS_WINDOWS and curses.can_change_color())):
+        colourMap = (Colours.Black,
+                     Colours.Cyan,
+                     Colours.Green,
+                     Colours.Red,
+                     Colours.Yellow,
+                     Colours.Magenta,
+                     Colours.Blue,
+                     Colours.White,
+                     Colours.Grey,
+                     Colours.LightCyan,
+                     Colours.LightGreen,
+                     Colours.LightRed,
+                     Colours.LightYellow,
+                     Colours.LightMagenta,
+                     Colours.LightBlue,
+                     Colours.LightWhite
+                     )
     else:
-        colorMap = (Colours.Black,
-                    Colours.Yellow,
-                    Colours.Green,
-                    Colours.Cyan,
-                    Colours.Red,
-                    Colours.Magenta,
-                    Colours.Blue,
-                    Colours.White,
-                    Colours.Grey,
-                    Colours.LightYellow,
-                    Colours.LightGreen,
-                    Colours.LightCyan,
-                    Colours.LightRed,
-                    Colours.LightMagenta,
-                    Colours.LightBlue,
-                    Colours.LightWhite
-                    )
-    return colorMap
+        colourMap = (Colours.Black,
+                     Colours.Yellow,
+                     Colours.Green,
+                     Colours.Cyan,
+                     Colours.Red,
+                     Colours.Magenta,
+                     Colours.Blue,
+                     Colours.White,
+                     Colours.Grey,
+                     Colours.LightYellow,
+                     Colours.LightGreen,
+                     Colours.LightCyan,
+                     Colours.LightRed,
+                     Colours.LightMagenta,
+                     Colours.LightBlue,
+                     Colours.LightWhite
+                     )
+    return colourMap
