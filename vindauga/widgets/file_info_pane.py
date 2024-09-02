@@ -26,7 +26,7 @@ class FileInfoPane(View):
             return '0 B'
 
         value, prefix = closestPrefix(rate)
-        s = '{:.0f} {}B'.format(value, prefix)
+        s = f'{value:.0f} {prefix}B'
         return s
 
     def draw(self):

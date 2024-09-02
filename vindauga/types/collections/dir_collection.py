@@ -15,7 +15,7 @@ class DirEntry:
         return self.displayText
 
     def __repr__(self):
-        return '<DirEntry: {}>'.format(self.directory)
+        return f'<DirEntry: {self.directory}>'
 
 
 class DirCollection(Collection):

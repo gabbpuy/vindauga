@@ -44,7 +44,7 @@ class GridViewDialog(Dialog):
             Rect(r.bottomRight.x - 10, r.bottomRight.y + 1, r.bottomRight.x - 1, r.bottomRight.y + 2), 5)
         self.itemNumber.options &= ~ofSelectable
         self.itemNumber.growMode |= gfGrowAll
-        self.itemNumber.setData('{:2d},{:2d}'.format(self.listBox.focusedRow, self.listBox.focusedColumn))
+        self.itemNumber.setData(f'{self.listBox.focusedRow:2d},{self.listBox.focusedColumn:2d}')
 
         self.insert(self.hScrollBar)
         self.insert(self.vScrollBar)
@@ -98,7 +98,7 @@ class GridViewDialog(Dialog):
                 self.inputLine.show()
                 self.clearEvent(event)
             elif emc == cmUpdateItemNumber:
-                self.itemNumber.setData('{:2d},{:2d}'.format(self.listBox.focusedRow, self.listBox.focusedColumn))
+                self.itemNumber.setData(f'{self.listBox.focusedRow:2d},{self.listBox.focusedColumn:2d}')
                 self.itemNumber.draw()
                 self.clearEvent(event)
         super().handleEvent(event)

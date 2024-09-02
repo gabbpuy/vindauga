@@ -55,4 +55,4 @@ class Point:
         return self
 
     def __repr__(self):
-        return '<Point({0.x}, {0.y})>'.format(self)
+        return f'<Point({self.x}, {self.y})>'

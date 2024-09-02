@@ -96,7 +96,7 @@ class FileEditor(Editor):
     def saveFile(self):
         try:
             if self.editorFlags & efBackupFiles:
-                backupName = '{}{}'.format(self.fileName, self.backupExt)
+                backupName = f'{self.fileName}{self.backupExt}'
                 if os.path.exists(backupName):
                     os.unlink(backupName)
                 os.rename(self.fileName, backupName)

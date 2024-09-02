@@ -10,5 +10,4 @@ class DataRecord:
         self.__dict__.update(kwargs)
 
     def __repr__(self):
-        return ' <DataRecord@{:x}: {}>'.format(id(self),
-                                               ' '.join('{} = {}'.format(k, v) for k, v in self.__dict__.items()))
+        return f' <DataRecord@{id(self):x}: {" ".join(f"{k} = {v}" for k, v in self.__dict__.items())}>'

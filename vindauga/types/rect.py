@@ -108,7 +108,7 @@ class Rect:
         return self.topLeft != other.topLeft or self.bottomRight != other.bottomRight
 
     def __repr__(self):
-        return "({0.topLeft.x}, {0.topLeft.y}, {0.bottomRight.x}, {0.bottomRight.y})".format(self)
+        return f'({self.topLeft.x}, {self.topLeft.y}, {self.bottomRight.x}, {self.bottomRight.y})'
 
     def isEmpty(self) -> bool:
         """

@@ -46,7 +46,7 @@ class PuzzleView(View):
             if i == 1:
                 buf.moveStr(13, _('Move'), colorBack)
             if i == 2:
-                tmp = '{}'.format(self.moves)
+                tmp = f'{self.moves}'
                 buf.moveStr(14, tmp, colorBack)
 
             for j in range(4):

@@ -91,7 +91,7 @@ class CommandSet:
         yield from self.cmds
 
     def __repr__(self):
-        return 'CommandSet: {}'.format(self.cmds)
+        return f'CommandSet: {self.cmds}'
 
     def disableCmd(self, cmd: Union[int,  CommandSet]):
         """

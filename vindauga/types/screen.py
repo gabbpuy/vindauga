@@ -226,12 +226,12 @@ class Screen:
 
     def setScreenSize(self, width: int, height: int):
         if PLATFORM_IS_WINDOWS:
-            subprocess.call(['mode', 'con:', 'cols={}'.format(width), 'lines={}'.format(height)], shell=True)
+            subprocess.call(['mode', 'con:', f'cols={width}', f'lines={height}'], shell=True)
             # There's no incoming sigwinch, so resize the terminal then redraw
             curses.resize_term(height, width)
         elif curses.is_term_resized(height, width):
             # The resize is handled via sigwinch
-            print('\x1b[8;{};{}t'.format(height, width))
+            print(f'\x1b[8;{height};{width}t')
         self.doResize += 1
 
     @staticmethod
