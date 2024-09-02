@@ -6,6 +6,7 @@ from vindauga.constants.grow_flags import gfFixed
 
 from vindauga.types.draw_buffer import DrawBuffer
 from vindauga.types.palette import Palette
+from vindauga.types.rect import Rect
 from vindauga.types.view import View
 
 logger = logging.getLogger(__name__)
@@ -16,12 +17,12 @@ class StaticText(View):
     name = 'StaticText'
     cpStaticText = "\x06"
 
-    def __init__(self, bounds, text):
+    def __init__(self, bounds: Rect, text: str):
         super().__init__(bounds)
         self._text = text
         self.growMode |= gfFixed
 
-    def drawEmptyLine(self, y, color):
+    def drawEmptyLine(self, y: int, color: int):
         b = DrawBuffer()
         b.moveChar(0, ' ', color, self.size.x)
         self.writeLine(0, y, self.size.x, 1, b)
@@ -68,9 +69,9 @@ class StaticText(View):
         for yy in range(y, self.size.y + 1):
             self.writeLine(0, yy, self.size.x, 1, b)
 
-    def getPalette(self):
+    def getPalette(self) -> Palette:
         palette = Palette(self.cpStaticText)
         return palette
 
-    def getText(self):
+    def getText(self) -> str:
         return self._text or ''

@@ -41,7 +41,7 @@ class RangeValidator(Validator):
             pass
         return False
 
-    def transfer(self, item, args, operation):
+    def transfer(self, item, args, operation: int):
         if self.options & voTransfer:
             if operation == vtGetData:
                 try:

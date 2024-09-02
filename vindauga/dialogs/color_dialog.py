@@ -10,6 +10,7 @@ from vindauga.constants.colors import cmNewColorIndex, cmNewColorItem, cmSetColo
 from vindauga.constants.event_codes import evBroadcast
 from vindauga.constants.option_flags import ofCentered
 from vindauga.constants.key_mappings import showMarkers
+from vindauga.events.event import Event
 from vindauga.types.color_group import ColorGroup
 from vindauga.types.palette import Palette
 from vindauga.types.rect import Rect
@@ -24,6 +25,7 @@ from vindauga.widgets.mono_selector import MonoSelector
 from vindauga.widgets.scroll_bar import ScrollBar
 
 logger = logging.getLogger(__name__)
+
 
 @dataclass
 class ColorIndex:
@@ -108,7 +110,7 @@ class ColorDialog(Dialog):
         if self.pal:
             self.setData(self.pal)
 
-    def handleEvent(self, event):
+    def handleEvent(self, event: Event):
         if event.what == evBroadcast:
             if event.message.command == cmNewColorItem:
                 self.groupIndex = self._groups.focused
@@ -121,10 +123,10 @@ class ColorDialog(Dialog):
             self._colorIndex = event.message.infoPtr
             self._display.setColor(self.pal.palette[event.message.infoPtr])
 
-    def consumesData(self):
+    def consumesData(self) -> bool:
         return True
 
-    def getData(self):
+    def getData(self) -> Palette:
         """
         Reads the data record of this dialog.
         """

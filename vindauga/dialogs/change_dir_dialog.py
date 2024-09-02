@@ -63,16 +63,16 @@ class ChangeDirDialog(Dialog):
             self.setupDialog()
         self.selectNext(False)
 
-    def consumesData(self):
+    def consumesData(self) -> bool:
         return True
 
-    def getData(self):
+    def getData(self) -> DataRecord:
         return self.dirInput.getData()
 
-    def setData(self, data):
+    def setData(self, data: DataRecord) -> None:
         self.dirInput.setData(data.value)
 
-    def handleEvent(self, event):
+    def handleEvent(self, event: Event):
         super().handleEvent(event)
         if event.what == evCommand:
             emc = event.message.command
@@ -131,9 +131,10 @@ class ChangeDirDialog(Dialog):
                 self.dirInput.setData(curDir)
                 self.dirInput.drawView()
 
-    def changeDir(self, path: Union[str, pathlib.Path]) -> bool:
+    @staticmethod
+    def changeDir(path: Union[str, pathlib.Path]) -> bool:
         try:
             os.chdir(path)
             return False
-        except:
+        except Exception as e:
             return True

@@ -1,4 +1,5 @@
 # -*- coding: utf-8 -*-
+from __future__ import annotations
 import logging
 from typing import Union
 
@@ -18,13 +19,13 @@ class SubMenu(MenuItem):
     `vindauga` supplies the overloaded operator + so you can easily construct
     complete menus without dozens of nested parentheses.
     """
-    def __init__(self, name, keyCode, helpCtx=hcNoContext):
+    def __init__(self, name: str, keyCode: int, helpCtx: int = hcNoContext):
         super().__init__(name, 0, keyCode, helpCtx)
 
     def __repr__(self):
-        return "<SubMenu: {0.name}>".format(self)
+        return f"<SubMenu: {self.name}>"
 
-    def __add__(self, other: Union['SubMenu', MenuItem]):
+    def __add__(self, other: Union[SubMenu, MenuItem]) -> SubMenu:
         if isinstance(other, SubMenu):
             self.__addSubMenu(other)
         elif isinstance(other, MenuItem):
@@ -44,7 +45,7 @@ class SubMenu(MenuItem):
                 cur = cur.next
             cur.next = menu
 
-    def __addSubMenu(self, other: 'SubMenu'):
+    def __addSubMenu(self, other: SubMenu):
         cur = self
         while cur.next:
             cur = cur.next

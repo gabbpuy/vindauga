@@ -4,12 +4,13 @@ from typing import List
 
 from vindauga.constants.colors import cmSaveColorIndex, cmNewColorIndex, cmNewColorItem
 from vindauga.constants.event_codes import evBroadcast
+from vindauga.events.event import Event
 from vindauga.misc.message import message
+from vindauga.types.color_item import ColorItem
+from vindauga.types.rect import Rect
+
 from .list_viewer import ListViewer
 from .scroll_bar import ScrollBar
-from ..events.event import Event
-from ..types.color_item import ColorItem
-from ..types.rect import Rect
 
 logger = logging.getLogger(__name__)
 
@@ -35,7 +36,7 @@ class ColorItemList(ListViewer):
     name = 'ColorItemList'
 
     def __init__(self, bounds: Rect, scrollBar: ScrollBar, items: List[ColorItem]):
-        super().__init__(bounds, 1, 0, scrollBar)
+        super().__init__(bounds, 1, None, scrollBar)
         self._items = items
 
         self.eventMask |= evBroadcast

@@ -2,8 +2,9 @@
 import logging
 
 from vindauga.constants.event_codes import evKeyDown, evCommand
+from vindauga.events.event import Event
 from vindauga.misc.character_codes import getCtrlChar, getAltChar
-
+from vindauga.types.rect import Rect
 from .menu_box import MenuBox
 
 logger = logging.getLogger(__name__)
@@ -12,11 +13,10 @@ logger = logging.getLogger(__name__)
 class MenuPopup(MenuBox):
     name = 'MenuPopup'
 
-    def __init__(self, bounds, menu):
+    def __init__(self, bounds: Rect, menu):
         super().__init__(bounds, menu, None)
 
-    def handleEvent(self, event):
-        logger.info('handleEvent(%s)', event)
+    def handleEvent(self, event: Event):
         if event.what == evKeyDown:
             item = self.findItem(getCtrlChar(event.keyDown.keyCode))
             if not item:

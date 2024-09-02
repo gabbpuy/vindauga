@@ -1,13 +1,17 @@
 # -*- coding: utf-8 -*-
 from enum import Enum
 import string
+from typing import Optional, Union
 
 from vindauga.constants.event_codes import evKeyDown
+from vindauga.constants.validation_constants import vtGetData
 from vindauga.constants.keys import kbShiftTab, kbTab, kbBackSpace, kbEnter, kbEsc, kbUp, kbDown, kbDel
+from vindauga.events.event import Event
 from vindauga.types.records.data_record import DataRecord
+from vindauga.types.rect import Rect
+from vindauga.types.validation.validator import Validator
 
 from .input_line import InputLine
-from ..constants.validation_constants import vtGetData
 
 
 class NumericInputType(Enum):
@@ -17,11 +21,11 @@ class NumericInputType(Enum):
 
 
 class NumericInputLine(InputLine):
-    def __init__(self, bounds, maxLen, inputType: NumericInputType, validator=None):
+    def __init__(self, bounds: Rect, maxLen: int, inputType: NumericInputType, validator: Optional[Validator] = None):
         super().__init__(bounds, maxLen, validator=validator)
         self.inputType = inputType
 
-    def handleEvent(self, event):
+    def handleEvent(self, event: Event):
         if event.what == evKeyDown:
             keyCode = event.keyDown.keyCode
             if keyCode == kbDown:
@@ -49,7 +53,7 @@ class NumericInputLine(InputLine):
                         self.clearEvent(event)
         super().handleEvent(event)
 
-    def isValidChar(self, event):
+    def isValidChar(self, event: Event) -> bool:
         key = event.keyDown.charScan.charCode
         if key in string.digits:
             return True
@@ -81,9 +85,9 @@ class NumericInputLine(InputLine):
             return True
         return False
 
-    def setData(self, value):
+    def setData(self, value: Union[int, float]):
         if self.inputType == NumericInputType.FloatingPoint:
-            v = '{:.2f}'.format(value)
+            v = f'{value:.2f}'
         else:
             v = str(value)
         super().setData(v)
@@ -94,7 +98,7 @@ class NumericInputLine(InputLine):
             return float(s)
         return int(s)
 
-    def getData(self):
+    def getData(self) -> DataRecord:
         rec = DataRecord()
         if not self.validator or (self.validator.transfer(''.join(self.current.data), rec, vtGetData) == 0):
             rec.value = self._toNumber()

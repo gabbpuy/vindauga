@@ -4,6 +4,7 @@ import logging
 from vindauga.constants.grow_flags import gfGrowHiX, gfGrowHiY
 from vindauga.types.draw_buffer import DrawBuffer
 from vindauga.types.palette import Palette
+from vindauga.types.rect import Rect
 from vindauga.types.view import View
 
 logger = logging.getLogger(__name__)
@@ -20,16 +21,16 @@ class Background(View):
     name = 'Background'
     cpBackground = "\x01"
 
-    def __init__(self, bounds, pattern):
+    def __init__(self, bounds: Rect, pattern: str):
         super().__init__(bounds)
         self._pattern = pattern
-        self.growMode = gfGrowHiX | gfGrowHiY
+        self.growMode: int = gfGrowHiX | gfGrowHiY
 
     def draw(self):
         b = DrawBuffer()
         b.moveChar(0, self._pattern, self.getColor(0x01), self.size.x)
         self.writeLine(0, 0, self.size.x, self.size.y, b)
 
-    def getPalette(self):
+    def getPalette(self) -> Palette:
         palette = Palette(self.cpBackground)
         return palette

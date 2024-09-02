@@ -3,6 +3,7 @@ from vindauga.constants.buttons import bfDefault, bfNormal
 from vindauga.constants.command_codes import (cmOK, cmCancel)
 from vindauga.constants.message_flags import mfError, mfInformation, mfOKButton
 from vindauga.dialogs.message_box import messageBox
+from vindauga.menus.menu_bar import MenuBar
 from vindauga.types.draw_buffer import DrawBuffer
 from vindauga.types.rect import Rect
 from vindauga.widgets.application import Application
@@ -14,6 +15,7 @@ from vindauga.widgets.dialog import Dialog
 from vindauga.widgets.input_line import InputLine
 from vindauga.widgets.label import Label
 from vindauga.widgets.radio_buttons import RadioButtons
+from vindauga.widgets.status_line import StatusLine
 
 
 class MyBackground(Background):
@@ -31,7 +33,7 @@ class MyBackground(Background):
 
 class MyDesktop(Desktop):
 
-    def initBackground(self, bounds):
+    def initBackground(self, bounds: Rect) -> Background:
         return MyBackground(bounds, Desktop.DEFAULT_BACKGROUND)
 
 
@@ -77,13 +79,13 @@ class MyApp(Application):
         del pd
         return data
 
-    def initStatusLine(self, bounds):
+    def initStatusLine(self, bounds: Rect) -> StatusLine:
         pass
 
-    def initMenuBar(self, bounds):
+    def initMenuBar(self, bounds: Rect) -> MenuBar:
         pass
 
-    def initDesktop(self, bounds):
+    def initDesktop(self, bounds: Rect) -> Desktop:
         return MyDesktop(bounds)
 
 

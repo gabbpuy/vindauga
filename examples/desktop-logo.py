@@ -6,6 +6,7 @@ from vindauga.constants.command_codes import hcNoContext, cmOK
 from vindauga.constants.event_codes import evCommand
 from vindauga.constants.keys import kbAltA
 from vindauga.constants.option_flags import ofCentered
+from vindauga.events.event import Event
 
 from vindauga.menus.menu import Menu
 from vindauga.menus.menu_bar import MenuBar
@@ -24,7 +25,7 @@ from vindauga.widgets.static_text import StaticText
 PATTERN = Desktop.DEFAULT_BACKGROUND
 cmAbout = 100
 
-lines="""▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▄▇▅▅▅▅▅▅▅▅▅▅▅▅▅▅▅▅▅▅▅▅▅▅▅▅▆▆▇▒▇▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒
+lines = """▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▄▇▅▅▅▅▅▅▅▅▅▅▅▅▅▅▅▅▅▅▅▅▅▅▅▅▆▆▇▒▇▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒
 ▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▅▄▅▅▅▅▅▅▅▅▅▅▅▅▅▅▅▅▅▅▅▅▅▅▅▅▅▅▅▅▅▅▆▆▆▆▆▆▆▆▆▆▆▆▇▇▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒
 ▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▅▄▄▄▅▅▅▅▅▅▅▅▅▅▅▅▅▅▅▅▅▅▅▅▅▅▅▅▅▅▅▅▅▅▆▆▆▆▆▆▆▆▆▆▆▆▆▆▆▆▆▆▇▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒
 ▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▅▄▄▄▄▅▅▅▅▅▅▅▅▅▅▅▅▅▅▅▅▅▅▅▅▅▅▅▅▅▅▅▅▅▆▆▆▆▆▆▆▆▆▆▆▆▆▆▆▆▆▆▆▆▆▆▇▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒
@@ -90,16 +91,16 @@ logger = logging.getLogger('vindauga.desktop-logo')
 
 class DemoApp(Application):
 
-    def initMenuBar(self, bounds):
+    def initMenuBar(self, bounds: Rect) -> MenuBar:
         bounds.bottomRight.y = bounds.topLeft.y + 1
         return MenuBar(bounds, Menu(MenuItem("~A~bout", cmAbout, kbAltA, hcNoContext, 0)))
 
-    def initDesktop(self, bounds):
+    def initDesktop(self, bounds: Rect) -> Desktop:
         bounds.topLeft.y += 1
         bounds.bottomRight.y -= 1
         return NewDesktop(bounds)
 
-    def handleEvent(self, event):
+    def handleEvent(self, event: Event):
         super().handleEvent(event)
         if event.what == evCommand:
             if event.message.command == cmAbout:
@@ -119,25 +120,19 @@ class DemoApp(Application):
 
 class NewDesktop(Desktop):
 
-    def initBackground(self, bounds):
+    def initBackground(self, bounds: Rect):
         return NewBackground(bounds, PATTERN)
 
 
 class NewBackground(Background):
-
     cpBackground = '\x26'
 
     def draw(self):
         w = len(lines[0])
         h = len(lines)
         b = DrawBuffer()
-        # leftX = (self.size.x - 80) // 2
-        # rightX = leftX + 80
         leftX = (self.size.x - w) // 2
         rightX = leftX + w
-
-        # topY = (self.size.y - 23) // 2
-        # bottomY = topY + 23
         topY = (self.size.y - h) // 2
         bottomY = topY + h
 
@@ -145,7 +140,7 @@ class NewBackground(Background):
             for j in range(self.size.x):
 
                 if leftX <= j < rightX and topY <= i < bottomY:
-                    b.moveChar(j, lines[i-topY][j-leftX], self.getColor(0x01), 1)
+                    b.moveChar(j, lines[i - topY][j - leftX], self.getColor(0x01), 1)
                 else:
                     b.moveChar(j, self._pattern, self.getColor(0x01), 1)
             self.writeLine(0, i, self.size.x, 1, b)

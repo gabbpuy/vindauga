@@ -1,4 +1,5 @@
 # -*- coding: utf-8 -*-
+from __future__ import annotations
 import curses
 import logging
 import os
@@ -25,7 +26,7 @@ logger = logging.getLogger(__name__)
 class TerminalView(View):
     ActiveTerminals = Collection()
 
-    def __init__(self, bounds, parent, command=None, *commandArgs):
+    def __init__(self, bounds: Rect, parent: Window, command=None, *commandArgs):
         super().__init__(bounds)
         self.window = parent
         self.__clipboard = Clipboard()
@@ -112,7 +113,7 @@ class TerminalView(View):
             b = chr(35)
         bx = chr(local.x + 33)
         by = chr(local.y + 33)
-        buffer = bytes('\033[M{b}{bx}{by}'.format(b=b, bx=bx, by=by))
+        buffer = bytes(f'\033[M{b}{bx}{by}')
         os.write(self.terminal.ptyFd, buffer)
 
     def tryPaste(self, event: Event, clip: int):
@@ -128,7 +129,7 @@ class TerminalView(View):
         self.drawView()
 
     @staticmethod
-    def decodeKey(k):
+    def decodeKey(k: int) -> tuple[int, int]:
         ESC = '\x1B'
         keyMap = {
             kbEnter: (10, 0),
@@ -182,18 +183,16 @@ class TerminalView(View):
             kbAltY: (ESC, 'Y'),
             kbAltZ: (ESC, 'Z'),
         }
-        if k in keyMap:
-            return keyMap[k]
-        return -1, 0
+        return keyMap.get(k, (-1, 0))
 
     @staticmethod
-    def reverseColor(color):
+    def reverseColor(color: int) -> int:
         a = color & 0x0F
         b = color & 0xF0
         return (a << 4) | (b >> 4)
 
     @staticmethod
-    def handleTerminal(window, *args):
+    def handleTerminal(window: TerminalView, *args):
         bytesRead = window.terminal.readPipe()
         if bytesRead > 0:
             window.drawView()

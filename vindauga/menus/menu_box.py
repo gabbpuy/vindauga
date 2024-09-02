@@ -1,13 +1,17 @@
 # -*- coding: utf-8 -*-
 import logging
+from typing import Optional
 
 import wcwidth
+
 from vindauga.constants.option_flags import ofPreProcess
 from vindauga.constants.state_flags import sfShadow
 from vindauga.misc.util import nameLength
 from vindauga.types.draw_buffer import DrawBuffer
 from vindauga.types.rect import Rect
+
 from .menu_view import MenuView
+
 
 logger = logging.getLogger(__name__)
 
@@ -22,17 +26,17 @@ class MenuBox(MenuView):
     frameChars = ' ┌─┐  └─┘  │ │  ├─┤ '
     subMenuIndicator = '►'
 
-    def __init__(self, bounds, menu, parentMenu):
+    def __init__(self, bounds: Rect, menu, parentMenu: Optional[MenuView]):
         super().__init__(self.getRect(bounds, menu), menu, parentMenu)
         self.state |= sfShadow
         self.options |= ofPreProcess
 
     @property
-    def cNormal(self):
+    def cNormal(self) -> int:
         return self.getColor(0x0301)
 
     @staticmethod
-    def getRect(bounds, menu):
+    def getRect(bounds: Rect, menu) -> Rect:
         w = 10
         h = 2
         r = Rect(bounds.topLeft.x, bounds.topLeft.y, bounds.bottomRight.x, bounds.bottomRight.y)
@@ -101,7 +105,7 @@ class MenuBox(MenuView):
         self.__frameLine(b, 5, color)
         self.writeBuf(0, y, self.size.x, 1, b)
 
-    def getItemRect(self, item):
+    def getItemRect(self, item) -> Rect:
         """
         Returns the rectangle occupied by the given menu item. It can be used
         to determine if a mouse click has occurred on a given menu selection.
@@ -113,7 +117,7 @@ class MenuBox(MenuView):
         r = Rect(2, y, self.size.x - 2, y + 1)
         return r
 
-    def __frameLine(self, b, n, color):
+    def __frameLine(self, b: DrawBuffer, n: int, color: int):
         b.moveBuf(0, self.frameChars[n: n + 2], self.cNormal, 2)
         b.moveChar(2, self.frameChars[n + 2], color, self.size.x - 4)
         b.moveBuf(self.size.x - 2, self.frameChars[n + 3: n + 5], self.cNormal, 2)

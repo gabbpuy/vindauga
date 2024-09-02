@@ -14,6 +14,7 @@ import struct
 import subprocess
 import sys
 import threading
+from typing import Union
 
 from vindauga.constants.command_codes import cmSysRepaint, cmSysResize, cmSysWakeup
 from vindauga.constants.event_codes import (mbLeftButton, mbRightButton, evMouseDown, evMouseUp, meDoubleClick,
@@ -82,14 +83,6 @@ BUTTON4 = (curses.BUTTON4_PRESSED |
            curses.BUTTON4_DOUBLE_CLICKED |
            curses.BUTTON4_TRIPLE_CLICKED)
 
-# def _setScreen():
-#     global screen
-#     if not screen:
-#         screen = Screen()
-#
-#
-# _setScreen()
-
 # noinspection PyUnresolvedReferences,PyUnresolvedReferences
 class Screen:
     eventQ_Size = 16
@@ -154,12 +147,12 @@ class Screen:
         self.__draw_lock = threading.Lock()
 
     @staticmethod
-    def evLength():
+    def evLength() -> int:
         # return len(Screen.evQueue)
         return Screen.evQueue.qsize()
 
     @staticmethod
-    def kbReadShiftState(ch):
+    def kbReadShiftState(ch: Union[str, int]):
         shift = 0
         if not HAS_IOCTL:
             return get_key_mapping(ch)
@@ -181,7 +174,7 @@ class Screen:
         return ch, shift
 
     @staticmethod
-    def kbMapKey(code, eventType, modifiers):
+    def kbMapKey(code: Union[str, int], eventType: int, modifiers: int) -> int:
         best = keyMappings.get((code, eventType, modifiers))
 
         if best:
@@ -231,7 +224,7 @@ class Screen:
         curses.nocbreak()
         curses.endwin()
 
-    def setScreenSize(self, width, height):
+    def setScreenSize(self, width: int, height: int):
         if PLATFORM_IS_WINDOWS:
             subprocess.call(['mode', 'con:', 'cols={}'.format(width), 'lines={}'.format(height)], shell=True)
             # There's no incoming sigwinch, so resize the terminal then redraw
@@ -242,7 +235,7 @@ class Screen:
         self.doResize += 1
 
     @staticmethod
-    def putMouseEvent(event, buttons, flags, what):
+    def putMouseEvent(event: Event, buttons: int, flags: int, what: int):
         event.mouse.buttons = 0
         event.mouse.eventFlags = flags
         event.what = what
@@ -257,7 +250,7 @@ class Screen:
         EventQueue.mouse.copy(event.mouse)
         Screen.putEvent(event)
 
-    def handleMouse(self):
+    def handleMouse(self) -> bool:
         event = Event(evNothing)
 
         try:
@@ -385,7 +378,7 @@ class Screen:
         self.screenMode, self.attributeMap, self.highColourMap = setPalette()
         logger.info('ScreenMode: %s', self.screenMode)
 
-    def getEvent(self, event):
+    def getEvent(self, event: Event):
         event.what = evNothing
         if self.doRepaint > 0:
             self.doRepaint = 0
@@ -419,7 +412,7 @@ class Screen:
         self.stdscr.refresh()
 
     @staticmethod
-    def putEvent(event):
+    def putEvent(event: Event):
         try:
             Screen.evQueue.put(event)
         except queue.Full:
@@ -438,13 +431,13 @@ class Screen:
         self.curX = x
         self.curY = y
 
-    def drawCursor(self, show):
+    def drawCursor(self, show: bool):
         if show:
             self.moveCursor(self.curX, self.curY)
         else:
             self.moveCursor(self.screenWidth - 1, self.screenHeight - 1)
 
-    def drawMouse(self, show):
+    def drawMouse(self, show: bool):
         try:
             cell = self.screenBuffer[self.msWhere.y * self.screenWidth + self.msWhere.x]
         except IndexError:
@@ -476,7 +469,7 @@ class Screen:
         stdscr.move(self.curY, self.curX)
         stdscr.refresh()
 
-    def writeRow(self, x, y, src, rowLen):
+    def writeRow(self, x: int, y: int, src, rowLen: int):
         if self.__rawMode: # and self.screenMode == Display.smCO256:
             return self.writeRowRaw(x, y, src, rowLen)
 
@@ -496,7 +489,7 @@ class Screen:
 
             stdscr.move(self.curY, self.curX)
 
-    def writeRowRaw(self, x, y, src, rowLen):
+    def writeRowRaw(self, x: int, y: int, src, rowLen: int):
         """
         Write a row with high colours, instead of the 8x16 text-ui palette.
         This needs `smCO256` Display type and 64K colour pairs to be worth using.
@@ -532,7 +525,7 @@ class Screen:
         self.screenHeight, self.screenWidth = self.stdscr.getmaxyx()
         self.screenBuffer = BufferArray([0] * (self.screenWidth * self.screenHeight))
 
-    def __handleIO_Events(self, event):
+    def __handleIO_Events(self, event: Event):
         fdActualRead = self.fdSetRead
         fdActualWrite = self.fdSetWrite
         fdActualExcept = self.fdSetExcept

@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 import logging
 import os
-from typing import Tuple
+from typing import Tuple, Optional, Union
 
 import wcwidth
 
@@ -12,7 +12,7 @@ from vindauga.constants.keys import (kbCtrlB, kbLeft, kbCtrlF, kbRight, kbCtrlP,
 logger = logging.getLogger(__name__)
 
 
-def fexpand(path: str) -> str:
+def fexpand(path: Union[str, bytes]) -> str:
     return os.path.normpath(os.path.expanduser(path))
 
 
@@ -48,7 +48,7 @@ def ctrlToArrow(keyCode: int) -> int:
     return ctrlCodes.get(keyCode, keyCode)
 
 
-def hotKey(s):
+def hotKey(s: str) -> Optional[str]:
     """
     Return the hotkey from a '~T~ilde' formatted string
 
@@ -76,7 +76,7 @@ def isRelativePath(path) -> bool:
     return not os.path.isabs(path)
 
 
-def isValidFileName(fileName) -> bool:
+def isValidFileName(fileName: str) -> bool:
     if os.path.exists(fileName):
         return os.access(fileName, os.R_OK)
     try:
@@ -101,7 +101,7 @@ def nameLength(name: str) -> int:
     return wcwidth.wcswidth(name) - name.count('~')
 
 
-def clamp(val, minVal, maxVal):
+def clamp(val: Union[int, float], minVal: Union[int, float], maxVal: Union[int, float]) -> Union[int, float]:
     """
     Clamp a value between minVal and maxVal
 

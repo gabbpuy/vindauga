@@ -5,7 +5,7 @@ from dataclasses import dataclass
 from vindauga.constants.keys import *
 
 
-@dataclass
+@dataclass(frozen=True)
 class KeyMap:
     keycode: int
     type: int
@@ -21,7 +21,7 @@ DELAY_AUTOCLICK_FIRST = .400
 DELAY_AUTOCLICK_NEXT = .100
 DELAY_DOUBLECLICK = .300
 DELAY_ESCAPE = .400
-DELAY_WAKEUP = .05
+DELAY_WAKEUP = .03
 
 MALT = kbLeftAlt | kbRightAlt
 MCTRL = kbLeftCtrl | kbRightCtrl
@@ -29,7 +29,7 @@ MSHIFT = kbLeftShift | kbRightShift
 
 TALT = 0x01
 
-_ = lambda a, b, c, d: KeyMap(keycode=a, type=b, modifiers=c, key=d)
+_ = lambda keycode, type, modifiers, key: KeyMap(keycode=keycode, type=type, modifiers=modifiers, key=key)
 
 _keyMappings = (
     _(1, 0, 0, kbCtrlA),

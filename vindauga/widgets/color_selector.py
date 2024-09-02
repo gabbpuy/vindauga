@@ -7,7 +7,6 @@ from vindauga.constants.event_codes import evBroadcast, evMouseDown, evKeyDown, 
 from vindauga.constants.keys import kbLeft, kbRight, kbDown, kbUp
 from vindauga.constants.option_flags import ofSelectable, ofFirstClick, ofFramed
 from vindauga.events.event import Event
-from vindauga.misc.cp437 import cp437ToUnicode
 from vindauga.misc.message import message
 from vindauga.misc.util import ctrlToArrow
 from vindauga.types.draw_buffer import DrawBuffer
@@ -104,7 +103,7 @@ class ColorSelector(View):
                 self._color = event.message.infoPtr & 0x0f
             self.drawView()
 
-    def __handleKeyDownEvent(self, key, maxCol, width):
+    def __handleKeyDownEvent(self, key: int, maxCol: int, width: int) -> bool:
         if key == kbLeft:
             if self._color > 0:
                 self._color -= 1
@@ -130,12 +129,12 @@ class ColorSelector(View):
             else:
                 self._color -= maxCol - width
         else:
-            return
+            return False
         self.__colorChanged()
         self.drawView()
         return True
 
-    def __handleMouseEvent(self, event, oldColor):
+    def __handleMouseEvent(self, event: Event, oldColor: int):
         mousing = True
         while mousing:
             if self.mouseInView(event.mouse.where):

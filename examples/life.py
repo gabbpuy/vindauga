@@ -19,6 +19,7 @@ import array
 from enum import IntEnum, auto
 import logging
 import random
+from typing import Tuple
 
 from vindauga.constants.buttons import bfDefault
 from vindauga.constants.command_codes import cmMenu, cmQuit, cmClose, hcNoContext, \
@@ -28,12 +29,14 @@ from vindauga.constants.event_codes import evMouseDown, evMouseMove, evKeyDown, 
     mbRightButton
 from vindauga.constants.keys import kbF10, kbAltX, kbCtrlW, kbF6, kbF9, kbNoKey, kbCtrlF5, kbF5, kbShiftF6
 from vindauga.constants.option_flags import ofSelectable, ofFirstClick, ofTileable, ofCentered
+from vindauga.events.event import Event
 from vindauga.menus.menu_bar import MenuBar
 from vindauga.menus.menu_item import MenuItem
 from vindauga.menus.sub_menu import SubMenu
 from vindauga.misc.message import message
 from vindauga.types.command_set import CommandSet
 from vindauga.types.draw_buffer import DrawBuffer
+from vindauga.types.point import Point
 from vindauga.types.rect import Rect
 from vindauga.types.status_def import StatusDef
 from vindauga.types.status_item import StatusItem
@@ -409,26 +412,26 @@ patterns = (
 
 
 class Board:
-    def __init__(self, width, height):
+    def __init__(self, width: int, height: int):
         self.__width = width
         self.__height = height
         self.__board = array.array('B', [0, ] * (width * height))
 
-    def __getitem__(self, loc):
+    def __getitem__(self, loc: Tuple[int, int]):
         x, y = loc
         return self.__board[y * self.__width + x]
 
-    def __setitem__(self, loc, val):
+    def __setitem__(self, loc: Tuple[int, int], val: int):
         x, y = loc
         self.__board[y * self.__width + x] = val
 
     @property
-    def board(self):
+    def board(self) -> array.array:
         return self.__board
 
 
 class LifeInterior(View):
-    def __init__(self, bounds):
+    def __init__(self, bounds: Rect):
         super().__init__(bounds)
         self.__running = False
         self.__board = Board(self.size.x, self.size.y)
@@ -437,7 +440,7 @@ class LifeInterior(View):
         self.options |= ofSelectable
         self.getPattern(0)
 
-    def changeBounds(self, bounds):
+    def changeBounds(self, bounds: Rect):
         if not self.__board:
             return
         oldSize = self.size
@@ -464,7 +467,7 @@ class LifeInterior(View):
                 buf[x] = color << DrawBuffer.CHAR_WIDTH | 0x00D6
         self.writeBuf(0, 0, self.size.x, self.size.y, buf)
 
-    def getPattern(self, pat):
+    def getPattern(self, pat: int):
         if not self.__board:
             return
         self.clearBoard()
@@ -475,7 +478,7 @@ class LifeInterior(View):
             row += self.size.y // 2
             self.__board[col, row] = 1
 
-    def handleEvent(self, event):
+    def handleEvent(self, event: Event):
         super().handleEvent(event)
 
         if event.what == evBroadcast:
@@ -505,7 +508,7 @@ class LifeInterior(View):
         elif event.what == evMouseDown:
             self.handleMouse(event)
 
-    def handleMouse(self, event):
+    def handleMouse(self, event: Event):
         clickRect = self.getExtent()
 
         processing = True
@@ -545,7 +548,7 @@ class LifeInterior(View):
         if not differences:
             self.__running = False
 
-    def present(self, x, y):
+    def present(self, x: int, y: int):
         if not (0 < x < self.size.x and 0 < y < self.size.y):
             return 0
         if self.__board[x, y] == 0:
@@ -572,7 +575,7 @@ class LifeWindow(Window):
     minW = 28
     minH = 11
 
-    def __init__(self, bounds, title, windowNumber):
+    def __init__(self, bounds: Rect, title: str, windowNumber: int):
         super().__init__(bounds, title, windowNumber)
         self.options |= ofFirstClick | ofTileable
 
@@ -581,7 +584,7 @@ class LifeWindow(Window):
         self.life = LifeInterior(r)
         self.insert(self.life)
 
-    def sizeLimits(self, minLimit, maxLimit):
+    def sizeLimits(self, minLimit: Point, maxLimit: Point):
         super().sizeLimits(minLimit, maxLimit)
         minLimit.x = self.minW
         minLimit.y = self.minH
@@ -607,7 +610,7 @@ class LifeApp(Application):
         if w:
             self.desktop.insert(w)
 
-    def handleEvent(self, event):
+    def handleEvent(self, event: Event):
         super().handleEvent(event)
 
         if event.what == evCommand:
@@ -625,7 +628,7 @@ class LifeApp(Application):
             self.clearEvent(event)
 
     @staticmethod
-    def isTileable(view, *_args) -> bool:
+    def isTileable(view: View, *_args) -> bool:
         return bool(view.options & ofTileable)
 
     def idle(self):
@@ -636,9 +639,9 @@ class LifeApp(Application):
             View.disableCommands(self.windowCommands)
         message(self.desktop, evBroadcast, CommandCodes.cmUpdate, 0)
 
-    def initMenuBar(self, bounds):
+    def initMenuBar(self, bounds: Rect) -> MenuBar:
         sub1 = (SubMenu('~≡~', 0, hcNoContext) +
-               MenuItem('~A~bout...', CommandCodes.cmAbout, kbNoKey, hcNoContext))
+                MenuItem('~A~bout...', CommandCodes.cmAbout, kbNoKey, hcNoContext))
         sub2 = (SubMenu('~F~ile', 0) +
                 MenuItem('~L~ife Window', CommandCodes.cmCreate, kbF9, hcNoContext, 'F9') +
                 MenuItem.newLine() +
@@ -659,45 +662,45 @@ class LifeApp(Application):
                 MenuItem('C~a~scade', cmCascade, kbNoKey, hcNoContext)
                 )
 
-        ITEM = lambda name, comm: MenuItem(name, comm, kbNoKey, hcNoContext)
+        _ = lambda name, comm: MenuItem(name, comm, kbNoKey, hcNoContext)
 
         sub5 = (SubMenu('Patterns ~1~', 0) +
-                ITEM("Glider Gun", CommandCodes.cmPat01) +
-                ITEM("Figure Eight", CommandCodes.cmPat02) +
-                ITEM("Pulsar", CommandCodes.cmPat03) +
-                ITEM("Barber Pole P2", CommandCodes.cmPat04) +
-                ITEM("Achim P5", CommandCodes.cmPat05) +
-                ITEM("Hertz P4", CommandCodes.cmPat06) +
-                ITEM("Tumbler", CommandCodes.cmPat07) +
-                ITEM("Pulse1 P4", CommandCodes.cmPat08) +
-                ITEM("Shining Flower P5", CommandCodes.cmPat09) +
-                ITEM("Pulse2 P6", CommandCodes.cmPat10) +
-                ITEM("Pinwheel, Clock P4", CommandCodes.cmPat11) +
-                ITEM("Pentadecatholon", CommandCodes.cmPat12) +
-                ITEM("Piston", CommandCodes.cmPat13) +
-                ITEM("Piston2", CommandCodes.cmPat14) +
-                ITEM("Switch Engine", CommandCodes.cmPat15)
+                _("Glider Gun", CommandCodes.cmPat01) +
+                _("Figure Eight", CommandCodes.cmPat02) +
+                _("Pulsar", CommandCodes.cmPat03) +
+                _("Barber Pole P2", CommandCodes.cmPat04) +
+                _("Achim P5", CommandCodes.cmPat05) +
+                _("Hertz P4", CommandCodes.cmPat06) +
+                _("Tumbler", CommandCodes.cmPat07) +
+                _("Pulse1 P4", CommandCodes.cmPat08) +
+                _("Shining Flower P5", CommandCodes.cmPat09) +
+                _("Pulse2 P6", CommandCodes.cmPat10) +
+                _("Pinwheel, Clock P4", CommandCodes.cmPat11) +
+                _("Pentadecatholon", CommandCodes.cmPat12) +
+                _("Piston", CommandCodes.cmPat13) +
+                _("Piston2", CommandCodes.cmPat14) +
+                _("Switch Engine", CommandCodes.cmPat15)
                 )
         sub6 = (SubMenu('Patterns ~2~', 0) +
-                ITEM("Gears (Gear, Flywheel, Blinker)", CommandCodes.cmPat16) +
-                ITEM("Turbine8", CommandCodes.cmPat17) +
-                ITEM("P16", CommandCodes.cmPat18) +
-                ITEM("Puffer", CommandCodes.cmPat19) +
-                ITEM("Escort", CommandCodes.cmPat20) +
-                ITEM("Dart Speed 1/3", CommandCodes.cmPat21) +
-                ITEM("Period 4 Speed 1/2", CommandCodes.cmPat22) +
-                ITEM("Another Period 4 Speed 1/2", CommandCodes.cmPat23) +
-                ITEM("Smallest Known Period 3 Spaceship Speed 1/3", CommandCodes.cmPat24) +
-                ITEM("Turtle Speed 1/3", CommandCodes.cmPat25) +
-                ITEM("Smallest Known Period 5 Speed 2/5", CommandCodes.cmPat26) +
-                ITEM("Sym Puffer", CommandCodes.cmPat27) +
-                ITEM("], Near Ship, Pi Heptomino", CommandCodes.cmPat28) +
-                ITEM("R Pentomino", CommandCodes.cmPat29)
+                _("Gears (Gear, Flywheel, Blinker)", CommandCodes.cmPat16) +
+                _("Turbine8", CommandCodes.cmPat17) +
+                _("P16", CommandCodes.cmPat18) +
+                _("Puffer", CommandCodes.cmPat19) +
+                _("Escort", CommandCodes.cmPat20) +
+                _("Dart Speed 1/3", CommandCodes.cmPat21) +
+                _("Period 4 Speed 1/2", CommandCodes.cmPat22) +
+                _("Another Period 4 Speed 1/2", CommandCodes.cmPat23) +
+                _("Smallest Known Period 3 Spaceship Speed 1/3", CommandCodes.cmPat24) +
+                _("Turtle Speed 1/3", CommandCodes.cmPat25) +
+                _("Smallest Known Period 5 Speed 2/5", CommandCodes.cmPat26) +
+                _("Sym Puffer", CommandCodes.cmPat27) +
+                _("], Near Ship, Pi Heptomino", CommandCodes.cmPat28) +
+                _("R Pentomino", CommandCodes.cmPat29)
                 )
         bounds.bottomRight.y = bounds.topLeft.y + 1
         return MenuBar(bounds, sub1 + sub2 + sub3 + sub4 + sub5 + sub6)
 
-    def initStatusLine(self, bounds):
+    def initStatusLine(self, bounds: Rect) -> StatusLine:
         bounds.topLeft.y = bounds.bottomRight.y - 1
         return StatusLine(bounds,
                           StatusDef(0, 50) +
@@ -712,7 +715,8 @@ class LifeApp(Application):
                           StatusItem('', kbCtrlF5, cmResize)
                           )
 
-    def __getCommands(self):
+    @staticmethod
+    def __getCommands() -> CommandSet:
         wc = CommandSet()
         wc += cmCascade
 
@@ -726,13 +730,13 @@ class LifeApp(Application):
 
 
 def setupLogging():
-    logger = logging.getLogger('vindauga')
-    logger.propagate = False
-    format = '%(name)s\t %(message)s'
-    logger.setLevel(logging.DEBUG)
+    vin_logger = logging.getLogger('vindauga')
+    vin_logger.propagate = False
+    log_format = '%(name)s\t %(message)s'
+    vin_logger.setLevel(logging.DEBUG)
     handler = logging.StreamHandler(open('vindauga.log', 'wt'))
-    handler.setFormatter(logging.Formatter(format))
-    logger.addHandler(handler)
+    handler.setFormatter(logging.Formatter(log_format))
+    vin_logger.addHandler(handler)
 
 
 if __name__ == '__main__':

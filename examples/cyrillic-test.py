@@ -4,11 +4,12 @@ from vindauga.constants.keys import kbF3, kbF4, kbF5, kbF6, kbAltW, kbAltX
 from vindauga.menus.menu_bar import MenuBar
 from vindauga.menus.menu_item import MenuItem
 from vindauga.menus.sub_menu import SubMenu
+from vindauga.types.rect import Rect
 from vindauga.widgets.application import Application
 
 
 class CyrillicApp(Application):
-    def initMenuBar(self, bounds):
+    def initMenuBar(self, bounds: Rect) -> MenuBar:
         bounds.bottomRight.y = bounds.topLeft.y + 1
 
         return MenuBar(bounds,

@@ -1,7 +1,8 @@
 # -*- coding: utf-8 -*-
+from __future__ import annotations
 import logging
 import string
-from typing import List, Optional
+from typing import List, Optional, Union, Tuple
 
 import wcwidth
 
@@ -88,11 +89,11 @@ blockKeys = {
 keyMaps = (firstKeys, quickKeys, blockKeys)
 
 
-def isWordChar(ch):
+def isWordChar(ch: str) -> bool:
     return ch in string.ascii_letters or ch in string.digits or ch == ' '
 
 
-def scanKeyMap(keyMap, keyCode):
+def scanKeyMap(keyMap: dict, keyCode: Union[int, str]) -> int:
     if isinstance(keyCode, str):
         keyCode = ord(keyCode)
     codeHi, codeLow = divmod(keyCode, 256)
@@ -158,17 +159,17 @@ class Editor(View):
         self.setBufLen(0)
 
     @staticmethod
-    def editorDialog(_flag, *_args):
+    def editorDialog(_flag, *_args) -> int:
         logger.info('Unreplaced editorDialog')
         return cmCancel
 
-    def bufChar(self, pos):
+    def bufChar(self, pos: int) -> str:
         o = 0
         if pos > self.curPtr:
             o = self.gapLen
         return chr(self.buffer[pos + o])
 
-    def bufPtr(self, pos):
+    def bufPtr(self, pos: int) -> int:
         if pos >= self.curPtr:
             return pos + self.gapLen
         return pos
@@ -177,7 +178,7 @@ class Editor(View):
         self.doneBuffer()
         super().shutdown()
 
-    def changeBounds(self, bounds):
+    def changeBounds(self, bounds: Rect):
         self.setBounds(bounds)
         self.delta.x = max(0, min(self.delta.x, self.limit.x - self.size.x))
         self.delta.y = max(0, min(self.delta.y, self.limit.y - self.size.y))
@@ -193,7 +194,7 @@ class Editor(View):
             p += 1
         return pos
 
-    def charPtr(self, p, target):
+    def charPtr(self, p: int, target: int):
         pos = 0
 
         while pos < target and p < self.bufLen and self.bufChar(p) not in ('\n', '\r'):
@@ -223,7 +224,7 @@ class Editor(View):
         if Editor.clipboard and Editor.clipboard is not self:
             self.insertFrom(Editor.clipboard)
 
-    def convertEvent(self, event):
+    def convertEvent(self, event: Event):
         if event.what == evKeyDown:
             key = event.keyDown.keyCode
             if self.keyState:
@@ -245,7 +246,7 @@ class Editor(View):
     def isCursorVisible(self) -> bool:
         return self.delta.y <= self._currentPosition.y < (self.delta.y + self.size.y)
 
-    def deleteRange(self, startPtr, endPtr, delSelect):
+    def deleteRange(self, startPtr: int, endPtr: int, delSelect: bool):
         if self.hasSelection() and delSelect:
             self.deleteSelect()
         else:
@@ -255,7 +256,7 @@ class Editor(View):
             self.deleteSelect()
 
     def deleteSelect(self):
-        self.insertText([], 0, False)
+        self.insertText('', 0, False)
 
     def doneBuffer(self):
         del self.buffer
@@ -314,7 +315,7 @@ class Editor(View):
 
         self.drawLines(0, self.size.y, self.drawPtr)
 
-    def drawLines(self, y, count, linePtr):
+    def drawLines(self, y: int, count: int, linePtr: int):
         color = self.getColor(0x0201)
 
         for line in range(y, y + count):
@@ -324,11 +325,8 @@ class Editor(View):
             linePtr = self.nextLine(linePtr)
 
     def find(self):
-        findRec = FindDialogRecord(self.findStr, self.editorFlags)
-        logger.info('find() - %s, %s', self.findStr, self.editorFlags)
         result, data = Editor.editorDialog(edFind, (self.editorFlags, self.findStr))
         if result != cmCancel:
-            logger.info('find Results: %s', data)
             self.findStr = data[1].value
             self.editorFlags = data[0].value & ~efDoReplace
             self.doSearchReplace()
@@ -503,17 +501,17 @@ class Editor(View):
             self.update(ufView)
         return True
 
-    def insertFrom(self, editor):
+    def insertFrom(self, editor: Editor):
         pt = editor.bufPtr(editor.selStart)
 
         return self.insertBuffer(editor.buffer,
                                  pt, editor.selEnd - editor.selStart,
                                  self.canUndo, self.isClipboard())
 
-    def insertText(self, text, length, selectText):
+    def insertText(self, text: str, length: int, selectText: bool) -> bool:
         return self.insertBuffer([ord(c) for c in text], 0, length, self.canUndo, selectText)
 
-    def isClipboard(self):
+    def isClipboard(self) -> bool:
         return Editor.clipboard is self
 
     def lineMove(self, p: int, count: int) -> int:
@@ -547,10 +545,10 @@ class Editor(View):
                 i += 1
             self.insertText(self.buffer[p:], i - p, False)
 
-    def nextLine(self, pos):
+    def nextLine(self, pos: int) -> int:
         return self.nextChar(self.lineEnd(pos))
 
-    def nextWord(self, pos):
+    def nextWord(self, pos: int) -> int:
         while pos < self.bufLen and isWordChar(self.bufChar(pos)):
             pos = self.nextChar(pos)
         while pos < self.bufLen and not isWordChar(self.bufChar(pos)):
@@ -558,10 +556,10 @@ class Editor(View):
 
         return pos
 
-    def prevLine(self, pos):
+    def prevLine(self, pos: int) -> int:
         return self.lineStart(self.prevChar(pos))
 
-    def prevWord(self, pos):
+    def prevWord(self, pos: int) -> int:
         while pos > 0 and not isWordChar(self.bufChar(self.prevChar(pos))):
             pos = self.prevChar(pos)
         while pos > 0 and isWordChar(self.bufChar(self.prevChar(pos))):
@@ -578,7 +576,7 @@ class Editor(View):
             self.editorFlags = data[0].value | efDoReplace
             self.doSearchReplace()
 
-    def scrollTo(self, x, y):
+    def scrollTo(self, x: int, y: int):
         x = max(0, min(x, self.limit.x - self.size.x))
         y = max(0, min(y, self.limit.y - self.size.y))
         if x != self.delta.x or y != self.delta.y:
@@ -586,7 +584,7 @@ class Editor(View):
             self.delta.y = y
             self.update(ufView)
 
-    def search(self, findStr, opts):
+    def search(self, findStr: str, opts: int):
         pos = self.curPtr
         done = False
 
@@ -619,7 +617,7 @@ class Editor(View):
 
         return False
 
-    def setBufLen(self, length):
+    def setBufLen(self, length: int):
         self.bufLen = length
         self.gapLen = self.bufSize - length
         self.selStart = 0
@@ -638,7 +636,7 @@ class Editor(View):
         self.modified = False
         self.update(ufView)
 
-    def setCmdState(self, command, enable):
+    def setCmdState(self, command: int, enable: bool):
         s = CommandSet()
 
         s += command
@@ -647,7 +645,7 @@ class Editor(View):
         else:
             self.disableCommands(s)
 
-    def setCurPtr(self, pos, selectMode):
+    def setCurPtr(self, pos: int, selectMode: int):
         if not selectMode & smExtend:
             anchor = pos
         elif self.curPtr == self.selStart:
@@ -765,7 +763,7 @@ class Editor(View):
             self.setCmdState(cmPaste,
                              Editor.clipboard and (Editor.clipboard.hasSelection()))
 
-        self.setCmdState(cmClear, self.hasSelection)
+        self.setCmdState(cmClear, self.hasSelection())
         self.setCmdState(cmFind, True)
         self.setCmdState(cmReplace, True)
         self.setCmdState(cmSearchAgain, True)
@@ -829,12 +827,12 @@ class Editor(View):
         return pos + 1
 
     @staticmethod
-    def prevChar(pos):
+    def prevChar(pos: int):
         if not pos:
             return pos
         return pos - 1
 
-    def setBufSize(self, newSize):
+    def setBufSize(self, newSize: int):
         if newSize < 0x1000:
             # At least a 4K buffer
             newSize = 0x1000
@@ -853,10 +851,10 @@ class Editor(View):
         return True
 
     @property
-    def bufSize(self):
+    def bufSize(self) -> int:
         return len(self.buffer)
 
-    def _handleEditorCommand(self, command, centerCursor, selectMode):
+    def _handleEditorCommand(self, command: int, centerCursor: bool, selectMode: int):
         self.lock()
         try:
             if command == cmCut:
@@ -920,7 +918,7 @@ class Editor(View):
         finally:
             self.unlock()
 
-    def _handleKeyDownEvent(self, centerCursor, event):
+    def _handleKeyDownEvent(self, centerCursor: bool, event: Event):
         self.lock()
         try:
             if self.overwrite and not self.hasSelection():
@@ -931,7 +929,7 @@ class Editor(View):
         finally:
             self.unlock()
 
-    def _handleMouseEvent(self, event, selectMode):
+    def _handleMouseEvent(self, event: Event, selectMode: int):
         if event.mouse.eventFlags & meDoubleClick:
             selectMode |= smDouble
         done = False
@@ -962,7 +960,7 @@ class Editor(View):
 
             done = (not self.mouseEvent(event, evMouseMove + evMouseAuto))
 
-    def __highlight(self, color, drawBuf, i, pos, width):
+    def __highlight(self, color: int, drawBuf: DrawBuffer, i: int, pos: int, width: int) -> Tuple[int, int]:
         if self.selStart <= pos < self.selEnd:
             curColor = ((color & 0xFF00) >> 8) << DrawBuffer.CHAR_WIDTH
         else:

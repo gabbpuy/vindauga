@@ -7,6 +7,7 @@ from vindauga.menus.menu import Menu
 from vindauga.menus.menu_bar import MenuBar
 from vindauga.menus.menu_item import MenuItem
 from vindauga.menus.sub_menu import SubMenu
+from vindauga.types.rect import Rect
 from vindauga.types.status_def import StatusDef
 from vindauga.types.status_item import StatusItem
 from vindauga.widgets.application import Application
@@ -44,7 +45,7 @@ class HintStatusLine(StatusLine):
         hcFileNew: "create a new file in a new Edit window"
     }
 
-    def hint(self, helpCtx):
+    def hint(self, helpCtx: int) -> str:
         p = self.strRef.get(helpCtx)
         if not p:
             return super().hint(helpCtx)
@@ -53,7 +54,7 @@ class HintStatusLine(StatusLine):
 
 class HintApp(Application):
 
-    def initMenuBar(self, bounds):
+    def initMenuBar(self, bounds: Rect) -> MenuBar:
         bounds.bottomRight.y = bounds.topLeft.y + 1
         sub1 = SubMenu('~≡~', kbAltSpace, hcSystem) + MenuItem('~A~bout', cmAbout, kbNoKey, hcAbout, '')
         sub2 = (SubMenu('~F~ile', kbNoKey, hcFile) +
@@ -62,7 +63,7 @@ class HintApp(Application):
                 MenuItem('E~x~it', cmQuit, kbAltX, hcFileExit, 'Alt+X'))
         return MenuBar(bounds, Menu(sub1 + sub2))
 
-    def initStatusLine(self, bounds):
+    def initStatusLine(self, bounds: Rect) -> StatusLine:
         bounds.topLeft.y = bounds.bottomRight.y - 1
         return HintStatusLine(bounds,
                               StatusDef(hcSystem, hcFileNew) +

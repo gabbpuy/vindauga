@@ -2,6 +2,8 @@
 import curses
 import logging
 import platform
+from typing import Union
+
 from vindauga.constants.keys import *
 
 logger = logging.getLogger(__name__)
@@ -46,7 +48,7 @@ SHIFT_NAMES = {'KEY_SBEG': curses.KEY_BEG,
                }
 
 
-def get_key_mapping(code):
+def get_key_mapping(code: Union[int, str]) -> Union[tuple[str, int], tuple[int, int]]:
     if isinstance(code, str):
         return code, 0
 
@@ -107,7 +109,7 @@ if PLATFORM_IS_CYGWIN:
     _generic_get = get_key_mapping
 
 
-    def get_key_mapping(code):
+    def get_key_mapping(code: Union[int, str]) -> Union[tuple[str, int], tuple[int, int]]:
         if isinstance(code, str):
             return code, 0
 

@@ -1,13 +1,18 @@
 # -*- coding: utf-8 -*-
+from __future__ import annotations
 import logging
+from typing import Union, List
 
 from vindauga.constants.grow_flags import gfGrowHiX
 from vindauga.constants.option_flags import ofPreProcess
 from vindauga.misc.util import nameLength
 from vindauga.types.draw_buffer import DrawBuffer
 from vindauga.types.rect import Rect
+
 from .menu import Menu
+from .menu_item import MenuItem
 from .menu_view import MenuView
+from .sub_menu import SubMenu
 
 logger = logging.getLogger(__name__)
 
@@ -44,7 +49,7 @@ class MenuBar(MenuView):
     """
     name = 'MenuBar'
 
-    def __init__(self, bounds, menu):
+    def __init__(self, bounds: Rect, menu: Union[Menu, List, SubMenu]):
         super().__init__(bounds)
         if isinstance(menu, Menu):
             self.menu = menu
@@ -54,7 +59,7 @@ class MenuBar(MenuView):
         self.growMode = gfGrowHiX
         self.options |= ofPreProcess
 
-    def _chooseColor(self, p):
+    def _chooseColor(self, p: MenuItem) -> int:
         cNormal = self.getColor(0x0301)
         cSelect = self.getColor(0x0604)
         cNormDisabled = self.getColor(0x0202)
@@ -97,7 +102,7 @@ class MenuBar(MenuView):
                 x += (nameLen + 2)
         self.writeBuf(0, 0, self.size.x, 1, b)
 
-    def getItemRect(self, item):
+    def getItemRect(self, item: MenuItem) -> Rect:
         """
         Returns the rectangle occupied by the given menu item. It can be used
         with `mouseInView()` to determine if a mouse click has occurred on

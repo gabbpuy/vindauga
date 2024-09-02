@@ -2,7 +2,11 @@
 from vindauga.constants.command_codes import wnNoNumber, cmCancel
 from vindauga.constants.event_codes import evMouseDown
 from vindauga.constants.state_flags import sfShadow
+from vindauga.types.collections.collection import Collection
+from vindauga.events.event import Event
 from vindauga.types.palette import Palette
+from vindauga.types.rect import Rect
+
 from .combo_viewer import ComboViewer
 from .scroll_bar import ScrollBar
 from .window import Window
@@ -12,7 +16,7 @@ class ComboWindow(Window):
     name = 'ComboWindow'
     cpComboWindow = '\x13\x13\x15\x04\x05\x1A\x14'
 
-    def __init__(self, bounds, collection):
+    def __init__(self, bounds: Rect, collection: Collection):
         super().__init__(bounds, '', wnNoNumber)
         self.setState(sfShadow, False)
         self.flags = 0
@@ -27,13 +31,13 @@ class ComboWindow(Window):
         self.viewer = ComboViewer(r, collection, sb)
         self.insert(self.viewer)
 
-    def getPalette(self):
+    def getPalette(self) -> Palette:
         return Palette(self.cpComboWindow)
 
-    def getSelection(self):
+    def getSelection(self) -> str:
         return self.viewer.getText(self.viewer.focused, 255)
 
-    def handleEvent(self, event):
+    def handleEvent(self, event: Event):
         if event.what == evMouseDown and not self.containsMouse(event):
             self.endModal(cmCancel)
             self.clearEvent(event)

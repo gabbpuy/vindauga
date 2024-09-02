@@ -3,6 +3,7 @@ import logging
 import os
 import random
 
+from vindauga.events.event import Event
 from vindauga.types.collections.gen_collection import GenCollection
 from vindauga.constants.buttons import bfNormal, bfDefault
 from vindauga.constants.command_codes import cmMenu, cmQuit, cmClose, hcNoContext, cmOK, cmCancel
@@ -30,7 +31,7 @@ animals = open(os.path.join(here, 'animals.txt'), 'rt', encoding='utf-8').read()
 
 class ComboApp(Application):
 
-    def initStatusLine(self, bounds):
+    def initStatusLine(self, bounds: Rect) -> StatusLine:
         bounds.topLeft.y = bounds.bottomRight.y - 1
 
         return StatusLine(bounds, StatusDef(0, 0xFFFF) +
@@ -38,14 +39,14 @@ class ComboApp(Application):
                           StatusItem('~Alt+X~ Exit', kbAltX, cmQuit) +
                           StatusItem('~Alt+F3~ Close', kbCtrlW, cmClose))
 
-    def initMenuBar(self, bounds):
+    def initMenuBar(self, bounds: Rect) -> MenuBar:
         bounds.bottomRight.y = bounds.topLeft.y + 1
         return MenuBar(bounds, SubMenu('~F~ile', kbAltF) +
                        MenuItem('~D~ialog', cmNewDialog, kbF3, hcNoContext, 'F3') +
                        MenuItem.newLine() +
                        MenuItem('E~x~it', cmQuit, kbAltX, hcNoContext, 'Alt+X'))
 
-    def handleEvent(self, event):
+    def handleEvent(self, event: Event):
         super().handleEvent(event)
         if event.what == evCommand:
             if event.message.command == cmNewDialog:

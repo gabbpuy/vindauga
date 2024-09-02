@@ -30,7 +30,7 @@ def message(receiver: Any, what: int, command: int, infoPtr: Any) -> Any:
 
     with __message_lock:
         # Need to think about this, as it could trigger redraws from a thread instead of the main thread, and that
-        # might cause an issue with curses etc not being thread-safe. Events usually go onto a queue which is serviced
+        # might cause an issue with curses etc. not being thread-safe. Events usually go onto a queue which is serviced
         # from the main thread.
         receiver.handleEvent(event)
         if event.what == evNothing:

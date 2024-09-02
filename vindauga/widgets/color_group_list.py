@@ -30,7 +30,7 @@ class ColorGroupList(ListViewer):
     name = 'ColorGroupList'
 
     def __init__(self, bounds: Rect, scrollBar: ScrollBar, groups: ColorGroup):
-        super().__init__(bounds, 1, 0, scrollBar)
+        super().__init__(bounds, 1, None, scrollBar)
         self._groups = groups
         self.setRange(len(groups))
 
@@ -42,10 +42,10 @@ class ColorGroupList(ListViewer):
         :param item: Item to select
         """
         super().focusItem(item)
-        curGroup = self.getGroup(item)
+        curGroup = self[item]
         message(self.owner, evBroadcast, cmNewColorItem, curGroup)
 
-    def getText(self, item: int, maxChars: int):
+    def getText(self, item: int, maxChars: int) -> str:
         """
         Retrieve the group name corresponding to item
 
@@ -53,7 +53,7 @@ class ColorGroupList(ListViewer):
         :param maxChars: Max length of the string to return
         :return: The group name
         """
-        curGroup = self._groups.groups[item]
+        curGroup = self[item]
         return curGroup.name[:maxChars]
 
     def handleEvent(self, event: Event):
@@ -62,18 +62,19 @@ class ColorGroupList(ListViewer):
             self.setGroupIndex(self.focused, event.message.infoPtr)
 
     def setGroupIndex(self, groupNum: int, itemNum: int):
-        g = self.getGroup(groupNum)
+        g = self[groupNum]
         g.index = itemNum
 
-    def getGroupIndex(self, groupNum: int):
-        g = self.getGroup(groupNum)
+    def getGroupIndex(self, groupNum: int) -> int:
+        g = self[groupNum]
         return g.index
 
-    def getGroup(self, groupNum: int):
+    def getGroup(self, groupNum: int) -> ColorGroup:
         return self._groups.groups[groupNum]
+
+    __getitem__ = getGroup
 
     def getNumGroups(self) -> int:
         return len(self._groups.groups)
 
-    def __getitem__(self, groupNum: int) -> ColorGroup:
-        return self._groups.groups[groupNum]
+    __len__ = getNumGroups

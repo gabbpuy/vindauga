@@ -3,10 +3,15 @@ import logging
 import string
 
 from vindauga.constants.command_codes import cmReleasedFocus
-from vindauga.constants.event_codes import evKeyDown, evMouseDown
+from vindauga.constants.event_codes import evKeyDown
 from vindauga.constants.keys import kbUp, kbHome, kbEnd, kbLeft, kbRight, kbBackSpace, kbIns, kbDel, kbEnter, kbTab
+from vindauga.events.event import Event
+from vindauga.types.collections.collection import Collection
+from vindauga.types.rect import Rect
 from vindauga.types.screen import Screen
+
 from .input_regex import InputRegex
+
 
 logger = logging.getLogger(__name__)
 
@@ -14,18 +19,18 @@ logger = logging.getLogger(__name__)
 class StaticInputLine(InputRegex):
     name = "StaticInputLine"
 
-    def __init__(self, bounds, maxLen, collection):
+    def __init__(self, bounds: Rect, maxLen: int, collection: Collection):
         super().__init__(bounds, maxLen)
         self.collection = collection
         self.searchString = ''
 
     @staticmethod
-    def matchChars(item, target):
+    def matchChars(item: str, target: str) -> bool:
         if not target:
             return item == ''
         return item.lower().startswith(target.lower())
 
-    def handleEvent(self, event):
+    def handleEvent(self, event: Event):
         if event.what == evKeyDown:
             if not self.collection:
                 super().handleEvent(event)
@@ -88,12 +93,12 @@ class StaticInputLine(InputRegex):
                 return
         super().handleEvent(event)
 
-    def valid(self, command):
+    def valid(self, command: int) -> bool:
         if command == cmReleasedFocus:
             self.searchString = ''
             return True
         return super().valid(command)
 
-    def newList(self, collection):
+    def newList(self, collection: Collection):
         self.collection = collection
         self.drawView()

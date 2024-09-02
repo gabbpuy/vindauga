@@ -2,6 +2,7 @@
 import os
 import random
 
+from vindauga.events.event import Event
 from vindauga.types.collections.string_collection import StringCollection
 from vindauga.constants.command_codes import (cmOK, cmCancel, cmQuit, hcNoContext,
                                               cmNext, cmZoom, cmMenu)
@@ -38,7 +39,7 @@ class Demo(Application):
     def __init__(self):
         super().__init__()
 
-    def initStatusLine(self, bounds):
+    def initStatusLine(self, bounds: Rect) -> StatusLine:
         # Top of status line is 1 above bottom
         bounds.topLeft.y = bounds.bottomRight.y - 1
         return StatusLine(bounds,
@@ -46,7 +47,7 @@ class Demo(Application):
                           StatusItem(0, kbF10, cmMenu) +
                           StatusItem('~Alt+X~ Exit', kbAltX, cmQuit))
 
-    def initMenuBar(self, bounds):
+    def initMenuBar(self, bounds: Rect) -> MenuBar:
         # always do this
         bounds.bottomRight.y = bounds.topLeft.y + 1
         return MenuBar(bounds,
@@ -57,7 +58,7 @@ class Demo(Application):
                        MenuItem('~Z~oom', cmZoom, kbF5, hcNoContext, 'F5') +
                        MenuItem('~D~ialog', cmNewDialog, kbF2, hcNoContext, 'F2'))
 
-    def handleEvent(self, event):
+    def handleEvent(self, event: Event):
         super().handleEvent(event)
 
         if event.what == evCommand:

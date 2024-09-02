@@ -16,13 +16,16 @@ from vindauga.constants.state_flags import sfVisible
 from vindauga.dialogs.change_dir_dialog import ChangeDirDialog
 from vindauga.dialogs.file_dialog import FileDialog, fdOpenButton, fdOKButton
 from vindauga.dialogs.message_box import messageBox, messageBoxRect
+from vindauga.events.event import Event
 from vindauga.menus.menu_bar import MenuBar
 from vindauga.menus.menu_item import MenuItem
 from vindauga.menus.sub_menu import SubMenu
 from vindauga.types.command_set import CommandSet
+from vindauga.types.point import Point
 from vindauga.types.rect import Rect
 from vindauga.types.status_def import StatusDef
 from vindauga.types.status_item import StatusItem
+from vindauga.types.view import View
 from vindauga.widgets.application import Application
 from vindauga.widgets.button import Button
 from vindauga.widgets.check_boxes import CheckBoxes
@@ -54,7 +57,7 @@ def setupLogging():
     logger.addHandler(handler)
 
 
-def execDialog(d, data):
+def execDialog(d: Dialog, data):
     if data is not None:
         if not isinstance(data, (list, tuple)):
             data = [data]
@@ -69,7 +72,7 @@ def execDialog(d, data):
     return result, data
 
 
-def createFindDialog():
+def createFindDialog() -> Dialog:
     d = Dialog(Rect(0, 0, 38, 12), 'Find')
     d.options |= ofCentered
     control = InputLine(Rect(3, 3, 32, 4), 80)
@@ -77,14 +80,14 @@ def createFindDialog():
     d.insert(Label(Rect(2, 2, 32, 3), '~T~ext to find', control))
     d.insert(History(Rect(32, 3, 35, 4), control, 10))
 
-    d.insert(CheckBoxes(Rect(3, 5, 35, 7), ('~C~ase sensitive', '~W~hole words only')))
+    d.insert(CheckBoxes(Rect(3, 5, 35, 7), ['~C~ase sensitive', '~W~hole words only']))
     d.insert(Button(Rect(14, 9, 24, 11), 'O~K~', cmOK, bfDefault))
     d.insert(Button(Rect(26, 9, 36, 11), 'Cancel', cmCancel, bfNormal))
     d.selectNext(False)
     return d
 
 
-def createReplaceDialog():
+def createReplaceDialog() -> Dialog:
     d = Dialog(Rect(0, 0, 40, 16), 'Replace')
     d.options |= ofCentered
 
@@ -98,9 +101,8 @@ def createReplaceDialog():
     d.insert(Label(Rect(2, 5, 34, 6), '~N~ew _text', control))
     d.insert(History(Rect(34, 6, 37, 7), control, 11))
 
-    d.insert(CheckBoxes(Rect(3, 8, 37, 12), ('~C~ase sensitive', '~W~hole words only', '~P~rompt on replace',
-                                             '~R~eplace all')))
-
+    d.insert(CheckBoxes(Rect(3, 8, 37, 12), ['~C~ase sensitive', '~W~hole words only', '~P~rompt on replace',
+                                             '~R~eplace all']))
     d.insert(
         Button(Rect(17, 13, 27, 15), 'O~K~', cmOK, bfDefault))
     d.insert(Button(Rect(28, 13, 38, 15), 'Cancel', cmCancel, bfNormal))
@@ -108,7 +110,7 @@ def createReplaceDialog():
     return d
 
 
-def isTileable(p, *args):
+def isTileable(p: View, *args):
     return (p.options & ofTileable) and (p.state & sfVisible)
 
 
@@ -123,7 +125,7 @@ class EditorApp(Application):
         Editor.editorDialog = self.doEditorDialog
         Editor.clipboard = self.clipWindow.editor
 
-    def initMenuBar(self, bounds):
+    def initMenuBar(self, bounds: Rect) -> MenuBar:
         bounds.bottomRight.y = bounds.topLeft.y + 1
 
         sub1 = (SubMenu('~F~ile', kbAltF) +
@@ -160,7 +162,7 @@ class EditorApp(Application):
                 MenuItem("~C~lose", cmClose, kbCtrlW, hcNoContext, "Ctrl+W"))
         return MenuBar(bounds, sub1 + sub2 + sub3 + sub4)
 
-    def initStatusLine(self, bounds):
+    def initStatusLine(self, bounds: Rect) -> StatusLine:
         bounds.topLeft.y = bounds.bottomRight.y - 1
         return StatusLine(bounds, StatusDef(0, 0xFFFF) +
                           StatusItem("~F10~ Menu", kbF10, cmMenu) +
@@ -173,7 +175,7 @@ class EditorApp(Application):
                           )
 
     @staticmethod
-    def doEditorDialog(dialog, *args):
+    def doEditorDialog(dialog: Dialog, *args):
         if dialog == edOutOfMemory:
             return messageBox('Not enough memory for this operation', mfError, (mfOKButton,))
         if dialog == edReadError:
@@ -202,7 +204,7 @@ class EditorApp(Application):
             return EditorApp.doReplacePrompt(args[0])
 
     @staticmethod
-    def doReplacePrompt(cursor):
+    def doReplacePrompt(cursor: Point):
         r = Rect(0, 2, 40, 9)
         r.move((Program.desktop.size.x - r.bottomRight.x) // 2, 0)
         lower = Program.desktop.makeGlobal(r.bottomRight)
@@ -244,7 +246,7 @@ class EditorApp(Application):
     def cascade(self):
         self.desktop.cascade(self.desktop.getExtent())
 
-    def handleEvent(self, event):
+    def handleEvent(self, event: Event):
         super().handleEvent(event)
         if event.what != evCommand:
             return

@@ -25,4 +25,4 @@ class KeyDownEvent:
         cs.scanCode = (value >> 8) & 0xFF
 
     def __repr__(self):
-        return '<KeyEvent: {}::{:x}>'.format(self.charScan, self.keyCode)
+        return f'<KeyEvent: {self.charScan}::{self.keyCode:x}>'

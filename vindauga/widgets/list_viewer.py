@@ -1,19 +1,23 @@
 # -*- coding: utf-8 -*-
 import logging
+from typing import Optional
 
 from vindauga.constants.command_codes import (cmScrollBarClicked, cmScrollBarChanged, cmListItemSelected)
 from vindauga.constants.event_codes import evBroadcast, evMouseDown, evMouseAuto, evMouseMove, meDoubleClick, evKeyDown
-from vindauga.constants.keys import kbUp, kbDown, kbLeft, kbRight, kbPgDn, kbPgUp, kbHome, kbEnd, kbCtrlPgDn, \
-    kbCtrlPgUp, kbEnter
+from vindauga.constants.keys import (kbUp, kbDown, kbLeft, kbRight, kbPgDn, kbPgUp, kbHome, kbEnd, kbCtrlPgDn,
+                                     kbCtrlPgUp)
 from vindauga.constants.option_flags import ofSelectable, ofFirstClick
 from vindauga.constants.state_flags import sfVisible, sfActive, sfSelected
 from vindauga.constants.key_mappings import showMarkers
+from vindauga.events.event import Event
 from vindauga.misc.character_codes import SPECIAL_CHARS
 from vindauga.misc.message import message
 from vindauga.misc.util import ctrlToArrow
 from vindauga.types.draw_buffer import DrawBuffer
 from vindauga.types.palette import Palette
+from vindauga.types.rect import Rect
 from vindauga.types.view import View
+from vindauga.widgets.scroll_bar import ScrollBar
 
 logger = logging.getLogger(__name__)
 
@@ -46,7 +50,7 @@ class ListViewer(View):
     cpListViewer = "\x1A\x1A\x1B\x1C\x1D"
     name = 'ListViewer'
 
-    def __init__(self, bounds, numColumns, hScrollBar, vScrollBar):
+    def __init__(self, bounds: Rect, numColumns: int, hScrollBar: Optional[ScrollBar], vScrollBar: Optional[ScrollBar]):
         super().__init__(bounds)
 
         self.numCols = numColumns
@@ -73,7 +77,7 @@ class ListViewer(View):
         self.hScrollBar = hScrollBar
         self.vScrollBar = vScrollBar
 
-    def changeBounds(self, bounds):
+    def changeBounds(self, bounds: Rect):
         """
         Changes the size of the `ListViewer` object by calling
         `super().changeBounds(bounds)`. If a horizontal scroll bar has been
@@ -146,7 +150,7 @@ class ListViewer(View):
                 b.moveChar(curCol + colWidth - 1, self.separatorChar, self.getColor(5), 1)
             self.writeLine(0, i, self.size.x, 1, b)
 
-    def focusItem(self, item):
+    def focusItem(self, item: int):
         """
         Makes the given item focused by setting the `focused` data member to
         `item`. Also sets the `value` data member of the vertical scroll bar (if any) to
@@ -173,14 +177,14 @@ class ListViewer(View):
                 else:
                     self.topItem = item - item % self.size.y - (self.size.y * (self.numCols - 1))
 
-    def getPalette(self):
+    def getPalette(self) -> Palette:
         palette = Palette(self.cpListViewer)
         return palette
 
-    def getText(self, item, maxLen):
+    def getText(self, item: int, maxLen: int) -> str:
         return ''
 
-    def isSelected(self, item):
+    def isSelected(self, item: int) -> bool:
         """
         Returns True if the given item is selected (focused), that is, if `item` == `focused`.
 
@@ -189,7 +193,7 @@ class ListViewer(View):
         """
         return item == self.focused
 
-    def handleEvent(self, event):
+    def handleEvent(self, event: Event):
         """
         Handles events by first calling `super().handleEvent(event)`.
 
@@ -224,7 +228,7 @@ class ListViewer(View):
                     elif self.hScrollBar is event.message.infoPtr:
                         self.drawView()
 
-    def selectItem(self, item):
+    def selectItem(self, item: int):
         """
         Selects the item'th element of the list, then broadcasts this fact to
         the owning group by calling:
@@ -237,7 +241,7 @@ class ListViewer(View):
         """
         message(self.owner, evBroadcast, cmListItemSelected, self)
 
-    def setRange(self, range_):
+    def setRange(self, range_: int):
         """
         Sets the `_range` data member to `range_`.
 
@@ -261,7 +265,7 @@ class ListViewer(View):
         else:
             self.drawView()
 
-    def setState(self, state, enable):
+    def setState(self, state: int, enable: bool):
         """
         Calls `super().setState(aState, enable)` to change the `ListViewer`
         object's state. Depending on the `state` argument, this can result in
@@ -289,7 +293,7 @@ class ListViewer(View):
                     self.vScrollBar.hide()
             self.drawView()
 
-    def focusItemNum(self, item):
+    def focusItemNum(self, item: int):
         """
         Used internally by `focusItem()`. Makes the given item focused by
         setting the `focused` data member to `item`.
@@ -310,7 +314,7 @@ class ListViewer(View):
         self.vScrollBar = None
         super().shutdown()
 
-    def __handleKeyDownEvent(self, event):
+    def __handleKeyDownEvent(self, event: Event):
         if event.keyDown.charScan.charCode == ' ' and self.focused < self._range:
             self.selectItem(self.focused)
             newItem = self.focused
@@ -348,7 +352,7 @@ class ListViewer(View):
         self.drawView()
         self.clearEvent(event)
 
-    def __handleMouseEvent(self, event, mouseAutosToSkip):
+    def __handleMouseEvent(self, event: Event, mouseAutosToSkip: int):
         colWidth = self.size.x // self.numCols + 1
         oldItem = self.focused
         mouse = self.makeLocal(event.mouse.where)

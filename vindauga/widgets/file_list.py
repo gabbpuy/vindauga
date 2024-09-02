@@ -1,8 +1,10 @@
 # -*- coding: utf-8 -*-
+from gettext import gettext as _
 import fnmatch
 import logging
 import os
 from datetime import datetime
+from typing import Optional
 
 from vindauga.types.collections.file_collection import FileCollection
 from vindauga.constants.event_codes import evBroadcast
@@ -12,6 +14,8 @@ from vindauga.misc.message import message
 from vindauga.misc.util import isWild, fexpand, splitPath
 from vindauga.types.records.directory_search_record import DirectorySearchRecord
 from vindauga.types.records.search_record import FA_DIREC, SearchRecord
+from vindauga.types.rect import Rect
+from vindauga.widgets.scroll_bar import ScrollBar
 from vindauga.widgets.sorted_list_box import SortedListBox
 
 logger = logging.getLogger(__name__)
@@ -20,7 +24,7 @@ logger = logging.getLogger(__name__)
 class FileList(SortedListBox):
     tooManyFiles = _('Too many files.')
 
-    def __init__(self, bounds, scrollBar):
+    def __init__(self, bounds: Rect, scrollBar: ScrollBar):
         super().__init__(bounds, 2, scrollBar)
 
     def focusItem(self, item: int):
@@ -30,10 +34,10 @@ class FileList(SortedListBox):
     def selectItem(self, item: int):
         message(self.owner, evBroadcast, cmFileDoubleClicked, self.getList()[item])
 
-    def consumesData(self):
+    def consumesData(self) -> bool:
         return False
 
-    def _getKey(self, s: str):
+    def _getKey(self, s: str) -> SearchRecord:
         record = SearchRecord()
 
         if self._shiftState & kbShift or (s and s[0] == '.'):
@@ -50,7 +54,7 @@ class FileList(SortedListBox):
             dest += os.path.sep
         return dest
 
-    def readDirectory(self, path, wildcard=None):
+    def readDirectory(self, path: str, wildcard: Optional[str] = None):
         if wildcard:
             path = os.path.join(path, wildcard)
             return self.readDirectory(path)

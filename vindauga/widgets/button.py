@@ -14,6 +14,7 @@ from vindauga.misc.util import nameLength
 from vindauga.types.draw_buffer import DrawBuffer
 from vindauga.types.group import Phases
 from vindauga.types.palette import Palette
+from vindauga.types.rect import Rect
 from vindauga.types.view import View
 
 
@@ -29,7 +30,7 @@ class Button(View):
     cpButton = "\x0A\x0B\x0C\x0D\x0E\x0E\x0E\x0F"
     markers = '[]'
 
-    def __init__(self, bounds, title, commands, flags):
+    def __init__(self, bounds: Rect, title: str, commands: int, flags: int):
         super().__init__(bounds)
         self.title = title
         self._command = commands
@@ -46,7 +47,7 @@ class Button(View):
     def draw(self):
         self.drawState(False)
 
-    def drawState(self, down):
+    def drawState(self, down: bool):
         b = DrawBuffer()
         ch = ' '
 
@@ -98,11 +99,11 @@ class Button(View):
 
         self.writeLine(0, self.size.y - 1, self.size.x, 1, b)
 
-    def getPalette(self):
+    def getPalette(self) -> Palette:
         return Palette(self.cpButton)
 
-    def handleEvent(self, event):
-        clickRect = self.getExtent()
+    def handleEvent(self, event: Event):
+        clickRect: Rect = self.getExtent()
         clickRect.topLeft.x += 1
         clickRect.bottomRight.x -= 1
         clickRect.bottomRight.y -= 1
@@ -156,14 +157,14 @@ class Button(View):
                 self.setState(sfDisabled, not self.commandEnabled(command))
                 self.drawView()
 
-    def makeDefault(self, enable):
+    def makeDefault(self, enable: bool):
         if not (self._flags & bfDefault):
             message(self.owner, evBroadcast,
                     [cmReleaseDefault, cmGrabDefault][enable], self)
             self._amDefault = enable
             self.drawView()
 
-    def setState(self, state, enable):
+    def setState(self, state: int, enable: bool):
         super().setState(state, enable)
 
         if state & (sfSelected | sfActive):
@@ -187,7 +188,7 @@ class Button(View):
             e.message.infoPtr = self
             self.putEvent(e)
 
-    def __drawTitle(self, b, s, i, cButton, down):
+    def __drawTitle(self, b: DrawBuffer, s: int, i: int, cButton: int, down: bool):
         if self._flags & bfLeftJust:
             titlePosition = 0
         else:

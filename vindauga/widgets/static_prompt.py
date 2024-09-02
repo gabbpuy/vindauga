@@ -6,5 +6,5 @@ from .static_text import StaticText
 class StaticPrompt(StaticText):
     cpStaticPrompt = "\x09"
 
-    def getPalette(self):
+    def getPalette(self) -> Palette:
         return Palette(self.cpStaticPrompt)

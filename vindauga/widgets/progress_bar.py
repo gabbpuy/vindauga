@@ -2,6 +2,7 @@
 import logging
 from vindauga.types.draw_buffer import DrawBuffer
 from vindauga.types.palette import Palette
+from vindauga.types.rect import Rect
 from vindauga.types.view import View
 
 logger = logging.getLogger(__name__)
@@ -15,17 +16,17 @@ class ProgressBar(View):
     FILL_CHAR = '█'
     BACK_CHAR = ' '
 
-    def __init__(self, bounds, items, backChar = BACK_CHAR):
+    def __init__(self, bounds: Rect, items: int, backChar: str = BACK_CHAR):
 
         super().__init__(bounds)
         self.total = items
         self.backChar = backChar
-        self.progress = 0
-        self.curPercent = 0
+        self.progress = 0.0
+        self.curPercent = 0.0
 
     def draw(self):
         nBuf = DrawBuffer()
-        text = f'{self.curPercent:-3d} %'
+        text = f'{int(self.curPercent):-3d} %'
         colorNormal = self.getColor(1)
         dill = 0
 
@@ -44,7 +45,7 @@ class ProgressBar(View):
         nBuf.moveStr(numOffset, text, colorNormal)
         self.writeLine(0, 0, self.size.x, 1, nBuf)
 
-    def getPalette(self):
+    def getPalette(self) -> Palette:
         return Palette(self.cpProgressBar)
 
     def calcPercent(self):
@@ -54,18 +55,18 @@ class ProgressBar(View):
         if percent != self.curPercent:
             self.curPercent = percent
 
-    def update(self, progress):
+    def update(self, progress: float):
         self.progress = progress
         self.calcPercent()
         self.drawView()
 
-    def setTotal(self, total):
+    def setTotal(self, total: int):
         self.total = total
         self.calcPercent()
         if total:
             self.drawView()
 
-    def setProgress(self, progress):
+    def setProgress(self, progress: float):
         self.progress = progress
         self.calcPercent()
         self.drawView()

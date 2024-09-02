@@ -2,7 +2,6 @@
 import inspect
 import logging
 import platform
-import sys
 from signal import *
 
 from .confirm_exit import confirmExit
@@ -20,7 +19,7 @@ def sigWinchHandler():
     oldWinchHandler = signal(SIGWINCH, signalHandler)
 
 
-def signalHandler(signo, _frame):
+def signalHandler(signo: int, _frame):
     from vindauga.types.screen import Screen
 
     if PLATFORM_IS_WINDOWS:

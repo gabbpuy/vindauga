@@ -1,5 +1,8 @@
 # -*- coding: utf-8 -*-
+from typing import List
+
 from vindauga.types.records.data_record import DataRecord
+from vindauga.types.rect import Rect
 
 from .cluster import Cluster
 
@@ -20,7 +23,7 @@ cfEightBits = 0x08FF
 class MultiCheckBoxes(Cluster):
     name = "MultiCheckBoxes"
 
-    def __init__(self, bounds, strings, aSelRange, aFlags, aStates):
+    def __init__(self, bounds: Rect, strings: List[str], aSelRange: int, aFlags: int, aStates: str):
         super().__init__(bounds, strings)
 
         self.__selRange = aSelRange
@@ -41,21 +44,21 @@ class MultiCheckBoxes(Cluster):
     def draw(self):
         self.drawMultiBox(" [ ] ", self.__states)
 
-    def consumesData(self):
+    def consumesData(self) -> bool:
         return True
 
-    def multiMark(self, item):
+    def multiMark(self, item: int):
         return ((self._value & ((self.__flags & 0xFF) << (item * (self.__flags >> 8)))) >>
                 (item * (self.__flags >> 8)))
 
-    def getData(self):
+    def getData(self) -> DataRecord:
         rec = DataRecord()
         p = self._value
         self.drawView()
         rec.value = p
         return rec
 
-    def press(self, item):
+    def press(self, item: int):
         flo = self.__flags & 0xFF
         fhi = self.__flags >> 8
 

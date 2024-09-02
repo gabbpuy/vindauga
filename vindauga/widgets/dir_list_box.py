@@ -4,13 +4,17 @@ import os
 import pathlib
 import platform
 import re
+from typing import List
 
 from vindauga.types.collections.dir_collection import DirCollection, DirEntry
 from vindauga.constants.std_dialog_commands import cmChangeDir, cmDirSelection
 from vindauga.constants.event_codes import evCommand
 from vindauga.constants.state_flags import sfFocused
 from vindauga.misc.message import message
+from vindauga.types.rect import Rect
+
 from .list_box import ListBox
+from .scroll_bar import ScrollBar
 
 PLATFORM_IS_WINDOWS = platform.system().lower() == 'windows'
 PLATFORM_IS_CYGWIN = platform.system().lower().startswith('cygwin')
@@ -33,7 +37,7 @@ class DirListBox(ListBox):
     graphics = '└├─'
     drives = 'Drives'
 
-    def __init__(self, bounds, scrollBar):
+    def __init__(self, bounds: Rect, scrollBar: ScrollBar):
         super().__init__(bounds, 1, scrollBar)
         self.dir: pathlib.Path = pathlib.Path()
         self.drives = []
@@ -41,21 +45,22 @@ class DirListBox(ListBox):
         self.dirList = DirCollection()
         self.letters = self.__getDriveLetters()
 
-    def getText(self, item, maxChars):
+    def getText(self, item: int, maxChars: int) -> str:
         return self.dirList[item].text()[:maxChars]
 
-    def isSelected(self, item):
+    def isSelected(self, item: int) -> bool:
         return item is self.cur
 
-    def selectItem(self, item):
+    def selectItem(self, item: int):
         message(self.owner, evCommand, cmChangeDir, self.dirList[item])
 
-    def __absolute(self, directory):
+    @staticmethod
+    def __absolute(directory: str) -> pathlib.Path:
         if PLATFORM_IS_CYGWIN:
             directory = re.sub(r'^([A-Za-z]):', r'/cygdrive/\1', directory)
-        return pathlib.Path(directory).absolute()
+        return pathlib.Path(directory).resolve()
 
-    def newDirectory(self, directory):
+    def newDirectory(self, directory: str):
         self.dir = self.__absolute(directory)
         self.dirList = DirCollection()
         self.showDrives(self.dirList)
@@ -63,12 +68,12 @@ class DirListBox(ListBox):
         self.newList(self.dirList)
         self.focusItem(self.cur)
 
-    def setState(self, state, enable):
+    def setState(self, state: int, enable: bool):
         super().setState(state, enable)
         if state & sfFocused:
             message(self.owner, evCommand, cmDirSelection, enable)
 
-    def showDrives(self, collection):
+    def showDrives(self, collection: DirCollection):
         logger.info('showDrives: %s', self.dir)
         if not PLATFORM_IS_WINDOWS:
             return
@@ -111,9 +116,9 @@ class DirListBox(ListBox):
             collection.append(DirEntry(name, str(path)))
 
     @staticmethod
-    def __getDriveLetters():
+    def __getDriveLetters() -> List[str]:
         if not PLATFORM_IS_WINDOWS:
-            return
+            return []
 
         size = kernel.GetLogicalDriveStringsW(0, None)
         driveList = ctypes.create_string_buffer(size)
@@ -123,7 +128,7 @@ class DirListBox(ListBox):
         letters = letters.split('\x00')
         return letters
 
-    def __dirNames(self, subDirs):
+    def __dirNames(self, subDirs: List[str]) -> List[str]:
         if len(subDirs) == 1:
             return [self.firstAndOnlyDir]
         return [self.firstDir] + (len(subDirs) - 2) * [self.middleDir] + [self.lastDir]

@@ -1,4 +1,5 @@
 # -*- coding: utf-8 -*-
+from __future__ import annotations
 from .point import Point
 
 
@@ -38,7 +39,7 @@ class Rect:
         self.topLeft += Point(deltaX, deltaY)
         self.bottomRight += Point(deltaX, deltaY)
 
-    def grow(self, deltaX, deltaY):
+    def grow(self, deltaX: int, deltaY: int):
         """
         Enlarges the rectangle by a specified value.
        
@@ -57,7 +58,7 @@ class Rect:
         self.topLeft -= Point(deltaX, deltaY)
         self.bottomRight += Point(deltaX, deltaY)
 
-    def intersect(self, r: 'Rect'):
+    def intersect(self, r: Rect):
         """
         Calculates the intersection between this rectangle and the parameter
         rectangle.
@@ -73,7 +74,7 @@ class Rect:
         self.bottomRight.x = min(self.bottomRight.x, r.bottomRight.x)
         self.bottomRight.y = min(self.bottomRight.y, r.bottomRight.y)
 
-    def union(self, r: 'Rect'):
+    def union(self, r: Rect):
         """
         Calculates the union between this rectangle and the `r` parameter
         rectangle.
@@ -100,10 +101,10 @@ class Rect:
 
     contains = __contains__
 
-    def __eq__(self, other: 'Rect') -> bool:
+    def __eq__(self, other: Rect) -> bool:
         return self.topLeft == other.topLeft and self.bottomRight == other.bottomRight
 
-    def __ne__(self, other: 'Rect') -> bool:
+    def __ne__(self, other: Rect) -> bool:
         return self.topLeft != other.topLeft or self.bottomRight != other.bottomRight
 
     def __repr__(self):
@@ -120,7 +121,7 @@ class Rect:
         """
         return self.topLeft.x >= self.bottomRight.x or self.topLeft.y >= self.bottomRight.y
 
-    def copy(self) -> 'Rect':
+    def copy(self) -> Rect:
         """
         Copy to a new `Rect`
 

@@ -2,13 +2,14 @@
 import logging
 
 from vindauga.constants.command_codes import (cmScrollBarClicked, cmScrollBarChanged)
-from vindauga.constants.scrollbar_codes import sbLeftArrow, sbRightArrow, sbPageLeft, sbPageRight, sbUpArrow, sbDownArrow, \
-    sbPageUp, sbPageDown, sbIndicator
+from vindauga.constants.scrollbar_codes import (sbLeftArrow, sbRightArrow, sbPageLeft, sbPageRight, sbUpArrow,
+                                                sbDownArrow, sbPageUp, sbPageDown, sbIndicator)
 from vindauga.constants.grow_flags import gfGrowLoX, gfGrowLoY, gfGrowHiX, gfGrowHiY
 from vindauga.constants.event_codes import evMouseDown, evBroadcast, evMouseAuto, evMouseMove, evKeyDown
 from vindauga.constants.keys import (kbLeft, kbUp, kbRight, kbDown, kbCtrlLeft, kbCtrlRight, kbHome, kbEnd, kbPgUp,
                                      kbPgDn, kbCtrlPgUp, kbCtrlPgDn)
 from vindauga.constants.state_flags import sfVisible
+from vindauga.events.event import Event
 from vindauga.misc.message import message
 from vindauga.misc.util import ctrlToArrow
 from vindauga.types.draw_buffer import DrawBuffer
@@ -25,7 +26,7 @@ class ScrollBar(View):
     name = 'ScrollBar'
     cpScrollBar = "\x04\x05\x05"
 
-    def __init__(self, bounds):
+    def __init__(self, bounds: Rect):
         super().__init__(bounds)
         self.value = 0
         self.minVal = 0
@@ -45,11 +46,11 @@ class ScrollBar(View):
     def draw(self):
         self.drawPos(self.getPos())
 
-    def getPalette(self):
+    def getPalette(self) -> Palette:
         palette = Palette(self.cpScrollBar)
         return palette
 
-    def handleEvent(self, event):
+    def handleEvent(self, event: Event):
         """
         Handles scroll bar events by calling `handleEvent()`. Mouse
         events are broadcast to the scroll bar's owner, which must handle the
@@ -159,7 +160,7 @@ class ScrollBar(View):
         """
         message(self.owner, evBroadcast, cmScrollBarChanged, self)
 
-    def scrollStep(self, part):
+    def scrollStep(self, part: int) -> int:
         """
         By default, `scrollStep()` returns a positive or negative step value,
         depending on the scroll bar part given by `part`, and the current
@@ -196,7 +197,7 @@ class ScrollBar(View):
             return -step
         return step
 
-    def setParams(self, value, minVal, maxVal, pageStep, arrowStep):
+    def setParams(self, value: int, minVal: int, maxVal: int, pageStep: int, arrowStep: int):
         """
         Sets the `value`, `minVal`, `maxVal`, `pageStep` and `arrowStep`
         with the given argument values. Some adjustments are made
@@ -227,7 +228,7 @@ class ScrollBar(View):
         self.pageStep = pageStep
         self.arrowStep = arrowStep
 
-    def setRange(self, minVal, maxVal):
+    def setRange(self, minVal: int, maxVal: int):
         """
         Sets the legal range for `value` by setting `minVal` and `maxVal`
         to the given arguments `minVal` and `maxVal`.
@@ -240,7 +241,7 @@ class ScrollBar(View):
         """
         self.setParams(self.value, minVal, maxVal, self.pageStep, self.arrowStep)
 
-    def setStep(self, pageStep, arrowStep):
+    def setStep(self, pageStep: int, arrowStep: int):
         """
         Sets `pageStep` and `arrowStep` to the given arguments `pageStep` and `arrowStep`.
         Calls `setParams()` with the other arguments set to their current values.
@@ -250,7 +251,7 @@ class ScrollBar(View):
         """
         self.setParams(self.value, self.minVal, self.maxVal, pageStep, arrowStep)
 
-    def setValue(self, value):
+    def setValue(self, value: int):
         """
         Sets `value` to `value` by calling `setParams()` with the other
         arguments set to their current values.
@@ -261,7 +262,7 @@ class ScrollBar(View):
         """
         self.setParams(value, self.minVal, self.maxVal, self.pageStep, self.arrowStep)
 
-    def drawPos(self, pos):
+    def drawPos(self, pos: int):
         b = DrawBuffer()
         s = self.getSize() - 1
         b.moveChar(0, self.chars[0], self.getColor(2), 1)
@@ -275,14 +276,14 @@ class ScrollBar(View):
         b.moveChar(s, self.chars[1], self.getColor(2), 1)
         self.writeBuf(0, 0, self.size.x, self.size.y, b)
 
-    def getPos(self):
+    def getPos(self) -> int:
         r = self.maxVal - self.minVal
 
         if r == 0:
             return 1
         return ((((self.value - self.minVal) * (self.getSize() - 3)) + (r >> 1)) // r) + 1
 
-    def getSize(self):
+    def getSize(self) -> int:
         if self.size.x == 1:
             s = self.size.y
         else:
@@ -290,7 +291,7 @@ class ScrollBar(View):
 
         return max(2, s)
 
-    def __getPartCode(self, size, pos):
+    def __getPartCode(self, size: int, pos: int) -> int:
         part = -1
 
         if self.mouse in self.extent:

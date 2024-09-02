@@ -12,6 +12,7 @@ from vindauga.events.event import Event
 from vindauga.menus.menu import Menu
 from vindauga.menus.menu_bar import MenuBar
 from vindauga.menus.sub_menu import SubMenu
+from vindauga.types.rect import Rect
 from vindauga.widgets.application import Application
 from vindauga.widgets.grid_view_box import ListRec
 
@@ -27,13 +28,13 @@ widths = []
 
 class GridApp(Application):
 
-    def initMenuBar(self, bounds):
+    def initMenuBar(self, bounds: Rect) -> MenuBar:
         bounds.bottomRight.y = bounds.topLeft.y + 1
         return MenuBar(bounds, Menu(
             SubMenu('~F~ile', kbAltF, hcNoContext)
         ))
 
-    def handleEvent(self, event):
+    def handleEvent(self, event: Event):
         super().handleEvent(event)
         if event.what == evCommand:
             if event.message.command == cmList:
@@ -51,7 +52,7 @@ class GridApp(Application):
 
 if __name__ == '__main__':
     logging.basicConfig(level=logging.DEBUG)
-    with open(sys.argv[1], 'rt', newline='') as fp:
+    with open(sys.argv[1], 'rt', newline='', encoding='utf-8') as fp:
         rows = csv.reader(fp)
         headings = [next(rows)]
         widths = [len(h) + 2 for h in headings[0]]
@@ -62,7 +63,7 @@ if __name__ == '__main__':
                 ListData[i, j] = ListRec(col, True)
     rows = j - 1
     app = GridApp()
-    event = Event(evCommand)
-    event.message.command = cmList
-    app.putEvent(event)
+    initial_event = Event(evCommand)
+    initial_event.message.command = cmList
+    app.putEvent(initial_event)
     app.run()

@@ -1,11 +1,17 @@
 # -*- coding: utf-8 -*-
 from dataclasses import dataclass
 import logging
+from typing import List
 
 from vindauga.constants.event_codes import evMouseDown, evBroadcast, evKeyDown, meDoubleClick
 from vindauga.constants.keys import kbEnter
+from vindauga.events.event import Event
 from vindauga.misc.message import message
+from vindauga.types.rect import Rect
+
 from .grid_view import GridView, cmListItemSelected
+from .scroll_bar import ScrollBar
+
 
 logger = logging.getLogger(__name__)
 cmListKeyEnter = 59
@@ -19,31 +25,28 @@ class ListRec:
 
 class GridViewBox(GridView):
 
-    def __init__(self, bounds, hScrollBar, vScrollBar, columnWidths, cellData, columns, rows, decimalPoint):
+    def __init__(self, bounds: Rect, hScrollBar: ScrollBar, vScrollBar: ScrollBar, columnWidths: List[int],
+                 cellData: dict, columns: int, rows: int, decimalPoint: List[int]):
         super().__init__(bounds, hScrollBar, vScrollBar, columnWidths)
         self.cellData = cellData or {}
-        self.decimalPoint = decimalPoint
+        self.decimalPoint = decimalPoint or [0,] * columns
         self.setRange(columns, rows)
         if hScrollBar:
             hScrollBar.maxVal = columns - 1
         if vScrollBar:
             vScrollBar.maxVal = rows - 1
 
-    def getText(self, column, row, maxLen):
+    def getText(self, column: int, row: int, maxLen: int) -> str:
         data = self.cellData[row, column]
         if data.show:
             try:
-
-                data = '{0:>{w}.{prec}f}'.format(float(data.val),
-                                                 w=self.columnWidth[column] - 2,
-                                                 prec=self.decimalPoint[column]
-                                                 )
+                data = f'{float(data.val):>{self.columnWidth[column] - 2}.{self.decimalPoint[column]}f}'
             except ValueError:
                 data = data.val
             return data
         return ''
 
-    def handleEvent(self, event):
+    def handleEvent(self, event: Event):
         if event.what == evMouseDown and event.mouse.eventFlags & meDoubleClick:
             self.clearEvent(event)
             message(self.owner, evBroadcast, cmListItemSelected, self)
@@ -53,6 +56,6 @@ class GridViewBox(GridView):
 
         super().handleEvent(event)
 
-    def putData(self, text):
+    def putData(self, text: str):
         self.cellData[self.focusedRow, self.focusedColumn] = ListRec(val=text, show=True)
         self.draw()

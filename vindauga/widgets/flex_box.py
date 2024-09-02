@@ -1,8 +1,13 @@
 # -*- coding: utf-8 -*-
 import logging
 from enum import Enum, auto
+from typing import Optional
+
 from vindauga.constants.grow_flags import gfGrowHiX, gfGrowHiY
 from vindauga.types.group import Group
+from vindauga.types.rect import Rect
+from vindauga.types.view import View
+
 from .background import Background
 
 logger = logging.getLogger(__name__)
@@ -15,7 +20,7 @@ class GrowDirection(Enum):
 
 class FlexBox(Group):
 
-    def __init__(self, bounds, direction: GrowDirection):
+    def __init__(self, bounds: Rect, direction: GrowDirection):
         super().__init__(bounds)
         self.growMode = gfGrowHiX | gfGrowHiY
         self.__grow_direction = direction
@@ -25,18 +30,18 @@ class FlexBox(Group):
             self.insert(self.background)
 
     @staticmethod
-    def initBackground(r):
+    def initBackground(r: Rect) -> Background:
         return Background(r, ' ')
 
-    def changeBounds(self, bounds):
+    def changeBounds(self, bounds: Rect):
         super().changeBounds(bounds)
         self._repackCurrent(self.getBounds())
 
-    def locate(self, bounds):
+    def locate(self, bounds: Rect):
         super().locate(bounds)
         self._repackCurrent(self.getBounds())
 
-    def _repackCurrent(self, bounds):
+    def _repackCurrent(self, bounds: Rect):
         # Sub 1 for background
 
         numChildren = len(self.children) - 1
@@ -72,13 +77,13 @@ class FlexBox(Group):
             else:
                 y += height + gap
 
-    def insertView(self, view, target=None):
+    def insertView(self, view: View, target: Optional[View] = None):
         super().insertView(view, target)
 
         if self.owner:
             self._repackCurrent(self.getBounds())
 
-    def remove(self, view):
+    def remove(self, view: View):
         super().removeView(view)
         if self.owner:
             self._repackCurrent(self.getBounds())

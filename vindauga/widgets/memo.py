@@ -1,15 +1,16 @@
 # -*- coding: utf-8 -*-
 from dataclasses import dataclass
-from typing import Any, Optional
 
 import wcwidth
+
 from vindauga.constants.event_codes import evKeyDown
 from vindauga.constants.keys import kbTab
+from vindauga.events.event import Event
+from vindauga.types.draw_buffer import BufferArray
 from vindauga.types.palette import Palette
 from vindauga.types.records.data_record import DataRecord
 
 from .editor import Editor
-from ..types.draw_buffer import BufferArray
 
 
 @dataclass
@@ -29,10 +30,10 @@ class Memo(Editor):
     name = "Memo"
     cpMemo = "\x1A\x1B"
 
-    def consumesData(self):
+    def consumesData(self) -> bool:
         return True
 
-    def getData(self):
+    def getData(self) -> DataRecord:
         rec = DataRecord()
         data = MemoData(''.join(chr(c) for c in self.buffer))
         rec.value = data
@@ -42,10 +43,10 @@ class Memo(Editor):
         self.buffer = BufferArray(ord(c) for c in rec.buffer)
         self.setBufLen(rec.length)
 
-    def getPalette(self):
+    def getPalette(self) -> Palette:
         palette = Palette(self.cpMemo)
         return palette
 
-    def handleEvent(self, event):
+    def handleEvent(self, event: Event):
         if event.what != evKeyDown or event.keyDown.keyCode != kbTab:
             super().handleEvent(event)

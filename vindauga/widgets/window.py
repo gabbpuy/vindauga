@@ -19,6 +19,7 @@ from vindauga.types.rect import Rect
 from vindauga.types.view import View
 from .frame import Frame
 from .scroll_bar import ScrollBar
+from ..events.event import Event
 
 logger = logging.getLogger(__name__)
 minWinSize = Point(16, 6)
@@ -36,7 +37,7 @@ class Window(Group):
     cpCyanWindow = '\x10\x11\x12\x13\x14\x15\x16\x17'
     cpGrayWindow = '\x18\x19\x1A\x1B\x1C\x1D\x1E\x1F'
 
-    def __init__(self, bounds, title, windowNumber):
+    def __init__(self, bounds: Rect, title: str, windowNumber: int):
         super().__init__(bounds)
 
         self.flags = (wfMove | wfGrow | wfClose | wfZoom)
@@ -62,7 +63,7 @@ class Window(Group):
         self.frame = None
         super().shutdown()
 
-    def getPalette(self):
+    def getPalette(self) -> Palette:
         blue = Palette(self.cpBlueWindow)
         cyan = Palette(self.cpCyanWindow)
         gray = Palette(self.cpGrayWindow)
@@ -71,10 +72,10 @@ class Window(Group):
 
         return palettes[self.palette]
 
-    def getTitle(self, *args):
+    def getTitle(self, *args) -> str:
         return self.title
 
-    def handleEvent(self, event):
+    def handleEvent(self, event: Event):
         """
         First calls `super().handleEvent()`, and then handles events
         specific to a `Window` as follows:
@@ -136,7 +137,7 @@ class Window(Group):
             self.clearEvent(event)
 
     @staticmethod
-    def initFrame(bounds):
+    def initFrame(bounds: Rect) -> Frame:
         """
         Creates a `Frame` object for the window and returns it,
         it should never be called directly. You can override
@@ -148,7 +149,7 @@ class Window(Group):
         """
         return Frame(bounds)
 
-    def setState(self, state, enable):
+    def setState(self, state: int, enable: bool):
         """
         First calls `super().setState(state, enable)`. Then, if `state` is
         equal to `sfSelected`, activates or deactivates the window and all
@@ -185,7 +186,7 @@ class Window(Group):
             else:
                 View.disableCommands(windowCommands)
 
-    def standardScrollBar(self, options):
+    def standardScrollBar(self, options: int) -> ScrollBar:
         r = self.getExtent()
         if options & sbVertical:
             r = Rect(r.bottomRight.x - 1, r.topLeft.y + 1, r.bottomRight.x, r.bottomRight.y - 1)
@@ -198,7 +199,7 @@ class Window(Group):
             s.options |= ofPostProcess
         return s
 
-    def sizeLimits(self, minLimit, maxLimit):
+    def sizeLimits(self, minLimit: Point, maxLimit: Point):
         super().sizeLimits(minLimit, maxLimit)
         minLimit.x = minWinSize.x
         minLimit.y = minWinSize.y

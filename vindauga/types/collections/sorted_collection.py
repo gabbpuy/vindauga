@@ -19,11 +19,11 @@ class SortedCollection(Collection):
         super().__init__(iterable)
         self.sort()
 
-    def __setitem__(self, index, value):
+    def __setitem__(self, index: int, value):
         super().__setitem__(index, value)
         self.sort()
 
-    def insert(self, index, value):
+    def insert(self, index: int, value):
         super().append(value)
         self.sort()
 
@@ -34,7 +34,7 @@ class SortedCollection(Collection):
     def sort(self, reverse: bool = False):
         super().sort(key=cmp_to_key(self._compare), reverse=reverse)
 
-    def _compare(self, key1, key2):
+    def _compare(self, key1, key2) -> int:
         """
         `_compare()` is a function that must be overridden in all
         derived classes.

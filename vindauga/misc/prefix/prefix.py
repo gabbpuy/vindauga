@@ -3,7 +3,9 @@
 Unit prefix library for units for powers of 10. Handles multiplication and division and
 returns super scripts for attaching to displays.
 """
+from __future__ import annotations
 import math
+from typing import Union, Tuple
 
 
 class MetaPrefix(type):
@@ -17,7 +19,7 @@ class MetaPrefix(type):
         return obj
 
 
-def hasPrefix(prefix):
+def hasPrefix(prefix: Prefix) -> bool:
     """
     Is the prefix in the cache?
     :param prefix: prefix
@@ -26,7 +28,7 @@ def hasPrefix(prefix):
     return prefix in MetaPrefix.prefixIndex
 
 
-def hasPower(power):
+def hasPower(power) -> bool:
     """
     Is this power in the cache?
     :param power: Power
@@ -35,7 +37,7 @@ def hasPower(power):
     return power in MetaPrefix.powerIndex
 
 
-def getPower(power):
+def getPower(power) -> Prefix:
     """
     Get the cached power index
     :param power:
@@ -44,7 +46,7 @@ def getPower(power):
     return MetaPrefix.powerIndex[power]
 
 
-def getPrefix(prefix):
+def getPrefix(prefix) -> Prefix:
     """
     Get the cached prefix object
     :param prefix: prefix
@@ -53,7 +55,7 @@ def getPrefix(prefix):
     return MetaPrefix.prefixIndex[prefix]
 
 
-class Prefix(object, metaclass=MetaPrefix):
+class Prefix(metaclass=MetaPrefix):
     """
     A SI power of 10 prefix.
 
@@ -73,10 +75,10 @@ class Prefix(object, metaclass=MetaPrefix):
 
     def generateFormat(self, power):
         """
-        Generate the format
+        Generate the log_format
 
         :param power: Power raised to
-        :return: Formatted unicode string
+        :return: Formatted Unicode string
         """
         # Prepare a pretty string
         pPrefix = ''
@@ -86,12 +88,12 @@ class Prefix(object, metaclass=MetaPrefix):
         if power == 0:
             return ''
         elif power < 10:
-            return '10{0}{1}'.format(pPrefix, self.supers[power])
+            return f'10{pPrefix}{self.supers[power]}'
         elif power < 100:
             t, u = divmod(power, 10)
-            return '10{0}{1}{2}'.format(pPrefix, self.supers[t], self.supers[u])
+            return f'10{pPrefix}{self.supers[t]}{self.supers[u]}'
         else:
-            return '10^{0}{1}'.format(pPrefix, power)
+            return f'10^{pPrefix}{power}'
 
     def __repr__(self):
         """
@@ -105,21 +107,21 @@ class Prefix(object, metaclass=MetaPrefix):
         """
         return self.prefix
 
-    def __rmul__(self, o):
+    def __rmul__(self, o: Union[int, float]):
         """
         Return a scalar multiplied by us.
         e.g. 5 * kilo returns 5000
         """
         return o * (10 ** self.power)
 
-    def __mul__(self, o):
+    def __mul__(self, o: Union[int, float]):
         """
         Return a scalar multiplied by us.
         e.g. 5 * kilo returns 5000
         """
         return o * (10 ** self.power)
 
-    def __rdiv__(self, o):
+    def __rdiv__(self, o: Union[int, float]):
         """
         Return a scalar divided by us.
         e.g. 5000 / kilo returns 5
@@ -127,7 +129,7 @@ class Prefix(object, metaclass=MetaPrefix):
         return float(o) / (10 ** self.power)
 
 
-def closestPrefix(i):
+def closestPrefix(i: Union[int, float]) -> Tuple[float, Prefix]:
     """
     Reduce a number to a multiplier and a prefix.
 
@@ -135,7 +137,7 @@ def closestPrefix(i):
     `closestPrefix(1024)` returns (1.024, kilo)
 
     :param i: the number to index
-    :returns: a (coefficient, :mod:`prefix`) tuple.
+    :returns: a (coefficient, :mod:`Prefix`) tuple.
     """
     if i == 0:
         return 0, getPower(0)

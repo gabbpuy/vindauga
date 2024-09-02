@@ -1,4 +1,5 @@
 # -*- coding: utf-8 -*-
+from __future__ import annotations
 from typing import Union, List, Optional
 from .color_item import ColorItem
 
@@ -20,7 +21,7 @@ class ColorGroup:
         self.name = name
         self.index = 0
 
-    def __add__(self, other: Union['ColorGroup', ColorItem]) -> Optional[Union['ColorGroup', ColorItem]]:
+    def __add__(self, other: Union[ColorGroup, ColorItem]) -> Optional[Union[ColorGroup, ColorItem]]:
         if isinstance(other, ColorGroup):
             return self.__addColorGroup(other)
         elif isinstance(other, ColorItem):
@@ -29,11 +30,11 @@ class ColorGroup:
 
     add = __add__
 
-    def __addColorGroup(self, other: 'ColorGroup') -> 'ColorGroup':
+    def __addColorGroup(self, other: ColorGroup) -> ColorGroup:
         self.groups.append(other)
         return self
 
-    def __addColorItem(self, other: ColorItem) -> 'ColorGroup':
+    def __addColorItem(self, other: ColorItem) -> ColorGroup:
         self.groups[-1].items.append(other)
         return self
 

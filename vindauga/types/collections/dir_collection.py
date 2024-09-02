@@ -1,11 +1,12 @@
 # -*- coding: utf-8 -*-
+from dataclasses import dataclass
 from .collection import Collection
 
 
+@dataclass(frozen=True)
 class DirEntry:
-    def __init__(self, txt, directory):
-        self.displayText = txt
-        self.directory = directory
+    displayText: str
+    directory: str
 
     def dir(self):
         return self.directory

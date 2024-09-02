@@ -6,7 +6,10 @@ from vindauga.constants.window_flags import wfMove, wfClose
 from vindauga.constants.event_codes import evKeyDown, evCommand, evBroadcast
 from vindauga.constants.keys import *
 from vindauga.constants.state_flags import sfModal
+from vindauga.events.event import Event
 from vindauga.types.palette import Palette
+from vindauga.types.rect import Rect
+
 from .window import Window
 
 logger = logging.getLogger(__name__)
@@ -36,7 +39,7 @@ class Dialog(Window):
 
     _palettes = [paletteBlue, paletteCyan, paletteGray]
 
-    def __init__(self, bounds, title):
+    def __init__(self, bounds: Rect, title: str):
         super().__init__(bounds, title, 0)
 
         self.growMode = 0
@@ -49,10 +52,10 @@ class Dialog(Window):
     def __exit__(self, exc_type, exc_val, exc_tb):
         self.destroy(self)
 
-    def getPalette(self):
+    def getPalette(self) -> Palette:
         return self._palettes[self.palette]
 
-    def handleEvent(self, event):
+    def handleEvent(self, event: Event):
         super().handleEvent(event)
 
         if event.what == evKeyDown:

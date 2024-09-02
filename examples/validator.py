@@ -6,6 +6,7 @@ from vindauga.constants.command_codes import hcNoContext, cmQuit, cmOK, cmCancel
 from vindauga.constants.event_codes import evCommand
 from vindauga.constants.keys import kbAltF, kbAltX, kbNoKey
 from vindauga.constants.option_flags import ofCentered
+from vindauga.events.event import Event
 from vindauga.menus.menu_bar import MenuBar
 from vindauga.menus.sub_menu import SubMenu
 from vindauga.menus.menu_item import MenuItem
@@ -49,7 +50,7 @@ class DemoDialog(Dialog):
 
 
 class DemoApp(Application):
-    def handleEvent(self, event):
+    def handleEvent(self, event: Event):
         super().handleEvent(event)
         if event.what == evCommand:
             if event.message.command == cmOpenDialog:
@@ -59,7 +60,7 @@ class DemoApp(Application):
                 return
         self.clearEvent(event)
 
-    def initMenuBar(self, bounds):
+    def initMenuBar(self, bounds: Rect) -> MenuBar:
         bounds.bottomRight.y = bounds.topLeft.y + 1
 
         return MenuBar(bounds,

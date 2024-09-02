@@ -2,18 +2,22 @@
 import logging
 from vindauga.constants.event_codes import evKeyDown, evMouseDown, mbLeftButton
 from vindauga.constants.keys import kbF7, kbF8, kbF9, kbEnter
+from vindauga.events.event import Event
+from vindauga.types.rect import Rect
 
 from .list_box import ListBox, ListBoxRec
+
+logger = logging.getLogger(__name__)
 
 
 class MultiSelectListBox(ListBox):
     tag = '→'
 
-    def __init__(self, bounds, numColumns, scrollBar):
-        super().__init__(bounds, numColumns, vScrollBar = scrollBar)
+    def __init__(self, bounds: Rect, numColumns, scrollBar):
+        super().__init__(bounds, numColumns, vScrollBar=scrollBar)
         self.selectedItems = set()
 
-    def handleEvent(self, event):
+    def handleEvent(self, event: Event):
         if event.what == evMouseDown and event.mouse.buttons == mbLeftButton:
             super().handleEvent(event)
             self.__toggleItem(self.focused)
@@ -36,7 +40,7 @@ class MultiSelectListBox(ListBox):
                 return
         super().handleEvent(event)
 
-    def __toggleItem(self, itemNumber):
+    def __toggleItem(self, itemNumber: int):
         if self._range <= 0:
             return
         if itemNumber in self.selectedItems:
@@ -60,15 +64,15 @@ class MultiSelectListBox(ListBox):
         allItems = set(range(self._range))
         self.selectedItems = allItems - self.selectedItems
 
-    def getText(self, item, maxChars):
+    def getText(self, item: int, maxChars: int) -> str:
         text = super().getText(item, maxChars)
         if item in self.selectedItems:
-            text = '{} {}'.format(self.tag, text)
+            text = f'{self.tag} {text}'
         else:
-            text = '  {}'.format(text)
+            text = f'  {text}'
         return text[:maxChars]
 
-    def getData(self):
+    def getData(self) -> ListBoxRec:
         rec = ListBoxRec()
         rec.items = self._items
         rec.selection = tuple(self.selectedItems)

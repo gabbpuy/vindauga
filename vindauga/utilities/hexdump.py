@@ -4,7 +4,7 @@ import itertools
 
 def formatLine(r):
     r = list(r)
-    l1 = ' '.join('{:02x}'.format(c) for c in r)
+    l1 = ' '.join(f'{c:02x}' for c in r)
     l2 = ''.join(chr(c) if 32 <= c < 127 else '.' for c in r)
     return l1, l2
 

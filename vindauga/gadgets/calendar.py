@@ -6,6 +6,7 @@ from vindauga.constants.event_codes import evMouseAuto, evKeyboard, evMouse, evM
 from vindauga.constants.keys import kbDown, kbUp
 from vindauga.constants.option_flags import ofSelectable
 from vindauga.constants.state_flags import sfSelected
+from vindauga.events.event import Event
 from vindauga.types.draw_buffer import DrawBuffer
 from vindauga.types.view import View
 
@@ -55,7 +56,7 @@ class Calendar(View):
         boldColor = self.getColor(7)
 
         buf.moveChar(0, ' ', color, 22)
-        s1 = ' ▲ {:>9} {:4d} ▼ '.format(monthNames[self.month], self.year)
+        s1 = f' ▲ {monthNames[self.month]:>9} {self.year:4d} ▼ '
         buf.moveStr(0, s1, self.getColor(8))
         self.writeLine(0, 0, 22, 1, buf)
 
@@ -69,7 +70,7 @@ class Calendar(View):
                 if current < 1 or current > days:
                     buf.moveStr(j * 3, '   ', color)
                 else:
-                    s2 = '{:2d}'.format(current)
+                    s2 = f'{current:2d}'
 
                     if (self.year == self.curYear and
                             self.month == self.curMonth and
@@ -81,7 +82,7 @@ class Calendar(View):
 
             self.writeLine(0, i + 1, 22, 1, buf)
 
-    def handleEvent(self, event):
+    def handleEvent(self, event: Event):
         super().handleEvent(event)
         if self.state & sfSelected:
             if (event.what & evMouse) and (evMouseDown or evMouseAuto):

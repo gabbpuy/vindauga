@@ -25,7 +25,7 @@ cmTwo = 103
 
 
 class PopupApplication(Application):
-    def initMenuBar(self, bounds):
+    def initMenuBar(self, bounds: Rect) -> MenuBar:
         bounds.bottomRight.y = bounds.topLeft.y + 1
         return MenuBar(bounds, Menu(
             SubMenu('~≡~', kbAltSpace) +
@@ -33,7 +33,7 @@ class PopupApplication(Application):
             MenuItem('~P~opup', cmPopup, kbAltP, hcNoContext, '')
         ))
 
-    def handleEvent(self, event):
+    def handleEvent(self, event: Event):
         super().handleEvent(event)
         if event.what == evCommand:
             emc = event.message.command

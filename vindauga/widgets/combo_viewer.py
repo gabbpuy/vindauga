@@ -4,11 +4,13 @@ from vindauga.constants.command_codes import cmOK, cmCancel
 from vindauga.constants.event_codes import evMouseDown, evKeyDown, evCommand, meDoubleClick
 from vindauga.constants.keys import kbEnter, kbEsc, kbTab
 from vindauga.events.event import Event
+from vindauga.types.collections.collection import Collection
 from vindauga.types.palette import Palette
-from vindauga.types.records.data_record import DataRecord
+from vindauga.types.rect import Rect
 from vindauga.types.screen import Screen
 
 from .list_viewer import ListViewer
+from .scroll_bar import ScrollBar
 
 
 def matchChars(item, target):
@@ -25,29 +27,27 @@ class ComboViewer(ListViewer):
     name = 'ComboViewer'
     cpComboViewer = '\x06\x06\x07\x06\x06'
 
-    def __init__(self, bounds, collection, scrollBar):
-        super().__init__(bounds, 1, 0, scrollBar)
+    def __init__(self, bounds: Rect, collection: Collection, scrollBar: ScrollBar):
+        super().__init__(bounds, 1, None, scrollBar)
         self.collection = None
         self.newList(collection)
         self.testChar = ''
 
-    def consumesData(self):
+    def consumesData(self) -> bool:
         return True
 
-    def getPalette(self):
+    def getPalette(self) -> Palette:
         return Palette(self.cpComboViewer)
 
     @staticmethod
-    def matchChars(item, target):
+    def matchChars(item: str, target: str) -> bool:
         return item.lower().startswith(target.lower())
 
-    def getData(self):
-        rec = DataRecord()
-        rec.items = self.collection
-        rec.selected = self.focused
+    def getData(self) -> ComboViewerRec:
+        rec = ComboViewerRec(self.collection, self.focused)
         return rec
 
-    def getText(self, item, maxLen):
+    def getText(self, item: int, maxLen: int) -> str:
         return self.collection.getText(item)[:maxLen]
 
     def handleEvent(self, event: Event):
@@ -80,7 +80,7 @@ class ComboViewer(ListViewer):
                 self.testChar = ''
         super().handleEvent(event)
 
-    def newList(self, collection):
+    def newList(self, collection: Collection):
         if self.collection:
             self.destroy(self.collection)
 
@@ -91,7 +91,7 @@ class ComboViewer(ListViewer):
             self.focusItem(0)
         self.drawView()
 
-    def setData(self, rec):
+    def setData(self, rec: ComboViewerRec):
         self.newList(rec.items)
         self.focusItem(rec.selection)
         self.drawView()

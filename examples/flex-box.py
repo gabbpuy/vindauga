@@ -31,7 +31,6 @@ class FlexBoxDemo(Application):
             widget = Button(Rect(0, 0, 1, 3), ctrlString, 0, 0)
             bottomBox.insert(widget)
 
-
         box.insert(topBox)
         box.insert(bottomBox)
 

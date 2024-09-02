@@ -9,12 +9,14 @@ from vindauga.constants.command_codes import *
 from vindauga.constants.edit_command_codes import *
 from vindauga.constants.event_codes import *
 from vindauga.types.draw_buffer import BufferArray
+from vindauga.types.rect import Rect
 from vindauga.misc.message import message
 from vindauga.misc.util import fexpand
+
 from .editor import Editor
 from .indicator import Indicator
 from .scroll_bar import ScrollBar
-from ..types.rect import Rect
+
 
 logger = logging.getLogger(__name__)
 
@@ -102,7 +104,7 @@ class FileEditor(Editor):
             pass
 
         try:
-            with open(self.fileName, 'wt') as f:
+            with open(self.fileName, 'wt', encoding='utf-8') as f:
                 self.writeBlock(f, self.buffer, self.curPtr)
                 self.writeBlock(f, self.buffer[self.curPtr + self.gapLen:],
                                 self.bufLen - self.curPtr)
@@ -125,7 +127,7 @@ class FileEditor(Editor):
         self.setCmdState(cmSave, True)
         self.setCmdState(cmSaveAs, True)
 
-    def valid(self, command):
+    def valid(self, command: int) -> bool:
         if command == cmValid:
             return self.isValid
 

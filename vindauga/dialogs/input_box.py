@@ -44,7 +44,7 @@ def inputBoxRect(bounds: Rect, title: str, aLabel: str, datum: Any, limit: int) 
     return c, rec
 
 
-def inputBox(title: str, label: str, datum: Any, limit: int):
+def inputBox(title: str, label: str, datum: Any, limit: int) -> Tuple[int, Any]:
     r = Rect(0, 0, 60, 8)
     size = getDesktopSize()
     r.move((size.x - r.bottomRight.x) // 2,

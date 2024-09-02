@@ -4,29 +4,33 @@ from vindauga.constants.event_codes import evBroadcast, evKeyDown, evMouseDown
 from vindauga.constants.keys import kbDown
 from vindauga.constants.option_flags import ofPostProcess
 from vindauga.constants.state_flags import sfFocused, sfDisabled
+from vindauga.events.event import Event
 from vindauga.misc.util import ctrlToArrow
+from vindauga.types.collections.collection import Collection
 from vindauga.types.draw_buffer import DrawBuffer
 from vindauga.types.palette import Palette
+from vindauga.types.rect import Rect
 from vindauga.types.view import View
+
 from .combo_window import ComboWindow
+from .input_line import InputLine
 from .static_input_line import StaticInputLine
 
 
 class ComboBox(View):
-
     cpComboBox = '\x16'
     cpSComboBox = '\x1A'
     icon = '↓'
     name = 'ComboBox'
 
-    def __init__(self, bounds, inputLine, collection):
+    def __init__(self, bounds: Rect, inputLine: InputLine, collection: Collection):
         super().__init__(bounds)
         self.inputLine = None
         self.collection = None
         self.initBox(inputLine, collection)
         self.__focused = None
 
-    def initBox(self, inputLine, collection):
+    def initBox(self, inputLine: InputLine, collection: Collection):
         self.options |= ofPostProcess
         self.eventMask |= evBroadcast
         self.inputLine = inputLine
@@ -44,12 +48,12 @@ class ComboBox(View):
         b.moveStr(0, self.icon, self.getColor(0x01))
         self.writeLine(0, 0, self.size.x, self.size.y, b)
 
-    def getPalette(self):
+    def getPalette(self) -> Palette:
         if isinstance(self.inputLine, StaticInputLine):
             return Palette(self.cpSComboBox)
         return Palette(self.cpComboBox)
 
-    def handleEvent(self, event):
+    def handleEvent(self, event: Event):
         super().handleEvent(event)
 
         if event.what == evMouseDown or (event.what == evKeyDown and ctrlToArrow(event.keyDown.keyCode) == kbDown and
@@ -91,10 +95,9 @@ class ComboBox(View):
             self.destroy(comboWindow)
             self.clearEvent(event)
 
-    def newList(self, collection):
+    def newList(self, collection: Collection):
         self.collection = collection
 
     def shutdown(self):
         self.inputLine = None
         super().shutdown()
-

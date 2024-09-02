@@ -5,6 +5,7 @@ import wcwidth
 
 from vindauga.constants.colors import cmColorBackgroundChanged, cmColorForegroundChanged, cmColorSet, cmSetColorIndex
 from vindauga.constants.event_codes import evBroadcast
+from vindauga.events.event import Event
 from vindauga.misc.message import message
 from vindauga.types.draw_buffer import DrawBuffer
 from vindauga.types.rect import Rect
@@ -43,7 +44,7 @@ class ColorDisplay(View):
             b.moveStr(i * wcwidth.wcswidth(self._text), self._text, c)
         self.writeLine(0, 0, self.size.x, self.size.y, b)
 
-    def handleEvent(self, event):
+    def handleEvent(self, event: Event):
         super().handleEvent(event)
 
         if event.what == evBroadcast:
@@ -56,7 +57,7 @@ class ColorDisplay(View):
                 message(self.owner, evBroadcast, cmSetColorIndex, self._color)
                 self.drawView()
 
-    def setColor(self, color):
+    def setColor(self, color: int):
         """
         Change the currently displayed color. Sets `self.color` to `color',
         broadcasts the change to the owning group, then calls `drawView()`.

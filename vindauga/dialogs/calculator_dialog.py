@@ -1,4 +1,5 @@
 # -*- coding: utf-8 -*-
+from gettext import gettext as _
 from vindauga.constants.buttons import bfNormal, bfBroadcast
 from vindauga.constants.option_flags import ofSelectable, ofFirstClick
 from vindauga.gadgets.calculator import Calculator, cmCalcButton

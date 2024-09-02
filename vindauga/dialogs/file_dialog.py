@@ -1,7 +1,9 @@
 # -*- coding: utf-8 -*-
+import pathlib
 from gettext import gettext as _
 import logging
 import os
+from typing import Union
 
 from vindauga.constants.buttons import bfDefault, bfNormal
 from vindauga.constants.command_codes import cmOK, cmCancel, cmValid
@@ -11,7 +13,9 @@ from vindauga.constants.option_flags import ofCentered
 from vindauga.constants.std_dialog_commands import (cmFileOpen, cmFileReplace, cmFileClear, cmFileDoubleClicked,
                                                     cmFileInit)
 from vindauga.dialogs.message_box import messageBox
-from vindauga.misc.util import isRelativePath, isWild, splitPath, isValidFileName, getCurDir, isDirectory, fexpand, nameLength
+from vindauga.events.event import Event
+from vindauga.misc.util import (isRelativePath, isWild, splitPath, isValidFileName, getCurDir, isDirectory, fexpand,
+                                nameLength)
 from vindauga.types.rect import Rect
 from vindauga.widgets.button import Button
 from vindauga.widgets.dialog import Dialog
@@ -100,13 +104,13 @@ class FileDialog(Dialog):
         if not (options & fdNoLoadDir):
             self._readCurrentDirectory()
 
-    def getFilename(self):
+    def getFilename(self) -> str:
         buf = self.filename.getDataString().strip()
         if isRelativePath(buf):
             buf = os.path.join(self.directory, buf)
         return fexpand(buf)
 
-    def handleEvent(self, event):
+    def handleEvent(self, event: Event):
         super().handleEvent(event)
         if event.what == evCommand:
             if event.message.command in {cmFileOpen, cmFileReplace, cmFileClear}:
@@ -118,16 +122,16 @@ class FileDialog(Dialog):
             self.putEvent(event)
             self.clearEvent(event)
 
-    def setData(self, data):
-        super().setData(data)
+    def setData(self, data: str):
+        super().setData([data])
         if data and isWild(data):
             self.valid(cmFileInit)
             self.filename.select()
 
-    def getData(self):
+    def getData(self) -> str:
         return self.getFilename()
 
-    def valid(self, command) -> bool:
+    def valid(self, command: int) -> bool:
         if not command:
             return True
 
@@ -167,7 +171,7 @@ class FileDialog(Dialog):
         self.directory = getCurDir()
         self.fileList.readDirectory(self.directory, self.wildCard)
 
-    def checkDirectory(self, path):
+    def checkDirectory(self, path: Union[str, pathlib.Path]) -> bool:
         if isDirectory(path):
             return True
 

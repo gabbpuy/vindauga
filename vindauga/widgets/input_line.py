@@ -4,11 +4,11 @@ from typing import Optional
 
 from vindauga.constants.command_codes import cmCancel, cmValid
 from vindauga.constants.event_codes import evMouseDown, evMouseAuto, meDoubleClick, evMouseMove, evKeyDown
-from vindauga.constants.keys import (kbShift, kbLeft, kbRight, kbHome, kbEnd, kbBackSpace, kbDel, kbIns, kbCtrlY,
+from vindauga.constants.keys import (kbLeft, kbRight, kbHome, kbEnd, kbBackSpace, kbDel, kbIns, kbCtrlY,
                                      kbEnter, kbTab, kbShiftHome, kbShiftLeft, kbShiftRight, kbShiftEnd)
 from vindauga.constants.option_flags import ofSelectable, ofFirstClick
 from vindauga.constants.state_flags import sfCursorVis, sfCursorIns, sfActive, sfSelected, sfFocused
-from vindauga.constants.validation_constants import vtDataSize, vtGetData, vtSetData, vsOK
+from vindauga.constants.validation_constants import vtGetData, vtSetData, vsOK
 from vindauga.events.event import Event
 from vindauga.misc.util import ctrlToArrow
 from vindauga.types.draw_buffer import DrawBuffer
@@ -65,7 +65,8 @@ class State:
         self.anchor = 0
 
     def __repr__(self):
-        return f'State: p: {self.pos}, 1: {self.firstPos}, s: {self.selStart}, e: {self.selEnd}, a: {self.anchor} d:{len(self.data)}'
+        return (f'State: p: {self.pos}, 1: {self.firstPos}, s: {self.selStart}, e: {self.selEnd}, '
+                f'a: {self.anchor} d:{len(self.data)}')
 
 
 class InputLine(View):
@@ -265,7 +266,7 @@ class InputLine(View):
     def setValidator(self, validator: Validator):
         self.validator = validator
 
-    def valid(self, command):
+    def valid(self, command: int) -> bool:
         if self.validator:
             if command == cmValid:
                 return self.validator.status == vsOK
@@ -316,20 +317,3 @@ class InputLine(View):
     def __restoreState(self):
         if self.validator:
             self.current.update(self.old)
-
-    def __checkValid(self, noAutoFill) -> bool:
-        if self.validator:
-            oldLen = len(self.current.data)
-            newData = self.current.data
-            if not self.validator.isValidInput(newData, noAutoFill):
-                self.__restoreState()
-                return False
-
-            if len(newData) > self.maxLen:
-                newData = newData[:self.maxLen]
-
-            self.current.data = newData
-
-            if self.current.pos >= oldLen and len(self.current.data) > oldLen:
-                self.current.pos = len(self.current.data)
-        return True

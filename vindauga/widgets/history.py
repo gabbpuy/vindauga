@@ -4,13 +4,16 @@ from vindauga.constants.event_codes import *
 from vindauga.constants.keys import kbDown
 from vindauga.constants.option_flags import ofPostProcess
 from vindauga.constants.state_flags import sfFocused
+from vindauga.events.event import Event
 from vindauga.history_support.history_utils import *
 from vindauga.misc.util import ctrlToArrow
 from vindauga.types.draw_buffer import DrawBuffer
-from vindauga.types.records.data_record import DataRecord
+from vindauga.types.rect import Rect
 from vindauga.types.palette import Palette
 from vindauga.types.view import View
+
 from .history_window import HistoryWindow
+from .input_line import InputLine
 
 
 class History(View):
@@ -18,7 +21,7 @@ class History(View):
     name = 'History'
     cpHistory = '\x16\x17'
 
-    def __init__(self, bounds, linkedWidget, historyId):
+    def __init__(self, bounds: Rect, linkedWidget: InputLine, historyId: int):
         super().__init__(bounds)
         self._linkedWidget = linkedWidget
         self._historyId = historyId
@@ -36,11 +39,11 @@ class History(View):
         b.moveCStr(0, self.icon, self.getColor(0x0102))
         self.writeLine(0, 0, self.size.x, self.size.y, b)
 
-    def getPalette(self):
+    def getPalette(self) -> Palette:
         palette = Palette(self.cpHistory)
         return palette
 
-    def handleEvent(self, event):
+    def handleEvent(self, event: Event):
         super().handleEvent(event)
 
         if (event.what == evMouseDown or (event.what == evKeyDown and ctrlToArrow(event.keyDown.keyCode) == kbDown and
@@ -66,8 +69,8 @@ class History(View):
             if historyWindow:
                 c = self.owner.execView(historyWindow)
                 if c == cmOK:
-                    rslt = historyWindow.getSelection()
-                    self._linkedWidget.setData(rslt)
+                    result = historyWindow.getSelection()
+                    self._linkedWidget.setData(result)
                     self._linkedWidget.selectAll(True)
                     self._linkedWidget.drawView()
                 self.destroy(historyWindow)
@@ -79,10 +82,10 @@ class History(View):
                 historyRecord = self._linkedWidget.getData()
                 self.recordHistory(historyRecord.value)
 
-    def initHistoryWindow(self, bounds):
+    def initHistoryWindow(self, bounds: Rect) -> HistoryWindow:
         p = HistoryWindow(bounds, self._historyId)
         p.helpCtx = self._linkedWidget.helpCtx
         return p
 
-    def recordHistory(self, s):
-        historyAdd(self._historyId, s)
+    def recordHistory(self, historyString: str):
+        historyAdd(self._historyId, historyString)

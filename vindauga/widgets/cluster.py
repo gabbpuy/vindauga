@@ -1,17 +1,21 @@
 # -*- coding: utf-8 -*-
 import logging
+from typing import List, Union, Tuple
 
 from vindauga.constants.command_codes import (hcNoContext)
 from vindauga.constants.event_codes import evMouseDown, evMouseMove, evKeyDown
 from vindauga.constants.keys import kbUp, kbDown, kbLeft, kbRight
 from vindauga.constants.option_flags import ofSelectable, ofFirstClick, ofPreProcess, ofPostProcess
 from vindauga.constants.state_flags import sfSelected, sfFocused
+from vindauga.events.event import Event
 from vindauga.misc.character_codes import SPECIAL_CHARS, getAltCode
 from vindauga.misc.util import ctrlToArrow, nameLength, hotKey
 from vindauga.types.draw_buffer import DrawBuffer
 from vindauga.types.group import Phases
 from vindauga.types.palette import Palette
+from vindauga.types.point import Point
 from vindauga.types.records.data_record import DataRecord
+from vindauga.types.rect import Rect
 from vindauga.types.view import View
 
 logger = logging.getLogger(__name__)
@@ -21,7 +25,7 @@ class Cluster(View):
     name = 'Cluster'
     cpCluster = '\x10\x11\x12\x12\x1f'
 
-    def __init__(self, bounds, strings):
+    def __init__(self, bounds: Rect, strings: Union[List[str], Tuple[str]]):
         super().__init__(bounds)
         self._value = 0
         self._sel = 0
@@ -32,11 +36,11 @@ class Cluster(View):
         self.setCursor(2, 0)
         self.showCursor()
 
-    def drawBox(self, icon, marker):
+    def drawBox(self, icon: str, marker: str):
         s = ' ' + marker
         self.drawMultiBox(icon, s)
 
-    def drawMultiBox(self, icon, marker):
+    def drawMultiBox(self, icon: str, marker: str):
         b = DrawBuffer()
 
         cNorm = self.getColor(0x0301)
@@ -71,22 +75,22 @@ class Cluster(View):
             self.writeBuf(0, i, self.size.x, 1, b)
         self.setCursor(self.__column(self._sel) + 2, self.__row(self._sel))
 
-    def getData(self):
+    def getData(self) -> DataRecord:
         rec = DataRecord()
         self.drawView()
         rec.value = self._value
         return rec
 
-    def getHelpCtx(self):
+    def getHelpCtx(self) -> int:
         if self.helpCtx == hcNoContext:
             return hcNoContext
         return self.helpCtx + self._sel
 
-    def getPalette(self):
+    def getPalette(self) -> Palette:
         palette = Palette(self.cpCluster)
         return palette
 
-    def handleEvent(self, event):
+    def handleEvent(self, event: Event):
         super().handleEvent(event)
 
         if not self.options & ofSelectable:
@@ -118,7 +122,7 @@ class Cluster(View):
         elif event.what == evKeyDown:
             self._handleKeyDownEvent(event)
 
-    def _handleKeyDownEvent(self, event):
+    def _handleKeyDownEvent(self, event: Event):
         s = self._sel
         cta = ctrlToArrow(event.keyDown.keyCode)
         if cta == kbUp:
@@ -196,7 +200,7 @@ class Cluster(View):
                 self.drawView()
                 self.clearEvent(event)
 
-    def setButtonState(self, mask, enable):
+    def setButtonState(self, mask: int, enable: bool):
         if not enable:
             self._enableMask &= ~mask
         else:
@@ -211,11 +215,11 @@ class Cluster(View):
             else:
                 self.options &= ~ofSelectable
 
-    def setData(self, rec):
+    def setData(self, rec: DataRecord):
         self._value = rec
         self.drawView()
 
-    def setState(self, state, enable):
+    def setState(self, state: int, enable: bool):
         super().setState(state, enable)
 
         if state == sfSelected:
@@ -229,10 +233,10 @@ class Cluster(View):
             self.__moveSel(i, s)
         self.drawView()
 
-    def mark(self, item):
+    def mark(self, item: int) -> bool:
         return False
 
-    def multiMark(self, item):
+    def multiMark(self, item: int) -> bool:
         return self.mark(item)
 
     def movedTo(self, *args):
@@ -241,16 +245,16 @@ class Cluster(View):
     def press(self, *args):
         pass
 
-    def buttonState(self, item):
+    def buttonState(self, item: int) -> bool:
         if item >= 64:
             return False
 
         return bool(self._enableMask & (1 << item))
 
-    def __row(self, item):
+    def __row(self, item: int) -> int:
         return item % self.size.y
 
-    def __column(self, item):
+    def __column(self, item: int) -> int:
         if item < self.size.y:
             return 0
         width = 0
@@ -268,7 +272,7 @@ class Cluster(View):
                 width = cellLength
         return col
 
-    def __findSel(self, p):
+    def __findSel(self, p: Point) -> int:
         r = self.getExtent()
         if p not in r:
             return -1
@@ -284,7 +288,7 @@ class Cluster(View):
 
         return s
 
-    def __moveSel(self, i, s):
+    def __moveSel(self, i: int, s: int):
         if i < len(self._strings):
             self._sel = s
             self.movedTo(self._sel)

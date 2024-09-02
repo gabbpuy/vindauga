@@ -1,11 +1,12 @@
 # -*- coding: utf-8 -*-
 from gettext import gettext as _
-from typing import List
+from typing import List, Any, Union, Tuple
 
 from vindauga.constants.buttons import bfNormal
 from vindauga.constants.command_codes import (cmYes, cmNo, cmOK,
                                               cmCancel)
-from vindauga.constants.message_flags import mfYesButton, mfNoButton, mfOKButton, mfCancelButton, mfError, mfWarning, mfInformation, mfConfirmation
+from vindauga.constants.message_flags import (mfYesButton, mfNoButton, mfOKButton, mfCancelButton, mfError, mfWarning,
+                                              mfInformation, mfConfirmation)
 from vindauga.types.rect import Rect
 from vindauga.widgets.button import Button
 from vindauga.widgets.dialog import Dialog
@@ -39,7 +40,7 @@ TITLES = {
 }
 
 
-def messageBoxRect(r: Rect, msg: str, messageType: int, buttons: List[int]):
+def messageBoxRect(r: Rect, msg: str, messageType: int, buttons: List[int]) -> Any:
 
     dialog = Dialog(r, TITLES[messageType])
 
@@ -67,5 +68,5 @@ def makeRect() -> Rect:
     return r
 
 
-def messageBox(msg: str, messageType: int, buttons: List[int]):
+def messageBox(msg: str, messageType: int, buttons: Union[List[int], Tuple[int]]) -> Any:
     return messageBoxRect(makeRect(), msg, messageType, buttons)

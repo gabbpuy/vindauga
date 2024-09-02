@@ -5,10 +5,10 @@ from .string_collection import StringCollection
 class GenCollection(StringCollection):
     name = 'GenCollection'
 
-    def getText(self, index):
+    def getText(self, index: int) -> str:
         return self[index]
 
-    def getTextLength(self):
+    def getTextLength(self) -> int:
         if not len(self):
             return 0
         return max(len(s) for s in self)

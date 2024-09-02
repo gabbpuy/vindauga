@@ -1,5 +1,7 @@
 # -*- coding: utf-8 -*-
+from __future__ import annotations
 from dataclasses import dataclass
+from typing import Optional
 
 
 @dataclass
@@ -14,4 +16,4 @@ class StatusItem:
     text: str
     keyCode: int
     command: int
-    next: 'StatusItem' = None
+    next: Optional[StatusItem] = None

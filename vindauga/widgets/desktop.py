@@ -6,11 +6,14 @@ from vindauga.constants.grow_flags import gfGrowHiX, gfGrowHiY
 from vindauga.constants.event_codes import evCommand
 from vindauga.constants.option_flags import ofTileable
 from vindauga.constants.state_flags import sfVisible
+from vindauga.events.event import Event
 from vindauga.types.group import Group
 from vindauga.types.point import Point
 from vindauga.types.rect import Rect
 
 from .background import Background
+from .window import Window
+
 
 logger = logging.getLogger(__name__)
 
@@ -31,7 +34,7 @@ class Desktop(Group):
 
     name = 'Desktop'
 
-    def __init__(self, bounds):
+    def __init__(self, bounds: Rect):
         super().__init__(bounds)
         self.cascadeNum = 0
         self.lastView = None
@@ -51,10 +54,10 @@ class Desktop(Group):
             self._background = None
 
     @staticmethod
-    def isTileable(window):
+    def isTileable(window: Window) -> bool:
         return window.options & ofTileable and window.state & sfVisible
 
-    def mostEqualDivisors(self, n):
+    def mostEqualDivisors(self, n: int):
         """
         Find a 'square' to tile the windows.
 
@@ -73,8 +76,8 @@ class Desktop(Group):
             x, y = a, b
         return x, y
 
-    def calcTileRect(self, pos, bounds):
-        def dividerLoc(lo, hi, num, dPos):
+    def calcTileRect(self, pos: int, bounds: Rect) -> Rect:
+        def dividerLoc(lo: int, hi: int, num: int, dPos: int) -> int:
             return int((hi - lo) * dPos // num + lo)
 
         d = (self.numCols - self.leftOver) * self.numRows
@@ -98,11 +101,11 @@ class Desktop(Group):
 
         return nRect
 
-    def doCountTileable(self, window, *_args):
+    def doCountTileable(self, window: Window, *_args):
         if self.isTileable(window):
             self.numTileable += 1
 
-    def doCascade(self, window, bounds):
+    def doCascade(self, window: Window, bounds: Rect):
         if self.isTileable(window) and self.cascadeNum >= 0:
             newRect = bounds.copy()
             newRect.topLeft.x += self.cascadeNum
@@ -110,12 +113,12 @@ class Desktop(Group):
             window.locate(newRect)
             self.cascadeNum -= 1
 
-    def doCount(self, window, *_args):
+    def doCount(self, window: Window, *_args):
         if self.isTileable(window):
             self.cascadeNum += 1
             self.lastView = window
 
-    def doTile(self, window, bounds):
+    def doTile(self, window: Window, bounds: Rect):
         if self.isTileable(window):
             r = self.calcTileRect(self.tileNum, bounds)
             window.locate(r)
@@ -125,12 +128,12 @@ class Desktop(Group):
         self._background = None
         super().shutdown()
 
-    def cascade(self, r):
+    def cascade(self, r: Rect):
         """
         Moves all the windows in a cascade-like fashion.
 
         Redisplays all tileable windows owned by the desk top in cascaded
-        format. The first tileable window in Z-order (the window "in back") is
+        log_format. The first tileable window in Z-order (the window "in back") is
         zoomed to fill the desk top, and each succeeding window fills a region
         beginning one line lower and one space further to the right than the
         one before. The active window appears "on top" as the smallest window.
@@ -155,7 +158,7 @@ class Desktop(Group):
                 finally:
                     self.unlock()
 
-    def handleEvent(self, event):
+    def handleEvent(self, event: Event):
         """
         Calls `super().handleEvent()` and takes care of the commands `cmNext`
         (usually the hot key F6) and `cmPrev` by cycling through the windows
@@ -178,7 +181,7 @@ class Desktop(Group):
                 return
             self.clearEvent(event)
 
-    def initBackground(self, bounds):
+    def initBackground(self, bounds: Rect):
         """
         Creates a new background.
 
@@ -192,7 +195,7 @@ class Desktop(Group):
         """
         return Background(bounds, self.DEFAULT_BACKGROUND)
 
-    def tile(self, bounds):
+    def tile(self, bounds: Rect):
         """
         Moves all the windows in a tile-like fashion.
 

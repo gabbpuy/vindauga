@@ -3,6 +3,7 @@ import string
 
 from vindauga.constants.event_codes import evBroadcast, evKeyboard
 from vindauga.constants.option_flags import ofSelectable
+from vindauga.events.event import Event
 from vindauga.types.draw_buffer import DrawBuffer
 from vindauga.types.palette import Palette
 from vindauga.types.view import View
@@ -25,15 +26,15 @@ class Calculator(View):
         self.eventMask = (evKeyboard | evBroadcast)
         self.number = ''
         self.operate = ''
-        self.operand = ''
+        self.operand = 0.0
         self.status = None
         self.sign = ' '
         self.clear()
 
-    def getPalette(self):
+    def getPalette(self) -> Palette:
         return Palette(self.cpCalcPalette)
 
-    def handleEvent(self, event):
+    def handleEvent(self, event: Event):
         super().handleEvent(event)
 
         if event.what == evKeyboard:
@@ -67,7 +68,7 @@ class Calculator(View):
         self.number = 'Error'
         self.sign = ' '
 
-    def setDisplay(self, r):
+    def setDisplay(self, r: float):
         if r < 0.0:
             self.sign = '-'
             displayStr = str(-r)
@@ -86,7 +87,7 @@ class Calculator(View):
             self.number = '0'
             self.sign = ' '
 
-    def calcKey(self, key):
+    def calcKey(self, key: str):
         key = key.upper()
 
         if self.status == csError and key != 'C':
@@ -146,5 +147,5 @@ class Calculator(View):
 
         self.drawView()
 
-    def getDisplay(self):
+    def getDisplay(self) -> float:
         return float(self.number)

@@ -1,4 +1,6 @@
 # -*- coding: utf-8 -*-
+from gettext import gettext as _
+
 from vindauga.constants.message_flags import mfError, mfOKButton
 from vindauga.dialogs.message_box import messageBox
 from .lookup_validator import LookupValidator

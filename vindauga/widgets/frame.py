@@ -11,12 +11,12 @@ from vindauga.constants.grow_flags import gfGrowHiX, gfGrowHiY
 from vindauga.constants.event_codes import evBroadcast, evMouseUp, evMouseDown, evMouse, evCommand, meDoubleClick
 from vindauga.constants.option_flags import ofFramed
 from vindauga.constants.state_flags import sfVisible, sfActive, sfDragging
-from vindauga.misc.util import nameLength
+from vindauga.events.event import Event
 from vindauga.types.draw_buffer import DrawBuffer
 from vindauga.types.palette import Palette
 from vindauga.types.point import Point
+from vindauga.types.rect import Rect
 from vindauga.types.view import View
-from vindauga.widgets.scroll_group import ScrollGroup
 
 logger = logging.getLogger(__name__)
 
@@ -34,7 +34,7 @@ class Frame(View):
     dragIcon = '~─┘~'
     cpFrame = "\x01\x01\x02\x02\x03"
 
-    def __init__(self, bounds):
+    def __init__(self, bounds: Rect):
         super().__init__(bounds)
         self.growMode = gfGrowHiX + gfGrowHiY
         self.eventMask |= (evBroadcast | evMouseUp)
@@ -117,11 +117,11 @@ class Frame(View):
 
         self.writeLine(0, self.size.y - 1, self.size.x, 1, drawable)
 
-    def getPalette(self):
+    def getPalette(self) -> Palette:
         palette = Palette(self.cpFrame)
         return palette
 
-    def handleEvent(self, event):
+    def handleEvent(self, event: Event):
         """
         Calls `super().handleEvent()`, then handles mouse events.
 
@@ -168,7 +168,7 @@ class Frame(View):
                     self.__dragWindow(event, dmDragGrow)
                     self.clearEvent(event)
 
-    def setState(self, state, enable):
+    def setState(self, state: int, enable: bool):
         """
         Changes the state of the frame.
         Calls `super().setState(state, enable)`. If the new state is
@@ -182,7 +182,7 @@ class Frame(View):
         if state & (sfActive | sfDragging):
             self.drawView()
 
-    def __frameLine(self, frameBuf, y, n, color):
+    def __frameLine(self, frameBuf: DrawBuffer, y: int, n: int, color: int):
         """
         Explanation of the masks
 
@@ -238,7 +238,7 @@ class Frame(View):
         line = ''.join(self.frameChars[frameMask[i]] for i in range(self.size.x))
         frameBuf.moveStr(0, line, color)
 
-    def __dragWindow(self, event, mode):
+    def __dragWindow(self, event: Event, mode: int):
         minBounds = Point()
         maxBounds = Point()
 

@@ -11,7 +11,7 @@ FA_DIREC = 0x02
 class FileCollection(SortedCollection):
     name = 'FileCollection'
 
-    def _compare(self, key1, key2):
+    def _compare(self, key1, key2) -> int:
         if key1 is key2:
             return 0
 
@@ -37,9 +37,7 @@ class FileCollection(SortedCollection):
             return -1
         return 1
 
-    def search(self, key):
-        i = 0
-
+    def search(self, key) -> int:
         if any((file := i) for i, entry in enumerate(self) if entry == key):
             return file
         return len(self) + 1

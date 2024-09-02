@@ -1,12 +1,14 @@
 # -*- coding: utf-8 -*-
 # SPECIAL_CHARS = cp437ToUnicode('\x4B\xAE\x1A\x1B\x20\x20')
+from typing import Union
+
 SPECIAL_CHARS = 'K«→←  '
 
 altCodes1 = "QWERTYUIOP\x00\x00\x00\x00ASDFGHJKL\x00\x00\x00\x00\x00ZXCVBNM"
 altCodes2 = "1234567890-="
 
 
-def getAltChar(keyCode):
+def getAltChar(keyCode: Union[str, int]) -> str:
     if isinstance(keyCode, str):
         keyCode = ord(keyCode)
 
@@ -19,10 +21,10 @@ def getAltChar(keyCode):
             return altCodes1[tmp - 0x10]  # alt-letter
         elif 0x78 <= tmp <= 0x84:
             return altCodes2[tmp - 0x78]  # alt-number
-    return 0
+    return ''
 
 
-def getAltCode(c):
+def getAltCode(c: Union[str, int]) -> int:
     if not c:
         return 0
 
@@ -43,19 +45,19 @@ def getAltCode(c):
     return 0
 
 
-def low(w):
+def low(w: int) -> int:
     return w & 0xFF
 
 
-def hi(w):
+def hi(w: int) -> int:
     return (w >> 8) & 0xFF
 
 
-def getCtrlChar(keyCode):
+def getCtrlChar(keyCode: int) -> str:
     if low(keyCode) and (low(keyCode) <= (ord('Z') - ord('A') + 1)):
         return chr(low(keyCode) + ord('A') - 1)
-    return 0
+    return ''
 
 
-def getCtrlCode(ch):
+def getCtrlCode(ch: int) -> int:
     return getAltCode(ch) | [ch, ch & ~0x20][ord('a') <= ch <= ord('z')]

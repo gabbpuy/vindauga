@@ -7,14 +7,14 @@ from vindauga.constants.command_codes import cmScrollBarChanged, cmReceivedFocus
 from vindauga.constants.grow_flags import gfGrowHiX, gfGrowHiY
 from vindauga.constants.state_flags import sfSelected, sfActive
 from vindauga.constants.option_flags import ofSelectable
+from vindauga.events.event import Event
 from vindauga.types.group import Group
 from vindauga.types.point import Point
+from vindauga.types.rect import Rect
 from vindauga.types.view import View
 
 from .background import Background
 from .scroll_bar import ScrollBar
-from ..events.event import Event
-from ..types.rect import Rect
 
 logger = logging.getLogger(__name__)
 sbHorizontalBar = 1
@@ -171,3 +171,4 @@ class ScrollGroup(Group):
                 first.select()
             else:
                 last.select()
+        return

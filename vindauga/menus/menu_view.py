@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
-import logging
+from __future__ import annotations
 from enum import Enum, auto
-from typing import Optional, Type, Union, List
+from typing import List
 
 from vindauga.constants.command_codes import cmMenu, hcNoContext, cmCommandSetChanged
 from vindauga.constants.event_codes import (evBroadcast, evMouseUp, evMouseMove, evMouseDown, evKeyDown, evCommand,
@@ -14,6 +14,7 @@ from vindauga.types.palette import Palette
 from vindauga.types.point import Point
 from vindauga.types.rect import Rect
 from vindauga.types.view import View
+from .menu import Menu
 
 from .menu_item import MenuItem
 
@@ -44,7 +45,7 @@ class MenuView(View):
 
     cpMenuView = "\x02\x03\x04\x05\x06\x07"
 
-    def __init__(self, bounds: Rect, menu=None, parent: Optional[View] = None):
+    def __init__(self, bounds: Rect, menu=None, parent: Optional[MenuView] = None):
         super().__init__(bounds)
         self._parentMenu = parent
         self._current = None
@@ -56,7 +57,7 @@ class MenuView(View):
         from .menu_box import MenuBox
         return MenuBox(bounds, menu, parentMenu)
 
-    def getItemRect(self, item) -> Rect:
+    def getItemRect(self, item: MenuItem) -> Rect:
         """
         Classes derived from `MenuView` must override this member function in
         order to respond to mouse events. Your overriding functions in derived
@@ -132,16 +133,16 @@ class MenuView(View):
 
         return result
 
-    def findItem(self, ch: Union[str, int]):
+    def findItem(self, ch: Union[str, int]) -> Optional[MenuItem]:
         """
         Returns a pointer to the menu item that has code.upper() as its hot key
         (the highlighted character). Returns None if no such menu item is found or
-        if the menu item is disabled. Note that `findItem()` is case insensitive.
+        if the menu item is disabled. Note that `findItem()` is case-insensitive.
 
         :param ch: Hot key character
         :return: `MenuItem` object
         """
-        if not self.menu.items:
+        if not (self.menu.items and ch):
             return None
 
         if isinstance(ch, int):
@@ -153,7 +154,7 @@ class MenuView(View):
                 return m
         return None
 
-    def getHelpCtx(self):
+    def getHelpCtx(self) -> int:
         """
         By default, this member function returns the help context of the
         current menu selection. If this is `hcNoContext`, the parent menu's
@@ -175,7 +176,7 @@ class MenuView(View):
         palette = Palette(self.cpMenuView)
         return palette
 
-    def updateMenu(self, menu) -> bool:
+    def updateMenu(self, menu: Menu) -> bool:
         res = False
         if menu:
             items = (p for p in menu.items if p.name)
@@ -224,7 +225,7 @@ class MenuView(View):
                     if self.updateMenu(self.menu):
                         self.drawView()
 
-    def findHotKey(self, items: List[MenuItem], keyCode) -> MenuItem:
+    def findHotKey(self, items: List[MenuItem], keyCode) -> Optional[MenuItem]:
         if items:
             items = (p for p in items if p.name)
             for p in items:
@@ -393,7 +394,7 @@ class MenuView(View):
             p = p.parentMenu
         return p is not None
 
-    def __topMenu(self) -> View:
+    def __topMenu(self) -> MenuView:
         p = self
         while p._parentMenu:
             p = p._parentMenu

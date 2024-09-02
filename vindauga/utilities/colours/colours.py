@@ -245,8 +245,8 @@ def setPalette() -> Tuple[Display, array.array, Optional[array.array]]:
 
 
 @lru_cache(1)
-def getColorMap():
-    if not PLATFORM_IS_CYGWIN and (not PLATFORM_IS_WINDOWS or (PLATFORM_IS_WINDOWS and curses.can_change_color())):
+def getColorMap() -> Tuple[Colours]:
+    if PLATFORM_IS_CYGWIN or (not PLATFORM_IS_WINDOWS or (PLATFORM_IS_WINDOWS and curses.can_change_color())):
         colorMap = (Colours.Black,
                     Colours.Cyan,
                     Colours.Green,

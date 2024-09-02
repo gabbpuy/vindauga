@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 import logging
+from typing import Any
 
 logger = logging.getLogger(__name__)
 
@@ -9,7 +10,7 @@ class CollectionBase(list):
     def __init__(self, iterable=()):
         super().__init__(iterable)
 
-    def indexOf(self, item):
+    def indexOf(self, item) -> int:
         try:
             return self.index(item)
         except ValueError:
@@ -18,7 +19,7 @@ class CollectionBase(list):
     def pack(self):
         pass
 
-    def setLimit(self, limit):
+    def setLimit(self, limit: int):
         pass
 
     def firstThat(self, testFunc, *args):
@@ -58,7 +59,7 @@ class CollectionBase(list):
             except:
                 logger.exception('forEach(): %s(%s,%s)', action, item, args)
 
-    def search(self, key: int):
+    def search(self, key: Any) -> int:
         try:
             return self.index(key)
         except ValueError:

@@ -2,12 +2,14 @@
 
 from io import StringIO
 
+from vindauga.types.view import View
+
 treeLine =  '  │'
 nodeChild = '  ├─'
 nodeLast =  '  └─'
 
 
-def drawWidgetTree(node, prefix='', last=False):
+def drawWidgetTree(node: View, prefix='', last=False):
     buf = StringIO()
     if prefix:
         buf.write(prefix[:-3])

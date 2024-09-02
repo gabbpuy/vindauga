@@ -1,7 +1,9 @@
 # -*- coding: utf-8 -*-
 from vindauga.constants.colors import cmColorSet, cmColorForegroundChanged, cmColorBackgroundChanged
 from vindauga.constants.event_codes import evBroadcast
+from vindauga.events.event import Event
 from vindauga.misc.message import message
+from vindauga.types.rect import Rect
 
 from .cluster import Cluster
 
@@ -27,15 +29,15 @@ class MonoSelector(Cluster):
     underline = 'Underline'
     inverse = 'Inverse'
 
-    def __init__(self, bounds):
-        super().__init__(bounds, (self.normal, self.highlight, self.underline, self.inverse))
+    def __init__(self, bounds: Rect):
+        super().__init__(bounds, [self.normal, self.highlight, self.underline, self.inverse])
         self.eventMask |= evBroadcast
         self.value = 0
 
     def draw(self):
-        self.drawBox(self.button, 0x07)
+        self.drawBox(self.button, '\x07')
 
-    def handleEvent(self, event):
+    def handleEvent(self, event: Event):
         """
         Calls `super().handleEvent()` and responds to `cmColorSet` events by
         changing the data member `value` accordingly. The view is redrawn if
@@ -49,7 +51,7 @@ class MonoSelector(Cluster):
             self.value = event.message.infoPtr
             self.drawView()
 
-    def mark(self, item):
+    def mark(self, item: int) -> bool:
         """
         Returns True if the item'th button has been selected; otherwise returns
         False.
@@ -66,14 +68,14 @@ class MonoSelector(Cluster):
         message(self.owner, evBroadcast, cmColorForegroundChanged, self.value & 0x0F)
         message(self.owner, evBroadcast, cmColorBackgroundChanged, (self.value >> 4) & 0x0F)
 
-    def press(self, item):
+    def press(self, item: int):
         """
         Sets `value` to the item'th attribute and calls `newColor()`.
         """
         self.value = monoColors[item]
         self.newColor()
 
-    def movedTo(self, item):
+    def movedTo(self, item: int):
         """
         Sets value to the item'th attribute (same effect as `press()`).
 

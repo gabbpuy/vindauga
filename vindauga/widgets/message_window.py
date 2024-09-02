@@ -1,14 +1,19 @@
 # -*- coding:utf-8 -*-
+from typing import Any
+
 from vindauga.constants.command_codes import wnNoNumber, wpCyanWindow
 from vindauga.constants.scrollbar_codes import sbHorizontal, sbVertical, sbHandleKeyboard
 from vindauga.constants.drag_flags import dmLimitAll
 from vindauga.constants.event_codes import evBroadcast
+from vindauga.events.event import Event
 from vindauga.misc.message import message
 from vindauga.types.palette import Palette
+from vindauga.types.rect import Rect
 
 from .message_list_viewer import MessageListViewer
 from .program import Program
 from .window import Window
+
 
 cmFindMsgBox = 0x1000
 cmInsMsgBox = 0x1001
@@ -19,7 +24,7 @@ cmInsInfoBox = 0x1003
 class MessageWindow(Window):
     cpMessageWindow = '\x10\x11\x12\x13\x14\x15\x16\x17\x39\x3A\x3B\x3C\x3D'
 
-    def __init__(self, bounds):
+    def __init__(self, bounds: Rect):
         super().__init__(bounds, 'Messages', wnNoNumber)
         self.dragMode = dmLimitAll
         self.palette = wpCyanWindow
@@ -35,7 +40,7 @@ class MessageWindow(Window):
         self.msgViewer = MessageListViewer(r, 1, hBar, vBar)
         self.insert(self.msgViewer)
 
-    def handleEvent(self, event):
+    def handleEvent(self, event: Event):
         super().handleEvent(event)
         if event.what == evBroadcast:
             emc = event.message.command
@@ -46,14 +51,13 @@ class MessageWindow(Window):
                 self.clearEvent(event)
                 self.drawView()
 
-    def getPalette(self):
+    def getPalette(self) -> Palette:
         return Palette(self.cpMessageWindow)
 
 
-def postMessage(messageData):
+def postMessage(messageData: Any):
     # Send a message to the desktop to find the log window
-    wPtr = message(Program.desktop, evBroadcast, cmFindMsgBox, 0)
-
+    wPtr = message(Program.desktop, evBroadcast, cmFindMsgBox, None)
     if not wPtr:
         # There isn't one, so make one
         r = Program.desktop.getExtent()

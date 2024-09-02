@@ -260,11 +260,11 @@ codePage = {
 }
 
 
-def cp437ToUnicode(s):
+def cp437ToUnicode(s: str) -> str:
     """
-    Turn CP437 stuff into unicode
+    Turn CP437 stuff into Unicode
 
     :param s: A cp437 string
-    :return: A unicode string
+    :return: A Unicode string
     """
     return ''.join(chr(codePage[ord(c)]) for c in s)

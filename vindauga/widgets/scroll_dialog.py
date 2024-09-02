@@ -1,6 +1,4 @@
 # -*- coding: utf-8 -*-
-import logging
-
 from vindauga.constants.scrollbar_codes import sbHorizontal, sbVertical, sbHandleKeyboard
 from vindauga.constants.grow_flags import gfGrowHiX, gfGrowHiY
 from vindauga.constants.event_codes import evKeyDown

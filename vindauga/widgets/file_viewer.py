@@ -13,8 +13,11 @@ from vindauga.constants.grow_flags import gfGrowHiX, gfGrowHiY
 from vindauga.constants.state_flags import sfExposed
 from vindauga.dialogs.message_box import messageBox
 from vindauga.types.draw_buffer import DrawBuffer
+from vindauga.types.rect import Rect
 
+from .scroll_bar import ScrollBar
 from .scroller import Scroller
+
 
 logger = logging.getLogger(__name__)
 
@@ -22,7 +25,7 @@ logger = logging.getLogger(__name__)
 class FileViewer(Scroller):
     name = 'FileViewer'
 
-    def __init__(self, bounds, hScrollBar, vScrollBar, fileName, wrap=True):
+    def __init__(self, bounds: Rect, hScrollBar: ScrollBar, vScrollBar: ScrollBar, fileName: str, wrap: bool = True):
         super().__init__(bounds, hScrollBar, vScrollBar)
         self.growMode = gfGrowHiX | gfGrowHiY
         self.fileLines = None
@@ -54,7 +57,7 @@ class FileViewer(Scroller):
         super().scrollDraw()
         self.draw()
 
-    def readFile(self, fName):
+    def readFile(self, fName: str):
         self._limit.x = 0
         self.fileName = fName
         self.fileLines = StringCollection()
@@ -78,10 +81,10 @@ class FileViewer(Scroller):
         if self.fileLines:
             self._limit.x = max(wcwidth.wcswidth(line) for line in self.fileLines)
 
-    def setState(self, state, enable):
+    def setState(self, state: int, enable: bool):
         super().setState(state, enable)
         if enable and (state & sfExposed):
             self.setLimit(self._limit.x, self._limit.y)
 
-    def valid(self, command):
+    def valid(self, command: int) -> bool:
         return self.isValid

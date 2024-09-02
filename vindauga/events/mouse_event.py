@@ -1,4 +1,5 @@
 # -*- coding: utf-8 -*-
+from __future__ import annotations
 from copy import copy
 from dataclasses import dataclass, field
 
@@ -12,7 +13,7 @@ class MouseEvent:
     controlKeyState: int = 0
     buttons: int = 0
 
-    def copy(self, other: 'MouseEvent'):
+    def copy(self, other: MouseEvent):
         self.where = copy(other.where)
         self.eventFlags = other.eventFlags
         self.controlKeyState = other.controlKeyState

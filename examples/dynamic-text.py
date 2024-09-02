@@ -34,7 +34,7 @@ class TestDialog(Dialog):
         self.insert(Button(Rect(15, 6, 25, 8), 'O~K~', cmOK, bfNormal))
         self.__master.select()
 
-    def handleEvent(self, event):
+    def handleEvent(self, event: Event):
         if event.what == evKeyDown and event.keyDown.keyCode == kbTab:
             buf = self.__master.getData()
             self.__slave.setText(buf.value)
@@ -43,7 +43,7 @@ class TestDialog(Dialog):
 
 class TestApplication(Application):
 
-    def initMenuBar(self, bounds):
+    def initMenuBar(self, bounds: Rect) -> MenuBar:
         bounds.bottomRight.y = bounds.topLeft.y + 1
 
         return MenuBar(bounds,
@@ -52,7 +52,7 @@ class TestApplication(Application):
                        )
                        )
 
-    def handleEvent(self, event):
+    def handleEvent(self, event: Event):
         super().handleEvent(event)
 
         if event.what == evCommand:

@@ -1,10 +1,11 @@
 # -*- coding: utf-8-*-
+from __future__ import annotations
 import copy
 from dataclasses import dataclass
 from enum import Enum, auto
 import logging
 from itertools import cycle, islice
-from typing import Optional
+from typing import Optional, List, Any
 
 from vindauga.constants.command_codes import cmCancel, hcNoContext, cmReleasedFocus, cmLoseFocus
 from vindauga.constants.event_codes import positionalEvents, focusedEvents, evNothing, evMouseDown
@@ -16,6 +17,7 @@ from vindauga.events.event import Event
 
 from .draw_buffer import BufferArray
 from .point import Point
+from .rect import Rect
 from .screen import Screen
 from .view import View
 
@@ -25,10 +27,10 @@ logger = logging.getLogger(__name__)
 @dataclass
 class HandleStruct:
     event: Event
-    group: 'Group'
+    group: Group
 
     def __repr__(self):
-        return '<HandleStruct event={} :: group={}>'.format(self.event, self.group)
+        return f'<HandleStruct event={self.event} :: group={self.group}>'
 
 
 @dataclass
@@ -82,48 +84,49 @@ class Group(View):
     """
     name = 'Group'
 
-    def __init__(self, bounds):
+    def __init__(self, bounds: Rect):
         super().__init__(bounds)
-        self.phase = Phases.Focused
+        self.phase: Phases = Phases.Focused
         self.buffer = None
         self.lockFlag = 0
         self.endState = 0
         self.options |= ofSelectable | ofBuffered
-        self.clip = self.getExtent()
+        self.clip: Rect = self.getExtent()
         self.eventMask = 0xFFFF
         self.current = None
 
     @property
-    def last(self):
+    def last(self) -> View:
         return self.children[-1] if self.children else None
 
     @property
-    def first(self):
+    def first(self) -> View:
         return self.children[0] if self.children else None
 
     @staticmethod
-    def doCalcChange(view, delta):
+    def doCalcChange(view: View, delta: Point):
         r = view.calcBounds(delta)
         view.changeBounds(r)
 
     @staticmethod
-    def doAwaken(v, *_args):
+    def doAwaken(v: View, *_args):
         v.awaken()
 
     @staticmethod
-    def doSetState(view, b):
+    def doSetState(view: View, b: SetBlock):
         view.setState(b.state, b.enable)
 
     @staticmethod
-    def hasMouse(child, event):
+    def hasMouse(child: View, event: Event):
         return child.containsMouse(event)
 
     @staticmethod
-    def doExpose(view, enable):
+    def doExpose(view: View, enable: bool):
         if view.state & sfVisible:
             view.setState(sfExposed, enable)
 
-    def doHandleEvent(self, child, eventHandle):
+    @staticmethod
+    def doHandleEvent(child: View, eventHandle: HandleStruct):
         if not child or (child.state & sfDisabled and eventHandle.event.what & (positionalEvents | focusedEvents)):
             return
 
@@ -193,7 +196,6 @@ class Group(View):
                 self.getEvent(e)
                 self.handleEvent(e)
                 if e.what != evNothing:
-                    logger.error('Event Error for %s', e)
                     self.eventError(e)
                     self.clearEvent(e)
                 handlingEvents = self.endState == 0
@@ -207,7 +209,7 @@ class Group(View):
         if not self.state & sfFocused or not self.current or self.current.valid(cmLoseFocus):
             self.setCurrent(self.firstMatch(sfVisible, ofSelectable), self.normalSelect)
 
-    def setCurrent(self, view, mode):
+    def setCurrent(self, view: View, mode: int):
         if self.current is view:
             return
 
@@ -229,7 +231,7 @@ class Group(View):
         finally:
             self.unlock()
 
-    def selectNext(self, direction):
+    def selectNext(self, direction: bool):
         if self.current:
             p = self.__findNext(direction)
             if p:
@@ -245,7 +247,7 @@ class Group(View):
             return child
         return None
 
-    def focusNext(self, forwards):
+    def focusNext(self, forwards: bool):
         p = self.__findNext(forwards)
         if p:
             return p.focus()
@@ -267,10 +269,7 @@ class Group(View):
             return -1
 
     def setState(self, state: int, enable: bool):
-        sb = SetBlock()
-        sb.state = state
-        sb.enable = enable
-
+        sb = SetBlock(state=state, enable=enable)
         super().setState(state, enable)
 
         if state & (sfActive | sfDragging):
@@ -313,7 +312,8 @@ class Group(View):
             else:
                 self.forEach(self.doHandleEvent, hs)
 
-    def drawSubViews(self, start: View, bottom: View = None):
+    @staticmethod
+    def drawSubViews(start: View, bottom: View = None):
         while start and start is not bottom:
             start.drawView()
             start = start.nextView()
@@ -337,7 +337,7 @@ class Group(View):
             finally:
                 self.unlock()
 
-    def consumesData(self):
+    def consumesData(self) -> bool:
         return any(c.consumesData() for c in self.children)
 
     def getData(self):
@@ -347,7 +347,7 @@ class Group(View):
             data.append(c.getData())
         return data
 
-    def setData(self, data):
+    def setData(self, data: List[Any]):
         elements = zip((c for c in self.children if c.consumesData()), data)
         for c, data in elements:
             c.setData(data)
@@ -392,11 +392,11 @@ class Group(View):
         else:
             super().endModal(command)
 
-    def eventError(self, event):
+    def eventError(self, event: Event):
         if self.owner:
             self.owner.eventError(event)
 
-    def getHelpCtx(self):
+    def getHelpCtx(self) -> int:
         h = hcNoContext
 
         if self.current:
@@ -428,7 +428,7 @@ class Group(View):
     def insert(self, p):
         self.insertBefore(p, self.first)
 
-    def insertBefore(self, view, target):
+    def insertBefore(self, view: View, target: View):
         if view and not view.owner and (not target or target.owner is self):
             if view.options & ofCenterX:
                 view.origin.x = (self.size.x - view.size.x) // 2
@@ -445,11 +445,11 @@ class Group(View):
             if saveState & sfActive:
                 view.setState(sfActive, True)
 
-    def removeView(self, view):
+    def removeView(self, view: View):
         if self.children:
             self.children.remove(view)
 
-    def insertView(self, view, target=None):
+    def insertView(self, view: View, target: Optional[View] = None):
         view.owner = self
         if target:
             idx = self.children.index(target)
@@ -457,7 +457,7 @@ class Group(View):
         else:
             self.children.append(view)
 
-    def remove(self, view):
+    def remove(self, view: View):
         if not view:
             return
 
@@ -476,7 +476,7 @@ class Group(View):
     def __isInvalid(view: View, command: int) -> bool:
         return not view.valid(command)
 
-    def __findNext(self, forwards):
+    def __findNext(self, forwards: bool):
         if not self.current:
             return None
 
@@ -495,6 +495,6 @@ class Group(View):
                 break
         return None
 
-    def __focusView(self, p, enable):
+    def __focusView(self, p: View, enable: bool):
         if self.state & sfFocused and p and (not self.current or self.current.valid(cmLoseFocus)):
             p.setState(sfFocused, enable)

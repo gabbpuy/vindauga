@@ -3,9 +3,7 @@ import array
 import logging
 from functools import partial
 
-import wcwidth
-
-# The underlying datatype - 'L' gives 16 bits for unicode plus 8 for attributes / colours
+# The underlying datatype - 'L' gives 16 bits for Unicode plus 8 for attributes / colours
 BufferArray = partial(array.array, 'L')
 
 logger = logging.getLogger(__name__)
@@ -26,7 +24,7 @@ class DrawBuffer:
     ATTRIBUTE_MASK = 0xFF0000
     CHAR_MASK = 0xFFFF
 
-    def __init__(self, filled=False):
+    def __init__(self, filled: bool = False):
         if not filled:
             self._data = BufferArray()
         else:
@@ -51,25 +49,25 @@ class DrawBuffer:
         else:
             self._data[indent: indent + count] = BufferArray([ord(c)] * count)
 
-    def moveStr(self, indent: int, strn: str, attr: int):
+    def moveStr(self, indent: int, text: str, attr: int):
         if isinstance(attr, str):
             attr = ord(attr)
         attr = ((attr or 0) & 0xFF) << self.CHAR_WIDTH
-        self._data[indent: indent + len(strn)] = BufferArray((ord(c) | attr for c in strn))
+        self._data[indent: indent + len(text)] = BufferArray(ord(c) | attr for c in text)
 
-    def moveCStr(self, indent: int, strn: str, attrs: int):
+    def moveCStr(self, indent: int, text: str, attrs: int):
         """
         Move a string with colors
         TODO: change attrs to a tuple
 
         :param indent: offset into the buffer
-        :param strn: string to move
+        :param text: string to move
         :param attrs: 8 bit colors as a 16 bit number (on and off)
         """
         # "~" highlights chunks. so break into chunks
-        parts = strn.split('~')
+        parts = text.split('~')
         i = int(indent)
-        attributes = [attrs & 0xFF, (attrs & 0xFF00) >> 8]
+        attributes = [attrs & 0xFF, (attrs & 0xFFFF00) >> 8]
         for b, part in enumerate(parts):
             if not part:
                 continue

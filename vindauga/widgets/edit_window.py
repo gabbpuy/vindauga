@@ -1,16 +1,19 @@
 # -*- coding: utf-8 -*-
+from gettext import gettext as _
 from pathlib import Path
 from typing import Optional, Union
 
 from vindauga.constants.edit_command_codes import cmUpdateTitle
 from vindauga.constants.event_codes import evBroadcast
 from vindauga.constants.option_flags import ofTileable
+from vindauga.events.event import Event
 from vindauga.types.point import Point
 from vindauga.types.rect import Rect
 from .file_editor import FileEditor
 from .indicator import Indicator
 from .scroll_bar import ScrollBar
 from .window import Window
+
 
 minEditWinSize = Point(24, 6)
 
@@ -48,14 +51,14 @@ class EditWindow(Window):
         else:
             super().close()
 
-    def getTitle(self, *args):
+    def getTitle(self, *args) -> str:
         if self.editor.isClipboard():
             return self.clipboardTitle
         elif not self.editor.fileName:
             return self.untitled
         return self.editor.fileName
 
-    def handleEvent(self, event):
+    def handleEvent(self, event: Event):
         super().handleEvent(event)
 
         if event.what == evBroadcast and event.message.command == cmUpdateTitle:
@@ -63,6 +66,6 @@ class EditWindow(Window):
                 self.frame.drawView()
             self.clearEvent(event)
 
-    def sizeLimits(self, minLimit, maxLimit):
+    def sizeLimits(self, minLimit: Point, maxLimit: Point):
         super().sizeLimits(minLimit, maxLimit)
         self.min = minEditWinSize

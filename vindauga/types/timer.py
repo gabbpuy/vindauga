@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 import logging
 from threading import Timer as _Timer, RLock
+from typing import Optional
 
 logger = logging.getLogger(__name__)
 
@@ -11,7 +12,7 @@ class Timer:
     """
     def __init__(self):
         self.__lock = RLock()
-        self._timer: _Timer = None
+        self._timer: Optional[_Timer] = None
         self._running: bool = False
         self._expired: bool = True
 

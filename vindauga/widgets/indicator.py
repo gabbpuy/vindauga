@@ -4,6 +4,7 @@ from vindauga.constants.state_flags import sfDragging
 from vindauga.types.draw_buffer import DrawBuffer
 from vindauga.types.palette import Palette
 from vindauga.types.point import Point
+from vindauga.types.rect import Rect
 from vindauga.types.view import View
 
 
@@ -14,7 +15,7 @@ class Indicator(View):
     name = 'Indicator'
     cpIndicator = "\x02\x03"
 
-    def __init__(self, bounds):
+    def __init__(self, bounds: Rect):
         super().__init__(bounds)
         self._location = Point()
         self._modified = False
@@ -40,10 +41,10 @@ class Indicator(View):
         b.moveCStr(8 - s.find(':'), s, color)
         self.writeBuf(0, 0, self.size.x, 1, b)
 
-    def getPalette(self):
+    def getPalette(self) -> Palette:
         return Palette(self.cpIndicator)
 
-    def setState(self, state, enable):
+    def setState(self, state: int, enable: bool):
         super().setState(state, enable)
         if state == sfDragging:
             self.drawView()

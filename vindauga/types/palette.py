@@ -37,6 +37,7 @@
 #      32 = Reserved                                                   #
 #----------------------------------------------------------------------#
 """
+from __future__ import annotations
 import array
 from typing import Union
 
@@ -51,7 +52,7 @@ class Palette:
     frames, buttons, text, and so on.
     """
 
-    def __init__(self, palette: Union['Palette', str] = ''):
+    def __init__(self, palette: Union[Palette, str] = ''):
         if isinstance(palette, (Palette,)):
             self.palette = array.array('B', palette.palette)
         else:

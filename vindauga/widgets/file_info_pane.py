@@ -3,9 +3,11 @@ import os
 
 from vindauga.constants.event_codes import evBroadcast
 from vindauga.constants.std_dialog_commands import cmFileFocused
+from vindauga.events.event import Event
 from vindauga.misc.util import fexpand
 from vindauga.types.draw_buffer import DrawBuffer
 from vindauga.types.palette import Palette
+from vindauga.types.rect import Rect
 from vindauga.types.view import View
 from vindauga.misc.prefix.prefix import closestPrefix
 
@@ -13,13 +15,13 @@ from vindauga.misc.prefix.prefix import closestPrefix
 class FileInfoPane(View):
     cpInfoPane = "\x1E"
 
-    def __init__(self, bounds):
+    def __init__(self, bounds: Rect):
         super().__init__(bounds)
         self.eventMask |= evBroadcast
         self.__fileBlock = None
 
     @staticmethod
-    def getNiceSize(rate):
+    def getNiceSize(rate: float) -> str:
         if rate <= 0.0:
             return '0 B'
 
@@ -55,10 +57,10 @@ class FileInfoPane(View):
         b.moveChar(0, ' ', color, self.size.x)
         self.writeLine(0, 2, self.size.x, self.size.y - 2, b)
 
-    def getPalette(self):
+    def getPalette(self) -> Palette:
         return Palette(self.cpInfoPane)
 
-    def handleEvent(self, event):
+    def handleEvent(self, event: Event):
         super().handleEvent(event)
         if event.what == evBroadcast and event.message.command == cmFileFocused:
             self.__fileBlock = event.message.infoPtr

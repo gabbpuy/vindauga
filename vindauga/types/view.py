@@ -1,7 +1,9 @@
 # -*- coding: utf-8 -*-
+from __future__ import annotations
 from enum import Enum, auto
 import logging
 import sys
+from typing import List, Optional, Set, Union
 
 import wcwidth
 
@@ -35,7 +37,7 @@ SHADOW_SIZE = Point(2, 1)
 SHADOW_ATTR = 0x08
 
 
-def initCommands():
+def initCommands() -> CommandSet:
     temp = CommandSet()
     for i in range(256):
         if i not in {cmZoom, cmClose, cmResize, cmNext, cmPrev}:
@@ -86,7 +88,7 @@ class View(VindaugaObject):
     leaveSelect = 2
 
     # Static friends
-    curCommandSet = initCommands()
+    curCommandSet: CommandSet = initCommands()
     commandSetChanged = False
     showMarkers = False
     errorAttr = 0x4F  # 0xCF
@@ -100,7 +102,7 @@ class View(VindaugaObject):
 
     TheTopView = None
 
-    def __init__(self, bounds):
+    def __init__(self, bounds: Rect):
         super().__init__()
         self.options = 0
         self.eventMask = (evMouseDown | evKeyDown | evCommand)
@@ -108,7 +110,7 @@ class View(VindaugaObject):
         self.growMode = 0
         self.dragMode = dmLimitLoY
         self.helpCtx = hcNoContext
-        self.owner = None
+        self.owner: Optional[Group] = None
         self.origin = Point()
         self.size = Point()
         self.cursor = Point()
@@ -118,17 +120,17 @@ class View(VindaugaObject):
         self.children = []
 
     @property
-    def next(self) -> 'View':
+    def next(self) -> View:
         children = self.owner.children
         return children[(children.index(self) + 1) % len(children)]
 
     @property
-    def prev(self) -> 'View':
+    def prev(self) -> View:
         children = self.owner.children
         return children[(children.index(self) - 1) % len(children)]
 
     @property
-    def TopView(self) -> 'View':
+    def TopView(self) -> View:
         if View.TheTopView:
             return View.TheTopView
         p = self
@@ -137,12 +139,12 @@ class View(VindaugaObject):
         return p
 
     @staticmethod
-    def commandEnabled(command) -> bool:
+    def commandEnabled(command: int) -> bool:
         # return command > 255 or command in View.curCommandSet
         return command in View.curCommandSet
 
     @staticmethod
-    def disableCommands(commands):
+    def disableCommands(commands: Union[CommandSet, Set]):
         """
         Disables the commands specified in the `commands` argument. If the
         command set is changed by this call, `commandSetChanged` is set True.
@@ -153,7 +155,7 @@ class View(VindaugaObject):
         View.curCommandSet.disableCmd(commands)
 
     @staticmethod
-    def disableCommand(command):
+    def disableCommand(command: int):
         """
         Disables the given command. If the  command set is changed by the call, `commandSetChanged` is set True.
         :param command: Command to disable
@@ -162,7 +164,7 @@ class View(VindaugaObject):
         View.curCommandSet.disableCmd(command)
 
     @staticmethod
-    def enableCommands(commands):
+    def enableCommands(commands: Union[CommandSet, Set]):
         """
         Enables all the commands in the `commands` argument. If the
         command set is changed by this call, `commandSetChanged` is set True.
@@ -191,7 +193,7 @@ class View(VindaugaObject):
         return View.curCommandSet
 
     @staticmethod
-    def setCommands(commands):
+    def setCommands(commands: Union[CommandSet, Set]):
         """
         Changes the current command set to the given `commands` argument
 
@@ -201,7 +203,7 @@ class View(VindaugaObject):
         View.curCommandSet = commands
 
     @staticmethod
-    def setCmdState(commands, enable):
+    def setCmdState(commands: Union[CommandSet, Set], enable):
         """
         Set or disable commands
 
@@ -226,7 +228,7 @@ class View(VindaugaObject):
             self.owner.remove(self)
         super().shutdown()
 
-    def sizeLimits(self, minLimit, maxLimit):
+    def sizeLimits(self, minLimit: Point, maxLimit: Point):
         """
         Sets, in the `minLimit` and `maxLimit` arguments, the minimum and maximum values
         that `size` data member may assume.
@@ -541,7 +543,7 @@ class View(VindaugaObject):
             self.draw()
             self.drawCursor()
 
-    def exposedChildren(self, left: int, right: int, siblings, context):
+    def exposedChildren(self, left: int, right: int, siblings: List[View], context: TargetContext):
         for i, child in enumerate(siblings):
             if child is context.target:
                 return self.exposedParent(left, right, child.owner)
@@ -646,7 +648,7 @@ class View(VindaugaObject):
         """
         self.setState(sfCursorVis, False)
 
-    def drawHide(self, lastView: 'View'):
+    def drawHide(self, lastView: View):
         """
         Calls `drawCursor()` followed by `drawUnderView()`. The latter
         redraws all subviews (with shadows if required) until the given
@@ -657,7 +659,7 @@ class View(VindaugaObject):
         self.drawCursor()
         self.drawUnderView(bool(self.state & sfShadow), lastView)
 
-    def drawShow(self, lastView: 'View'):
+    def drawShow(self, lastView: View):
         """
         Calls `drawView()`, then if `state` data member has the
         `sfShadow` bit set, `drawUnderView()` is called to draw the
@@ -669,7 +671,7 @@ class View(VindaugaObject):
         if self.state & sfShadow:
             self.drawUnderView(True, lastView)
 
-    def drawUnderRect(self, r: Rect, lastView: 'View'):
+    def drawUnderRect(self, r: Rect, lastView: View):
         """
         Calls `owner.clip.intersect(r)` to set the area that needs drawing.
         Then, all the subviews from the next view to the given `lastView` are
@@ -683,7 +685,7 @@ class View(VindaugaObject):
         self.owner.drawSubViews(self.nextView(), lastView)
         self.owner.clip = self.owner.getExtent()
 
-    def drawUnderView(self, doShadow: bool, lastView: 'View'):
+    def drawUnderView(self, doShadow: bool, lastView: View):
         """
         Calls `drawUnderRect(r, lastView)`, where `r` is the calling view's
         current bounds. If `doShadow` is True, the view's bounds are first
@@ -820,7 +822,7 @@ class View(VindaugaObject):
         event.clear(self)
         event.what = evNothing
 
-    def eventAvail(self):
+    def eventAvail(self) -> bool:
         """
         Calls `getEvent()` and returns True if an event is available. Calls
         `putEvent()` to set the event as pending.
@@ -1071,7 +1073,7 @@ class View(VindaugaObject):
             self.getEvent(event)
             keyIsDown = (event.what == evKeyDown)
 
-    def mouseEvent(self, event: Event, mask: int):
+    def mouseEvent(self, event: Event, mask: int) -> bool:
         """
         Sets the next mouse event in the `event` argument.
         Returns True if this event is in the `mask` argument. Also returns
@@ -1124,7 +1126,7 @@ class View(VindaugaObject):
             temp -= cur.origin
         return temp
 
-    def nextView(self) -> 'View':
+    def nextView(self) -> View:
         """
         Returns the next subview in the owner's subview list. None is returned if the
         calling view is the last one in its owner's list.
@@ -1135,7 +1137,7 @@ class View(VindaugaObject):
             return None
         return self.next
 
-    def prevView(self) -> 'View':
+    def prevView(self) -> View:
         """
         Returns the previous subview in the owner's subview list. None is returned if the
         calling view is the first one in its owner's list.
@@ -1153,7 +1155,7 @@ class View(VindaugaObject):
         """
         self.putInFrontOf(self.owner.first)
 
-    def putInFrontOf(self, target):
+    def putInFrontOf(self, target: View):
         """
         Moves the calling view in front of the `target` view in the owner's
         subview list. The call
@@ -1285,7 +1287,7 @@ class View(VindaugaObject):
         b.moveStr(0, text, color)
         self.__writeView(x, x + textLen, y, b)
 
-    def at(self, index) -> 'View':
+    def at(self, index: int) -> View:
         return self.children[index]
 
     def _grow(self, initial: int, size: int, delta: int) -> int:
@@ -1313,7 +1315,7 @@ class View(VindaugaObject):
             size += delta
         return point, size
 
-    def __writeChildrenViewRec(self, left: int, right: int, children, shadowCounter: int, context):
+    def __writeChildrenViewRec(self, left: int, right: int, children: List[View], shadowCounter: int, context: TargetContext):
         screen = Screen.screen
 
         for i, view in enumerate(children):
@@ -1380,7 +1382,7 @@ class View(VindaugaObject):
                     left = view.origin.x + view.size.x + SHADOW_SIZE.x
                     shadowCounter -= 1
 
-    def __writeViewRec2(self, left: int, right: int, view: 'View', shadowCounter: int):
+    def __writeViewRec2(self, left: int, right: int, view: View, shadowCounter: int):
         if not (view.state & sfVisible) or not view.owner:
             return
 
@@ -1445,7 +1447,7 @@ class View(VindaugaObject):
         r = Rect(point.x, point.y, point.x + size.x, point.y + size.y)
         self.locate(r)
 
-    def __paintWithoutShadow(self, context, view: 'View', left: int, right: int):
+    def __paintWithoutShadow(self, context, view: View, left: int, right: int):
         screen = Screen.screen
         width = (right - left)
         pOwner = view.owner
@@ -1458,7 +1460,7 @@ class View(VindaugaObject):
         poff = pOwner.size.x * context.y + left
         pOwner.buffer[poff: poff + width] = BufferArray(self.savedBuffer[soff: soff + width])
 
-    def __paintWithShadow(self, context, view: 'View', left: int, right: int):
+    def __paintWithShadow(self, context, view: View, left: int, right: int):
         screen = Screen.screen
 
         width = right - left

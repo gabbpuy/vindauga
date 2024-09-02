@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 import logging
+from typing import Optional
 
 from vindauga.constants.command_codes import cmCommandSetChanged, hcNoContext
 from vindauga.constants.grow_flags import gfGrowLoY, gfGrowHiX, gfGrowHiY
@@ -9,6 +10,10 @@ from vindauga.misc.util import nameLength
 from vindauga.types.draw_buffer import DrawBuffer
 from vindauga.types.palette import Palette
 from vindauga.events.event import Event
+from vindauga.types.point import Point
+from vindauga.types.rect import Rect
+from vindauga.types.status_def import StatusDef
+from vindauga.types.status_item import StatusItem
 from vindauga.types.view import View
 
 logger = logging.getLogger(__name__)
@@ -42,7 +47,7 @@ class StatusLine(View):
     cpStatusLine = '\x02\x03\x04\x05\x06\x07'
     hintSeparator = '│ '
 
-    def __init__(self, bounds, defs):
+    def __init__(self, bounds: Rect, defs: StatusDef):
         super().__init__(bounds)
         self.options |= ofPreProcess
         self.eventMask |= evBroadcast
@@ -53,10 +58,10 @@ class StatusLine(View):
         self.__findItems()
 
     @staticmethod
-    def hint(helpContext):
+    def hint(helpContext: int):
         """
         By default, `hint()` returns an empty string. Override it to provide a
-        context-sensitive hint string for the `helpContext' argument. A non-empty
+        context-sensitive hint string for the `helpContext` argument. A non-empty
         string will be drawn on the status line after a divider bar.
 
         :param helpContext: Help context to display a hint for
@@ -72,11 +77,11 @@ class StatusLine(View):
         """
         self.__drawSelect(None)
 
-    def getPalette(self):
+    def getPalette(self) -> Palette:
         palette = Palette(self.cpStatusLine)
         return palette
 
-    def handleEvent(self, event):
+    def handleEvent(self, event: Event):
         """
         Handles events sent to the status line by calling
         `super().handleEvent()`, then checking for three kinds of special
@@ -147,7 +152,7 @@ class StatusLine(View):
             self.__findItems()
             self.drawView()
 
-    def __itemMouseIsIn(self, mouse):
+    def __itemMouseIsIn(self, mouse: Point):
         if mouse.y != 0:
             return None
         i = 0
@@ -159,7 +164,7 @@ class StatusLine(View):
                 i = k
         return None
 
-    def __drawSelect(self, selected):
+    def __drawSelect(self, selected: Optional[StatusItem]):
         b = DrawBuffer()
         cNormal = self.getColor(0x0301)
         cSelect = self.getColor(0x0604)

@@ -1,12 +1,14 @@
 # -*- coding: utf-8 -*-
+from typing import List, Any, Optional
+
 from vindauga.constants.command_codes import cmListItemSelected
 from vindauga.constants.grow_flags import gfGrowHiX, gfGrowHiY, gfGrowAll
 from vindauga.constants.event_codes import evMouseDown, evKeyDown, evBroadcast
 from vindauga.constants.keys import kbEnter, kbEsc
 from vindauga.constants.option_flags import ofCentered, ofSelectable
 from vindauga.constants.state_flags import sfSelected
+from vindauga.events.event import Event
 from vindauga.types.rect import Rect
-from vindauga.types.records.data_record import DataRecord
 from vindauga.widgets.dialog import Dialog
 from vindauga.widgets.grid_heading_view import GridHeadingView
 from vindauga.widgets.grid_view import cmUpdateItemNumber
@@ -16,7 +18,8 @@ from vindauga.widgets.scroll_bar import ScrollBar
 
 
 class GridViewDialog(Dialog):
-    def __init__(self, bounds, title, headings, headRows, gridData, columns, rows, columnWidth, decimalPoint):
+    def __init__(self, bounds: Rect, title: str, headings: List[str], headRows: int, gridData: Any,
+                 columns: int, rows: int, columnWidth: List[int], decimalPoint: Optional[List[int]]):
         super().__init__(bounds, title)
         self.options |= ofCentered
         maxStr = 30
@@ -37,7 +40,8 @@ class GridViewDialog(Dialog):
                                         r.topLeft.y + 1), maxStr)
         self.inputLine.hide()
 
-        self.itemNumber = InputLine(Rect(r.bottomRight.x - 10, r.bottomRight.y + 1, r.bottomRight.x - 1, r.bottomRight.y + 2), 5)
+        self.itemNumber = InputLine(
+            Rect(r.bottomRight.x - 10, r.bottomRight.y + 1, r.bottomRight.x - 1, r.bottomRight.y + 2), 5)
         self.itemNumber.options &= ~ofSelectable
         self.itemNumber.growMode |= gfGrowAll
         self.itemNumber.setData('{:2d},{:2d}'.format(self.listBox.focusedRow, self.listBox.focusedColumn))
@@ -49,7 +53,7 @@ class GridViewDialog(Dialog):
         self.insert(self.inputLine)
         self.insert(self.itemNumber)
 
-    def handleEvent(self, event):
+    def handleEvent(self, event: Event):
         what = event.what
 
         if what == evMouseDown:
@@ -89,7 +93,8 @@ class GridViewDialog(Dialog):
                 mouseX = listBox.cursor.x
                 self.inputLine.growTo(listBox.columnWidth[listBox.focusedColumn] - 1, 1)
                 self.inputLine.moveTo(mouseX, mouseY + 3)
-                self.inputLine.setData(listBox.getText(listBox.focusedColumn, listBox.focusedRow, self.inputLine.maxLen))
+                self.inputLine.setData(listBox.getText(listBox.focusedColumn, listBox.focusedRow,
+                                                       self.inputLine.maxLen))
                 self.inputLine.show()
                 self.clearEvent(event)
             elif emc == cmUpdateItemNumber:

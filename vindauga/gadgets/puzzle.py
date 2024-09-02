@@ -6,8 +6,10 @@ from vindauga.constants.window_flags import wfGrow, wfZoom
 from vindauga.constants.event_codes import evKeyboard, evMouse, evMouseDown, evKeyDown
 from vindauga.constants.keys import kbDown, kbUp, kbRight, kbLeft
 from vindauga.constants.option_flags import ofSelectable
+from vindauga.events.event import Event
 from vindauga.types.draw_buffer import DrawBuffer
 from vindauga.types.palette import Palette
+from vindauga.types.point import Point
 from vindauga.types.rect import Rect
 from vindauga.types.view import View
 from vindauga.widgets.window import Window
@@ -48,7 +50,7 @@ class PuzzleView(View):
                 buf.moveStr(14, tmp, colorBack)
 
             for j in range(4):
-                tmp = ' {} '.format(self.board[i][j])
+                tmp = f' {self.board[i][j]} '
                 if self.board[i][j] == ' ':
                     buf.moveStr(j * 3, tmp, color[0])
                 else:
@@ -56,10 +58,10 @@ class PuzzleView(View):
 
             self.writeLine(0, i, 18, 1, buf)
 
-    def getPalette(self):
+    def getPalette(self) -> Palette:
         return Palette(self.cpPuzzlePalette)
 
-    def handleEvent(self, event):
+    def handleEvent(self, event: Event):
         super().handleEvent(event)
         if self.solved and event.what & (evKeyboard | evMouse):
             self.scramble()
@@ -74,7 +76,7 @@ class PuzzleView(View):
             self.clearEvent(event)
             self.winCheck()
 
-    def moveKey(self, key):
+    def moveKey(self, key: int):
         for i in range(16):
             if self.board[i // 4][i % 4] == ' ':
                 break
@@ -104,7 +106,7 @@ class PuzzleView(View):
 
         self.drawView()
 
-    def moveTile(self, point):
+    def moveTile(self, point: Point):
         point = self.makeLocal(point)
         i = 0
         for i in range(16):

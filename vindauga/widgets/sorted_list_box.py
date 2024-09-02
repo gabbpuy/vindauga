@@ -4,8 +4,13 @@ import logging
 from vindauga.constants.command_codes import cmReleasedFocus
 from vindauga.constants.event_codes import evBroadcast, evKeyDown
 from vindauga.constants.keys import kbBackSpace
+from vindauga.events.event import Event
+from vindauga.types.collections.collection import Collection
+from vindauga.types.rect import Rect
 
 from .list_box import ListBox
+from .scroll_bar import ScrollBar
+
 
 logger = logging.getLogger(__name__)
 
@@ -18,7 +23,7 @@ class SortedListBox(ListBox):
 
     name = 'SortedListBox'
 
-    def __init__(self, bounds, numCols, scrollBar):
+    def __init__(self, bounds: Rect, numCols: int, scrollBar: ScrollBar = None):
         super().__init__(bounds, numCols, scrollBar)
         self._shiftState = 0
         self.__searchPos = -1
@@ -26,12 +31,12 @@ class SortedListBox(ListBox):
         self.showCursor()
         self.setCursor(1, 0)
 
-    def newList(self, collection):
+    def newList(self, collection: Collection):
         super().newList(collection)
         self._items.sort()
         self.__searchPos = -1
 
-    def handleEvent(self, event):
+    def handleEvent(self, event: Event):
         oldValue = self.focused
 
         super().handleEvent(event)
@@ -87,5 +92,5 @@ class SortedListBox(ListBox):
                 if self.__searchPos != oldPos or event.keyDown.charScan.charCode.isalpha():
                     self.clearEvent(event)
 
-    def _getKey(self, s):
-        return s
+    def _getKey(self, s: str) -> int:
+        return ord(s)

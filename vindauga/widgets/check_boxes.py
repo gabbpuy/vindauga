@@ -14,8 +14,8 @@ class CheckBoxes(Cluster):
     def draw(self):
         self.drawMultiBox(self.button, " X")
 
-    def mark(self, item):
+    def mark(self, item: int):
         return (self._value & (1 << item)) != 0
 
-    def press(self, item):
+    def press(self, item: int):
         self._value ^= (1 << item)

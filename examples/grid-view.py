@@ -8,6 +8,7 @@ from vindauga.constants.keys import kbAltA, kbAltL, kbAltF
 from vindauga.constants.option_flags import ofCentered
 from vindauga.constants.window_flags import wfGrow
 from vindauga.dialogs.grid_view_dialog import GridViewDialog
+from vindauga.events.event import Event
 from vindauga.menus.menu import Menu
 from vindauga.menus.menu_bar import MenuBar
 from vindauga.menus.menu_item import MenuItem
@@ -41,7 +42,7 @@ ListData = {}
 
 class GridApp(Application):
 
-    def initMenuBar(self, bounds):
+    def initMenuBar(self, bounds: Rect) -> MenuBar:
         bounds.bottomRight.y = bounds.topLeft.y + 1
         return MenuBar(bounds, Menu(
             SubMenu('~F~ile', kbAltF, hcNoContext) +
@@ -49,7 +50,7 @@ class GridApp(Application):
             MenuItem('~G~rid View', cmList, kbAltL, hcNoContext, 0)
         ))
 
-    def handleEvent(self, event):
+    def handleEvent(self, event: Event):
         super().handleEvent(event)
         if event.what == evCommand:
             if event.message.command == cmAbout:

@@ -1,7 +1,12 @@
 # -*- coding: utf-8 -*-
 import logging
+from typing import List, Optional
 
 from vindauga.constants.event_codes import evMouseDown, meDoubleClick
+from vindauga.events.event import Event
+from vindauga.types.rect import Rect
+from vindauga.widgets.grid_view_box import GridViewBox
+
 from .grid_view import GridView
 
 logger = logging.getLogger(__name__)
@@ -13,7 +18,8 @@ class GridHeadingView(GridView):
         True: ' ▼'
     }
 
-    def __init__(self, bounds, columnWidths, cellText, columns, rows, widget=None):
+    def __init__(self, bounds: Rect, columnWidths: List[int], cellText: List[str], columns: int, rows: int,
+                 widget: Optional[GridViewBox] = None):
         self.headingMode = True
         super().__init__(bounds, None, None, columnWidths)
         self.cellText = list((list(c) for c in cellText))
@@ -22,10 +28,10 @@ class GridHeadingView(GridView):
         self.sortedColumn = -1
         self.reversed = False
 
-    def getText(self, column, row, maxChars):
+    def getText(self, column: int, row: int, maxChars: int) -> str:
         return self.cellText[row][column][:maxChars]
 
-    def handleEvent(self, event):
+    def handleEvent(self, event: Event):
         if not self.widget:
             super().handleEvent(event)
             return
@@ -53,9 +59,9 @@ class GridHeadingView(GridView):
         else:
             super().handleEvent(event)
 
-    def reshape(self, data):
+    def reshape(self, data: list):
         """
-        Reshape the 1D list into a m row x n column list
+        Reshape the 1D list into an m row x n column list
         """
         r = self.widget.numRows
         c = self.widget.numColumns
@@ -64,7 +70,7 @@ class GridHeadingView(GridView):
             raise ValueError('Invalid new shape')
         return [data[tr * c:(tr + 1) * c] for tr in range(0, r)]
 
-    def sortData(self, newColumn):
+    def sortData(self, newColumn: int):
         reshaped = sorted(self.reshape(list(self.widget.cellData.values())), key=lambda x: x[newColumn].val,
                           reverse=self.reversed)
         for i in range(self.widget.numRows):

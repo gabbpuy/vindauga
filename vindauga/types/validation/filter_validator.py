@@ -20,7 +20,7 @@ class FilterValidator(Validator):
         super().__init__()
         self.validChars = validChars
 
-    def isValid(self, s) -> bool:
+    def isValid(self, s: str) -> bool:
         return all(c in self.validChars for c in s)
 
     def isValidInput(self, item, _flag) -> bool:

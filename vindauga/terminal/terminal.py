@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 import curses
 from dataclasses import dataclass
+import itertools
 import logging
 import os
 from os import kill, execvpe, waitpid
@@ -8,6 +9,7 @@ import platform
 import select
 import struct
 import signal
+from typing import Tuple, Union
 
 PLATFORM_WINDOWS = platform.platform().lower().startswith('windows')
 if not PLATFORM_WINDOWS:
@@ -53,7 +55,7 @@ STATE_TITLE_CHANGED = (1 << 8)
 
 class Terminal:
 
-    def __init__(self, width, height, flags, command=None, *commandArgs):
+    def __init__(self, width: int, height: int, flags: int, command=None, *commandArgs):
         self.rows = height
         self.cols = width
         self.col = []
@@ -90,7 +92,7 @@ class Terminal:
         self.executeCommand()
 
     @staticmethod
-    def getShell():
+    def getShell() -> Tuple[str, list]:
         if not PLATFORM_WINDOWS:
             profile = pwd.getpwuid(os.getuid())
             if not profile:
@@ -143,24 +145,24 @@ class Terminal:
                     self.col.append(Color(fg=i, bg=j))
 
     @property
-    def pid(self):
+    def pid(self) -> int:
         return self.__childPid
 
     @property
-    def ptyFd(self):
+    def ptyFd(self) -> int:
         return self.__ptyFd
 
-    def setColors(self, _fg, _bg):
+    def setColors(self, _fg: int, _bg: int) -> int:
         self.colors = defaultFg | (defaultBg << 4)
         return 0
 
-    def getColors(self):
+    def getColors(self) -> int:
         return self.colors
 
-    def pairContentVision(self, c):
+    def pairContentVision(self, c: int) -> Tuple[int, int]:
         return self.col[c].fg, self.col[c].bg
 
-    def findColorPair(self, fg, bg):
+    def findColorPair(self, fg: int, bg: int) -> int:
         for i in range(64):
             if self.col[i].fg == fg and self.col[i].bg == bg:
                 return i
@@ -251,7 +253,7 @@ class Terminal:
         self.currCol = self.csiParam[1] - 1
         self.clampCursorToBounds()
 
-    def do_CUx(self, verb):
+    def do_CUx(self, verb: str):
         """
         Relative Cursor
         :param verb: Cursor command
@@ -327,7 +329,7 @@ class Terminal:
         if not self.scrollMin and self.scrollMax == self.rows - 1:
             self.state &= ~STATE_SCROLL_SHORT
 
-    def _resetCell(self, cell):
+    def _resetCell(self, cell: Texel):
         cell.char = 0x20
         cell.attr = self.currAttr
         cell.color = self.colors
@@ -353,9 +355,7 @@ class Terminal:
         n = self.getNumber()
 
         columns = self.cells[self.currRow]
-        for i in range(self.currCol, self.currCol + n):
-            if i > self.cols:
-                break
+        for i in range(self.currCol, max(self.cols, self.currCol + n)):
             self._resetCell(columns[i])
 
     def do_ED(self):
@@ -420,7 +420,7 @@ class Terminal:
         for i in range(self.currCol, self.currCol + n):
             self._resetCell(columns[i])
 
-    def getNumber(self):
+    def getNumber(self) -> int:
         n = 1
         if self.csiParam and self.csiParam[0] > 0:
             n = self.csiParam[0]
@@ -577,7 +577,7 @@ class Terminal:
             for cell in row:
                 self._resetCell(cell)
 
-    def eraseRow(self, rowNum):
+    def eraseRow(self, rowNum: int):
         if rowNum == -1:
             rowNum = self.currRow
 
@@ -585,21 +585,21 @@ class Terminal:
         for i in range(self.cols):
             self._resetCell(columns[i])
 
-    def eraseRows(self, startRow):
+    def eraseRows(self, startRow: int):
         if startRow < 0:
             return
 
         for row in range(startRow, self.rows):
             self.eraseRow(row)
 
-    def eraseCol(self, col):
+    def eraseCol(self, col: int):
         if col == -1:
             col = self.currCol
 
         for i in range(self.rows):
             self._resetCell(self.cells[i][col])
 
-    def eraseCols(self, startCol):
+    def eraseCols(self, startCol: int):
         if startCol < 0:
             return
 
@@ -658,18 +658,18 @@ class Terminal:
             self.escapeCancel()
 
     @staticmethod
-    def validEscapeSuffix(c):
+    def validEscapeSuffix(c: str) -> bool:
         return (
                 ('a' <= c <= 'z') or
                 ('A' <= c <= 'Z') or
-                c in '@`'
+                c == '@`'
         )
 
     def clampCursorToBounds(self):
         self.currRow = max(min(self.rows, self.currRow), 0)
         self.currCol = max(min(self.cols, self.currCol), 0)
 
-    def putChar(self, c):
+    def putChar(self, c: int):
         if self.currCol >= self.cols:
             self.currCol = 0
             self.scrollDown()
@@ -680,7 +680,7 @@ class Terminal:
         columns[self.currCol].color = self.colors
         self.currCol += 1
 
-    def renderCtrlChar(self, c):
+    def renderCtrlChar(self, c: Union[int, str]):
         c = chr(c)
         if c == '\r':
             self.currCol = 0
@@ -715,13 +715,13 @@ class Terminal:
             # NFI
             pass
 
-    def isModeACS(self):
+    def isModeACS(self) -> bool:
         return self.state & STATE_ALT_CHARSET
 
-    def isModeEscaped(self):
+    def isModeEscaped(self) -> bool:
         return self.state & STATE_ESCAPE_MODE
 
-    def render(self, data):
+    def render(self, data: str):
         for c in data:
             c = ord(c)
             if c == 0:
@@ -735,7 +735,7 @@ class Terminal:
                     continue
                 self.putChar(c)
 
-    def resize(self, width, height):
+    def resize(self, width: int, height: int):
         if not (width and height):
             return
 
@@ -826,7 +826,7 @@ class Terminal:
             self.writePipe(buffer)
 
     if not PLATFORM_WINDOWS:
-        def readPipe(self):
+        def readPipe(self) -> int:
             if self.__ptyFd < 0:
                 return -1
 
@@ -860,7 +860,7 @@ class Terminal:
                 break
             return count
     else:
-        def readPipe(self):
+        def readPipe(self) -> int:
             count = 0
             try:
                 buffer = self.__childPid.read()

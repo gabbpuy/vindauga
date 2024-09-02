@@ -1,11 +1,12 @@
 # -*- coding: utf-8 -*-
 from gettext import gettext as _
 import logging
-import traceback
+from typing import List, Optional
 
 from vindauga.constants.command_codes import cmScrollBarClicked, cmScrollBarChanged, cmListItemSelected
 from vindauga.constants.event_codes import evBroadcast, evKeyDown, evMouseDown, evMouseAuto, evMouseMove, meDoubleClick
-from vindauga.constants.keys import kbUp, kbDown, kbRight, kbLeft, kbPgDn, kbPgUp, kbHome, kbEnd, kbCtrlPgDn, kbCtrlPgUp, kbTab, kbShiftTab
+from vindauga.constants.keys import (kbUp, kbDown, kbRight, kbLeft, kbPgDn, kbPgUp, kbHome, kbEnd, kbCtrlPgDn,
+                                     kbCtrlPgUp, kbTab, kbShiftTab)
 
 from vindauga.constants.state_flags import sfSelected, sfActive
 from vindauga.constants.option_flags import ofFirstClick, ofSelectable
@@ -16,7 +17,9 @@ from vindauga.misc.message import message
 from vindauga.misc.util import ctrlToArrow
 from vindauga.types.draw_buffer import DrawBuffer
 from vindauga.types.palette import Palette
+from vindauga.types.rect import Rect
 from vindauga.types.view import View
+from vindauga.widgets.scroll_bar import ScrollBar
 
 logger = logging.getLogger(__name__)
 cmUpdateItemNumber = 901
@@ -25,7 +28,8 @@ cmUpdateItemNumber = 901
 class GridView(View):
     cpGridView = '\x1A\x1A\x1B\x1C\x1D\x06'
 
-    def __init__(self, bounds, hScrollBar, vScrollBar, columnWidths):
+    def __init__(self, bounds: Rect, hScrollBar: Optional[ScrollBar], vScrollBar: Optional[ScrollBar],
+                 columnWidths: List[int]):
         super().__init__(bounds)
         self.leftColumn = 0
         self.topRow = 0
@@ -136,7 +140,7 @@ class GridView(View):
     def getPalette(self) -> Palette:
         return Palette(self.cpGridView)
 
-    def getText(self, _column, _row, _maxChars):
+    def getText(self, _column: int, _row: int, _maxChars: int) -> str:
         return ''
 
     def isSelected(self, column: int, row: int) -> bool:
@@ -250,7 +254,7 @@ class GridView(View):
                         self.focusItemNum(self.hScrollBar.value, self.vScrollBar.value)
                         self.drawView()
 
-    def selectItem(self, _column, _row):
+    def selectItem(self, _column: int, _row: int):
         message(self.owner, evBroadcast, cmListItemSelected, self)
 
     def setRange(self, columns: int, rows: int):
@@ -284,7 +288,7 @@ class GridView(View):
                     self.vScrollBar.hide()
             self.drawView()
 
-    def getColumnPosition(self, column: int):
+    def getColumnPosition(self, column: int) -> int:
         position = 0
         # position = sum(self.columnWidths[self.leftColumn:max(self.numColumns, __column - 1)])
         for i in range(self.leftColumn, max(self.numColumns, column)):

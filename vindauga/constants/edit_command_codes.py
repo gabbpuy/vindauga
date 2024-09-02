@@ -95,5 +95,5 @@ efDoReplace = 0x0010
 # @see Editor::editorFlags
 efBackupFiles = 0x0100
 
-# Maximum allowed line length for _text in a Editor view.
+# Maximum allowed line length for _text in an Editor view.
 maxLineLength = 1024

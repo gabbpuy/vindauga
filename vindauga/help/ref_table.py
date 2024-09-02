@@ -12,7 +12,7 @@ class RefTable(SortedCollection):
     forward references are resolved.  If the topic has been seen already
     the value it has is used.
     """
-    def _compare(self, key1, key2):
+    def _compare(self, key1, key2) -> int:
         if key1 > key2:
             return 1
         if key1 < key2:
@@ -28,7 +28,8 @@ class RefTable(SortedCollection):
             self.append(ref)
         return ref
 
-    def keyOf(self, item: Reference):
+    @staticmethod
+    def keyOf(item: Reference) -> str:
         return item.topic
 
     def __readItem(self, fp):

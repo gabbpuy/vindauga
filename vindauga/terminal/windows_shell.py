@@ -23,7 +23,7 @@ from vindauga.dialogs.message_box import messageBox
 logger = logging.getLogger(__name__)
 
 
-@dataclass
+@dataclass(frozen=True)
 class WindowPipe:
     stdin: BinaryIO
     stdout: BinaryIO
@@ -53,7 +53,7 @@ class WindowsShell:
         self.stderrPipeName = r'\\.\pipe\vindauga-stderr-%d-%d-%d' % (pid, next(counter), time.time())
         self.stdinPipeName = r'\\.\pipe\vindauga-stdin-%d-%d-%d' % (pid, next(counter), time.time())
 
-    def __call__(self):
+    def __call__(self) -> WindowPipe:
         saAttr = win32security.SECURITY_ATTRIBUTES()
         saAttr.bInheritHandle = 1
 
@@ -163,7 +163,7 @@ class WindowsShell:
         fds = WindowPipe(stdin=self.stdin, stdout=self.stdout, stderr=self.stderr)
         return fds
 
-    def write(self, buffer):
+    def write(self, buffer: bytes) -> int:
         """
         Write to the stdin pipe.
 
@@ -176,7 +176,7 @@ class WindowsShell:
         return written
 
     @staticmethod
-    def __readPipe(handle):
+    def __readPipe(handle) -> bytes:
         try:
             (buffer, available, result) = win32pipe.PeekNamedPipe(handle, 1)
         except pywintypes.error as e:
@@ -191,13 +191,13 @@ class WindowsShell:
                 raise BrokenPipeError
             return data
 
-    def __readStderr(self):
+    def __readStderr(self) -> bytes:
         return self.__readPipe(self.hChildStderrRd)
 
-    def __readStdout(self):
+    def __readStdout(self) -> bytes:
         return self.__readPipe(self.hChildStdoutRd)
 
-    def read(self):
+    def read(self) -> bytes:
         data = self.__readStderr()
         if data:
             return data

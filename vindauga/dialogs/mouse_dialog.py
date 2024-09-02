@@ -5,6 +5,7 @@ from vindauga.constants.buttons import bfNormal, bfDefault
 from vindauga.constants.command_codes import cmOK, cmCancel, cmScrollBarChanged
 from vindauga.constants.event_codes import evMouseDown, meDoubleClick, evBroadcast, evCommand
 from vindauga.constants.option_flags import ofSelectable, ofCentered
+from vindauga.events.event import Event
 from vindauga.events.event_queue import EventQueue
 from vindauga.types.draw_buffer import DrawBuffer
 from vindauga.types.palette import Palette
@@ -24,10 +25,10 @@ class ClickTester(StaticText):
         super().__init__(r, text)
         self.clicked = False
 
-    def getPalette(self):
+    def getPalette(self) -> Palette:
         return Palette(self.cpMousePalette)
 
-    def handleEvent(self, event):
+    def handleEvent(self, event: Event):
         super().handleEvent(event)
 
         if event.what == evMouseDown:
@@ -73,7 +74,7 @@ class MouseDialog(Dialog):
 
         self.selectNext(False)
 
-    def handleEvent(self, event):
+    def handleEvent(self, event: Event):
         super().handleEvent(event)
         if event.what == evCommand:
             if event.message.command == cmCancel:

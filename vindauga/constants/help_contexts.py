@@ -1,4 +1,5 @@
 # -*- coding: utf-8 -*-
+# View Help context codes
 hcNew = 0xFF01
 hcOpen = 0xFF02
 hcSave = 0xFF03

@@ -1,9 +1,10 @@
 # -*- coding: utf-8 -*-
+from __future__ import annotations
 from gettext import gettext as _
 import logging
 import queue
 from queue import  Empty as QueueEmptyException
-from typing import Optional
+from typing import Any, Optional
 
 from vindauga.constants.command_codes import (cmReleasedFocus, cmCancel, cmSysRepaint, cmSysResize, cmSysWakeup,
                                               cmSelectWindowNum, cmQuit, cmCommandSetChanged, cmMenu, cmClose, cmZoom,
@@ -23,13 +24,14 @@ from vindauga.types.screen import Screen
 from vindauga.types.status_def import StatusDef
 from vindauga.types.status_item import StatusItem
 from vindauga.types.view import View, SHADOW_SIZE
+
 from .desktop import Desktop
 from .status_line import StatusLine
 
 logger = logging.getLogger(__name__)
 
 
-def hasMouse(view, event):
+def hasMouse(view: View, event: Event) -> bool:
     return view.state & sfVisible and view.mouseInView(event.mouse.where)
 
 
@@ -45,8 +47,8 @@ class Program(Group):
     """
 
     exitText = _('~Alt+X~ Exit')
-    desktop: Optional['Desktop'] = None
-    application: Optional['Application'] = None
+    desktop: Optional[Desktop] = None
+    application: Optional[Application] = None
     cpAppColor = "\x71\x70\x78\x74\x20\x28\x24\x17\x1F\x1A\x31\x31\x1E\x71\x1F" \
                  "\x37\x3F\x3A\x13\x13\x3E\x21\x3F\x70\x7F\x7A\x13\x13\x70\x7F\x7E" \
                  "\x70\x7F\x7A\x13\x13\x70\x70\x7F\x7E\x20\x2B\x2F\x78\x2E\x70\x30" \
@@ -115,7 +117,7 @@ class Program(Group):
         Program.desktop = None
         super().shutdown()
 
-    def canMoveFocus(self):
+    def canMoveFocus(self) -> bool:
         """
         Returns True if the focus can be moved from one (desktop) view to another
         one.
@@ -126,7 +128,7 @@ class Program(Group):
         """
         return self.desktop.valid(cmReleasedFocus)
 
-    def executeDialog(self, pD, data):
+    def executeDialog(self, pD: Dialog, data) -> tuple[int, Any]:
         """
         Executes a dialog.
 
@@ -161,7 +163,7 @@ class Program(Group):
 
         return c, data
 
-    def getEvent(self, event):
+    def getEvent(self, event: Event):
         """
         Gets an event.
 
@@ -213,7 +215,7 @@ class Program(Group):
             ):
                 self.statusLine.handleEvent(event)
 
-    def putEvent(self, event):
+    def putEvent(self, event: Event):
         """
         Sets a pending event.
 
@@ -229,7 +231,7 @@ class Program(Group):
         e.setFrom(event)
         Program.pending.put(e)
 
-    def handleEvent(self, event):
+    def handleEvent(self, event: Event):
         """
         Standard `Program` event handler.
 
@@ -252,8 +254,6 @@ class Program(Group):
         """
         if event.what == evKeyDown:
             c = getAltChar(event.keyDown.keyCode)
-            if isinstance(c, int):
-                c = chr(c)
             if '1' <= c <= '9':
                 if self.canMoveFocus():
                     if message(Program.desktop, evBroadcast, cmSelectWindowNum, int(c)):
@@ -267,10 +267,10 @@ class Program(Group):
             self.endModal(cmQuit)
             self.clearEvent(event)
 
-    def getPalette(self):
+    def getPalette(self) -> Palette:
         return self.palettes[self.appPalette]
 
-    def setPalette(self, palette):
+    def setPalette(self, palette: Palette):
         self.palettes[self.appPalette] = palette
 
     def idle(self):
@@ -298,7 +298,7 @@ class Program(Group):
             message(self, evBroadcast, cmCommandSetChanged, None)
             View.commandSetChanged = False
 
-    def initDesktop(self, bounds):
+    def initDesktop(self, bounds: Rect):
         """
         Creates a new desktop.
        
@@ -348,7 +348,7 @@ class Program(Group):
             showMarkers = True
             self.appPalette = self.apMonochrome
 
-    def initMenuBar(self, bounds):
+    def initMenuBar(self, bounds: Rect):
         """
         Creates a new menu bar.
 
@@ -364,7 +364,7 @@ class Program(Group):
         bounds.bottomRight.y = bounds.topLeft.y + 1
         return MenuBar(bounds, [])
 
-    def initStatusLine(self, bounds):
+    def initStatusLine(self, bounds: Rect):
         """
         Creates a new status line.
        
@@ -385,7 +385,7 @@ class Program(Group):
                           StatusItem('', kbF5, cmZoom) +
                           StatusItem('', kbCtrlF5, cmResize))
 
-    def insertWindow(self, window):
+    def insertWindow(self, window: Window):
         """
         Inserts a window in the `Program`.
 
@@ -424,7 +424,7 @@ class Program(Group):
         self.setState(sfExposed, True)
         self.redraw()
 
-    def validView(self, view):
+    def validView(self, view: View):
         """
         Checks if a view is valid.
        
@@ -449,7 +449,7 @@ class Program(Group):
         return view
 
 
-def getDesktopSize():
+def getDesktopSize() -> Point:
     """
     Get the size of the desktop
 

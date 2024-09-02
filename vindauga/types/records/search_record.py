@@ -16,11 +16,11 @@ class SearchRecord:
     size: int = 0
     name: str = ''
 
-    def __eq__(self, other):
+    def __eq__(self, other) -> bool:
         return self.name == other.name
 
-    def __lt__(self, other):
+    def __lt__(self, other) -> bool:
         return self.name < other.name
 
-    def __gt__(self, other):
+    def __gt__(self, other) -> bool:
         return self.name > other.name

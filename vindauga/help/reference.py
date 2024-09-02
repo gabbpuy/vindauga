@@ -1,11 +1,13 @@
 # -*- coding: utf-8 -*-
+from __future__ import annotations
 from dataclasses import dataclass, field
-from typing import List
+from typing import List, Optional
+
 
 @dataclass
 class FixUp:
     pos: int
-    next: 'FixUp'
+    next: Optional[FixUp] = None
 
 
 @dataclass

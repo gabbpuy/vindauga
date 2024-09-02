@@ -13,7 +13,7 @@ class FileWindow(Window):
     winNumber = 0
     name = "FileWindow"
 
-    def __init__(self, filename):
+    def __init__(self, filename: str):
         super().__init__(Program.desktop.getExtent(), filename, FileWindow.winNumber)
         FileWindow.winNumber += 1
         self.options |= ofTileable

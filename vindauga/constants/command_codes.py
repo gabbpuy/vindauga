@@ -64,7 +64,6 @@ cmClosingWindow = 57
 cmClusterMovedTo = 58
 cmClusterPress = 59
 
-## View Help context codes
 
 # No context specified.
 # @see View::helpCtx

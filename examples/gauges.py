@@ -80,7 +80,7 @@ class GaugeApp(Application):
         self.gaugeDialog = None
         self.showDialog()
 
-    def initStatusLine(self, bounds):
+    def initStatusLine(self, bounds: Rect) -> StatusLine:
         bounds.topLeft.y = bounds.bottomRight.y - 1
         return StatusLine(bounds, StatusDef(0, 0xFFFF) + StatusItem('~Alt+X~ Exit', kbAltX, cmQuit))
 

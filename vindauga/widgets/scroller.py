@@ -3,9 +3,12 @@ from vindauga.constants.command_codes import cmScrollBarChanged
 from vindauga.constants.event_codes import evBroadcast
 from vindauga.constants.option_flags import ofSelectable
 from vindauga.constants.state_flags import sfActive, sfSelected
+from vindauga.events.event import Event
 from vindauga.types.palette import Palette
 from vindauga.types.point import Point
+from vindauga.types.rect import Rect
 from vindauga.types.view import View
+from vindauga.widgets.scroll_bar import ScrollBar
 
 
 class Scroller(View):
@@ -24,7 +27,7 @@ class Scroller(View):
     name = "Scroller"
     cpScroller = "\x06\x07"
 
-    def __init__(self, bounds, hScrollBar, vScrollBar):
+    def __init__(self, bounds: Rect, hScrollBar: ScrollBar, vScrollBar: ScrollBar):
         super().__init__(bounds)
         self._drawLock = 0
         self._drawFlag = False
@@ -37,9 +40,9 @@ class Scroller(View):
         self.options |= ofSelectable
         self.eventMask |= evBroadcast
 
-    def changeBounds(self, bounds):
+    def changeBounds(self, bounds: Rect):
         """
-        Changes the scroller's size by calling `setbounds()`. If
+        Changes the scroller's size by calling `setBounds()`. If
         necessary, the scroller and scroll bars are then redrawn by calling
         `setLimit()` and `drawView()`.
 
@@ -67,11 +70,11 @@ class Scroller(View):
             self._drawFlag = False
             self.drawView()
 
-    def getPalette(self):
+    def getPalette(self) -> Palette:
         palette = Palette(self.cpScroller)
         return palette
 
-    def handleEvent(self, event):
+    def handleEvent(self, event: Event):
         """
         Handles most events by calling `super()handleEvent()`.
 
@@ -113,7 +116,7 @@ class Scroller(View):
             else:
                 self.drawView()
 
-    def scrollTo(self, x, y):
+    def scrollTo(self, x: int, y: int):
         """
         Sets the scroll bars to (x,y) by calling `hScrollBar.setValue(x)` and
         `vScrollBar.setValue(y)` and redraws the view by calling `drawView()`.
@@ -130,7 +133,7 @@ class Scroller(View):
         self._drawLock -= 1
         self.checkDraw()
 
-    def setLimit(self, x, y):
+    def setLimit(self, x: int, y: int):
         """
         Sets the `limit` data member and redraws the scrollbars and scroller if necessary.
 
@@ -153,7 +156,7 @@ class Scroller(View):
         self._drawLock -= 1
         self.checkDraw()
 
-    def setState(self, state, enable):
+    def setState(self, state: int, enable: bool):
         """
         This member function is called whenever the scroller's state changes.
         Calls `super().setState()` to set or clear the state flags in state`.
@@ -175,7 +178,7 @@ class Scroller(View):
         self._vScrollBar = None
         super().shutdown()
 
-    def __showScrollbar(self, scrollbar):
+    def __showScrollbar(self, scrollbar: ScrollBar):
         if scrollbar:
             if self.getState(sfActive | sfSelected):
                 scrollbar.show()

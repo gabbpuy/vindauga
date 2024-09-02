@@ -1,4 +1,5 @@
 # -*- coding: utf-8 -*-
+from __future__ import annotations
 import logging
 
 from vindauga.constants.command_codes import hcNoContext
@@ -16,7 +17,8 @@ class MenuItem:
     `MenuItem` also serves as a base class for `SubMenu`.
     """
 
-    def __init__(self, name, command, keyCode, helpCtx=hcNoContext, params=None, subMenu=None, nextItem=None):
+    def __init__(self, name: str, command: int, keyCode: int, helpCtx: int = hcNoContext, params=None,
+                 subMenu: Optional[SubMenu] = None, nextItem: Optional[MenuItem] = None):
         self.name = name
         self.command = command
         self.disabled = not View.commandEnabled(command)
@@ -28,7 +30,7 @@ class MenuItem:
         self.subMenu = subMenu
         self.next = nextItem
 
-    def append(self, nextItem):
+    def append(self, nextItem: MenuItem):
         """
         Appends the given `MenuItem` to the list of `MenuItems` by setting
         @ref next data member to `nextItem`.
@@ -38,10 +40,10 @@ class MenuItem:
         self.next = nextItem
 
     @staticmethod
-    def newLine():
+    def newLine() -> MenuItem:
         return MenuItem('', 0, 0, hcNoContext)
 
-    def __contains__(self, item):
+    def __contains__(self, item: MenuItem) -> bool:
         cur = self
         while cur:
             if cur is item:

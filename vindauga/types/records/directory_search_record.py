@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 import datetime
 from dataclasses import dataclass
-from functools import  total_ordering
+from functools import total_ordering
 import os
 import stat
 
@@ -22,15 +22,15 @@ class DirectorySearchRecord(SearchRecord):
         self.time = datetime.datetime.fromtimestamp(s.st_mtime)
 
     # Sort, directories first, then files
-    def __lt__(self, other):
+    def __lt__(self, other) -> bool:
         if self.attr & FA_DIREC and not other.attr & FA_DIREC:
             return True
         if self.attr == other.attr:
             return self.name.lower() < other.name.lower()
         return self.attr < other.attr
 
-    def __eq__(self, other):
+    def __eq__(self, other) -> bool:
         return self.attr == other.attr and self.name.lower() == other.name.lower()
 
-    def __gt__(self, other):
+    def __gt__(self, other) -> bool:
         return not self.__lt__(other)

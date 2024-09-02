@@ -5,6 +5,7 @@ from vindauga.constants.command_codes import cmClose, cmQuit, hcNoContext
 from vindauga.constants.buttons import bfDefault
 from vindauga.constants.event_codes import evBroadcast, evKeyDown, evCommand
 from vindauga.constants.keys import kbUp, kbDown, kbAltX, kbAltF3, kbAltN, kbAltI
+from vindauga.events.event import Event
 from vindauga.types.collections.string_collection import StringCollection
 from vindauga.menus.sub_menu import SubMenu
 from vindauga.menus.menu_bar import MenuBar
@@ -40,7 +41,7 @@ class MyCollection(StringCollection):
 
 
 class TechInfoList(ListBox):
-    def __init__(self, bounds, numCols, vScrollbar):
+    def __init__(self, bounds: Rect, numCols: int, vScrollbar: ScrollBar):
         r = Rect(bounds.topLeft.x, bounds.topLeft.y, bounds.bottomRight.x, bounds.bottomRight.y)
         r.topLeft.x += 2
         r.topLeft.y += 1
@@ -50,7 +51,7 @@ class TechInfoList(ListBox):
         self.tc = MyCollection(data)
         self.newList(self.tc)
 
-    def handleEvent(self, event):
+    def handleEvent(self, event: Event):
         logger.info('handleEvent(event)')
         if event.what == evKeyDown:
             logger.info('%s %s', self.focused, self.tc)
@@ -64,7 +65,7 @@ class TechInfoList(ListBox):
 
 
 class TechInfoDialog(Dialog):
-    def __init__(self, bounds):
+    def __init__(self, bounds: Rect):
         super().__init__(bounds, 'Data ListBox')
         t = self.getExtent()
         t.topLeft.x += 1
@@ -83,7 +84,7 @@ class TechInfoView(View):
         self.eventMask |= evBroadcast
         self.curMessage = 'Press Up or Down Arrow'
 
-    def handleEvent(self, event):
+    def handleEvent(self, event: Event):
         super().handleEvent(event)
         if event.what == evBroadcast:
             if event.message.command == cmNewData:
@@ -99,14 +100,14 @@ class TechInfoView(View):
 
 class MyApplication(Application):
 
-    def initStatusLine(self, bounds):
+    def initStatusLine(self, bounds: Rect) -> StatusLine:
         bounds.topLeft.y = bounds.bottomRight.y - 1
         return StatusLine(bounds,
                           StatusDef(0, 0xFFFF) +
                           StatusItem('~Alt+X~ Exit', kbAltX, cmQuit) +
                           StatusItem('~Alt+F3~ Close', kbAltF3, cmClose))
 
-    def initMenuBar(self, bounds):
+    def initMenuBar(self, bounds: Rect) -> MenuBar:
         bounds.bottomRight.y = bounds.topLeft.y + 1
         return MenuBar(bounds,
                        SubMenu('I~n~fo', kbAltN) +
@@ -114,7 +115,7 @@ class MyApplication(Application):
                        MenuItem('E~x~it', cmQuit, kbAltX, hcNoContext, 'Alt+X')
                        )
 
-    def handleEvent(self, event):
+    def handleEvent(self, event: Event):
         super().handleEvent(event)
         if event.what == evCommand:
             if event.message.command == cmTechInfo:

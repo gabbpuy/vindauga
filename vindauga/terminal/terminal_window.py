@@ -1,9 +1,12 @@
 # -*- coding: utf-8 -*-
 import logging
 from vindauga.constants.event_codes import evMouseDown, evMouseUp, evKeyDown, evCommand, evBroadcast
+from vindauga.events.event import Event
+from vindauga.types.rect import Rect
 from vindauga.widgets.window import Window
 
 from .terminal_view import TerminalView
+from ..types.point import Point
 
 logger = logging.getLogger(__name__)
 
@@ -21,12 +24,12 @@ class TerminalWindow(Window):
         self.insert(self.window)
         TerminalView.ActiveTerminals.append(self.window)
 
-    def sizeLimits(self, minLimit, maxLimit):
+    def sizeLimits(self, minLimit: Point, maxLimit: Point):
         super().sizeLimits(minLimit, maxLimit)
         minLimit.x = TerminalWindow.MIN_WIDTH
         minLimit.y = TerminalWindow.MIN_HEIGHT
 
-    def dragView(self, event, mode, limits, minSize, maxSize):
+    def dragView(self, event: Event, mode: int, limits: Rect, minSize: int, maxSize: int):
         super().dragView(event, mode, limits, minSize, maxSize)
         self.window.changeSize(self.size)
 
@@ -34,7 +37,7 @@ class TerminalWindow(Window):
         super().zoom()
         self.window.changeSize(self.size)
 
-    def setTitle(self, title):
+    def setTitle(self, title: str):
         self.title = title
         self.frame.drawView()
 

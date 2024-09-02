@@ -1,4 +1,5 @@
 # -*- coding: utf-8 -*-
+from __future__ import annotations
 from copy import copy
 
 from vindauga.constants.event_codes import evNothing
@@ -15,7 +16,7 @@ class Event:
         self.keyDown: KeyDownEvent = KeyDownEvent()
         self.message: MessageEvent = MessageEvent()
 
-    def setFrom(self, event):
+    def setFrom(self, event: Event):
         self.clear(None)
         self.what = event.what
         self.mouse = copy(event.mouse)

@@ -1,4 +1,5 @@
 #!/usr/bin/python
+import logging
 import time
 
 from vindauga.constants.buttons import bfDefault
@@ -6,7 +7,7 @@ from vindauga.constants.command_codes import hcNoContext, cmOK, cmCancel, cmYes,
 from vindauga.constants.message_flags import mfConfirmation, mfYesButton, mfNoButton
 from vindauga.constants.window_flags import wfClose
 from vindauga.constants.event_codes import evCommand, evNothing
-from vindauga.constants.keys import kbAltA, kbAltL, kbF10, kbAltX, kbAltF3
+from vindauga.constants.keys import kbAltA, kbAltL, kbF10, kbAltX, kbAltF3, kbNoKey
 from vindauga.constants.option_flags import ofCentered
 from vindauga.dialogs.message_box import messageBox
 from vindauga.events.event import Event
@@ -25,6 +26,7 @@ from vindauga.widgets.progress_bar import ProgressBar
 from vindauga.widgets.static_text import StaticText
 from vindauga.widgets.status_line import StatusLine
 
+logger = logging.getLogger('vindauga.progress-bar')
 
 cmAboutCmd = 100
 cmStatusCmd = 101
@@ -42,7 +44,7 @@ class ProgressBarApplication(Application):
         self.clock = ClockView(r)
         self.insert(self.clock)
 
-    def initStatusLine(self, bounds):
+    def initStatusLine(self, bounds: Rect) -> StatusLine:
         bounds.topLeft.y = bounds.bottomRight.y - 1
         return StatusLine(bounds,
                           (StatusDef(0, 0xFFFF) +
@@ -50,25 +52,23 @@ class ProgressBarApplication(Application):
                               StatusItem("~Alt X~ Exit", kbAltX, cmQuit) +
                               StatusItem("~Alt F3~ Close", kbAltF3, cmClose)))
 
-    def initMenuBar(self, bounds):
+    def initMenuBar(self, bounds: Rect) -> MenuBar:
         bounds.bottomRight.y = bounds.topLeft.y + 1
         return MenuBar(bounds,
                        Menu(
-                           SubMenu('Progress ~B~ar', 0, hcNoContext) +
+                           SubMenu('Progress ~B~ar', kbNoKey, hcNoContext) +
                            MenuItem('~A~bout', cmAboutCmd, kbAltA, hcNoContext, None) +
-                           MenuItem('~P~rogress Bar', cmStatusCmd, kbAltL, hcNoContext, None) +
-                           SubMenu('Empty', 0, hcNoContext) +
-                           MenuItem('Empty', 0, 0, hcNoContext, None)))
+                           MenuItem('~P~rogress Bar', cmStatusCmd, kbAltL, hcNoContext, None)))
 
-    def handleEvent(self, event):
+    def handleEvent(self, event: Event):
         super().handleEvent(event)
         if event.what == evCommand:
             if event.message.command == cmAboutCmd:
-                logging.error('About Box')
+                logger.error('About Box')
                 self.aboutDialog()
                 self.clearEvent(event)
             elif event.message.command == cmStatusCmd:
-                logging.error('Make Status Go Now')
+                logger.error('Make Status Go Now')
                 self.statusDialog()
                 self.clearEvent(event)
 
@@ -88,7 +88,7 @@ class ProgressBarApplication(Application):
         # logger.error('Widget Tree:\n' + drawWidgetTree(self))
 
     @staticmethod
-    def isCancel(pd):
+    def isCancel(pd: Dialog):
         event = Event(evNothing)
         pd.getEvent(event)
         pd.handleEvent(event)
@@ -97,7 +97,7 @@ class ProgressBarApplication(Application):
         return False
 
     def statusDialog(self):
-        logging.error('Status Dialog -> IN')
+        logger.error('Status Dialog -> IN')
         pd = Dialog(Rect(0, 0, 60, 15), 'Example Progress Bar')
         pd.flags &= wfClose
         pd.options |= ofCentered
@@ -105,9 +105,13 @@ class ProgressBarApplication(Application):
         pd.insert(pBar)
         pd.insert(Button(Rect(10, pd.size.y - 3, pd.size.x - 10, pd.size.y - 1), '~C~ancel', cmCancel, bfDefault))
         pd = self.validView(pd)
-        logging.error('Inserting: %s', pd)
-        self.desktop.insert(pd)
-        logging.error('Post Insert')
+        logger.error('Inserting: %s', pd)
+        try:
+            self.desktop.insert(pd)
+        except Exception as e:
+            logger.exception('Desktop Insertion')
+            raise
+        logger.error('Post Insert')
         keepOnGoing = True
         r = Rect(5, 5, pd.size.x - 5, pd.size.y - 5)
         theMessage = StaticText(r, 'This is a modeless dialog box. You can drag this box around the desktop')
@@ -152,10 +156,10 @@ if __name__ == '__main__':
 
     logger = logging.getLogger('vindauga')
     logger.propagate = False
-    format = "%(name)-25s | %(message)s"
+    log_format = "%(name)-25s | %(message)s"
     logger.setLevel(logging.DEBUG)
-    handler = logging.StreamHandler(open('vindauga.log', 'wt'))
-    handler.setFormatter(logging.Formatter(format))
+    handler = logging.StreamHandler(open('vindauga.log', 'wt', encoding='utf-8'))
+    handler.setFormatter(logging.Formatter(log_format))
     logger.addHandler(handler)
 
     myApplication = ProgressBarApplication()
