@@ -89,4 +89,4 @@ class FlexBox(Group):
             self._repackCurrent(self.getBounds())
 
     def __str__(self):
-        return '<FlexBox {} ({})>'.format(self.size, len(self.children))
+        return f'<FlexBox {self.size} ({len(self.children)})>'

@@ -36,7 +36,7 @@ class Indicator(View):
         if self._modified:
             b.putChar(0, '☼')
 
-        s = ' {:3d}:{:3d} '.format(self._location.y + 1, self._location.x + 1)
+        s = f' {self._location.y + 1:3d}:{self._location.x + 1:3d} '
 
         b.moveCStr(8 - s.find(':'), s, color)
         self.writeBuf(0, 0, self.size.x, 1, b)

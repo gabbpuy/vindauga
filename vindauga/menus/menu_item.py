@@ -58,4 +58,4 @@ class MenuItem:
             cur = cur.next
 
     def __repr__(self):
-        return '<MenuItem: {1:X} - {0.name} {0.command} [{0.disabled} - {0.keyCode:X}]>'.format(self, id(self))
+        return f'<MenuItem: {id(self):X} - {self.name} {self.command} [{self.disabled} - {self.keyCode:X}]>'

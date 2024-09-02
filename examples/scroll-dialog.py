@@ -19,7 +19,7 @@ class Demo(Application):
         for x in range(40):
             if x % 10:
                 n = x + 1
-                ctrlString = 'Control {:02d}'.format(n)
+                ctrlString = f'Control {n:02d}'
                 dlg.scrollGroup.insert(StaticText(Rect(0, x, 10, x + 1), ctrlString))
             else:
                 dlg.scrollGroup.insert(InputLine(Rect(0, x, 10, x + 1), 20))

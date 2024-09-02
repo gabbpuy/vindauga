@@ -87,7 +87,7 @@ class Demo(Application):
             data = pd.getData()
             selection = ','.join(names[x] for x in data[0].selection)
         if control == cmOK:
-            messageBox('\x03Your selection is {}'.format(selection), mfInformation, (mfOKButton,))
+            messageBox(f'\x03Your selection is {selection}', mfInformation, (mfOKButton,))
         self.destroy(pd)
 
 

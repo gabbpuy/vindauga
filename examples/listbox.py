@@ -87,7 +87,7 @@ class Demo(Application):
             data = pd.getData()
             data = data[0]
         if control == cmOK:
-            messageBox('\x03Your selection is {}'.format(tsc[data.selection]), mfInformation, (mfOKButton,))
+            messageBox(f'\x03Your selection is {tsc[data.selection]}', mfInformation, (mfOKButton,))
         self.destroy(pd)
 
 

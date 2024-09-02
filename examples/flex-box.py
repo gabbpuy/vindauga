@@ -24,10 +24,10 @@ class FlexBoxDemo(Application):
         bottomBox = FlexBox(Rect(1, 1, 1, 1), GrowDirection.GrowVertical)
 
         for x in range(4):
-            ctrlString = 'T{:02d}'.format(x)
+            ctrlString = f'T{x:02d}'
             widget = Button(Rect(0, 0, 1, 1), ctrlString, 0, 0)
             topBox.insert(widget)
-            ctrlString = 'B{:02d}'.format(x)
+            ctrlString = f'B{x:02d}'
             widget = Button(Rect(0, 0, 1, 3), ctrlString, 0, 0)
             bottomBox.insert(widget)
 
