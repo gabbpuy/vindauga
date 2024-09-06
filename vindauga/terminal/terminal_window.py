@@ -2,11 +2,11 @@
 import logging
 from vindauga.constants.event_codes import evMouseDown, evMouseUp, evKeyDown, evCommand, evBroadcast
 from vindauga.events.event import Event
+from vindauga.types.point import Point
 from vindauga.types.rect import Rect
 from vindauga.widgets.window import Window
 
 from .terminal_view import TerminalView
-from ..types.point import Point
 
 logger = logging.getLogger(__name__)
 

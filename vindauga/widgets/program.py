@@ -3,7 +3,6 @@ from __future__ import annotations
 from gettext import gettext as _
 import logging
 import queue
-from queue import  Empty as QueueEmptyException
 from typing import Any, Optional
 
 from vindauga.constants.command_codes import (cmReleasedFocus, cmCancel, cmSysRepaint, cmSysResize, cmSysWakeup,
@@ -187,7 +186,7 @@ class Program(Group):
         screen = Screen.screen
         try:
             event.setFrom(Program.pending.get_nowait())
-        except QueueEmptyException:
+        except queue.Empty:
             screen.getEvent(event)
             if event.what == evCommand:
                 c = event.message.command

@@ -4,12 +4,41 @@ from dataclasses import dataclass
 import itertools
 import logging
 import os
+from functools import lru_cache
 from os import kill, execvpe, waitpid
 import platform
 import select
 import struct
 import signal
 from typing import Tuple, Union
+
+TERMINAL_KEY_TRANSLATION = {
+    '\n': b'\r',
+    curses.KEY_UP: b'\x1B[A',
+    curses.KEY_DOWN: b'\x1B[B',
+    curses.KEY_RIGHT: b'\x1B[C',
+    curses.KEY_LEFT: b'\x1B[D',
+    curses.KEY_BACKSPACE: b'\x1B\b',
+    curses.KEY_IC: b'\x1b[2~',
+    curses.KEY_DC: b'\x1b[3~',
+    curses.KEY_HOME: b'\x1b[7~',
+    curses.KEY_END: b'\x1b[8~',
+    curses.KEY_PPAGE: b'\x1b[5~',
+    curses.KEY_NPAGE: b'\x1b[6~',
+    curses.KEY_SUSPEND: b'\x1A',
+    curses.KEY_F1: b'\x1b[11~',
+    curses.KEY_F2: b'\x1b[12~',
+    curses.KEY_F3: b'\x1b[13~',
+    curses.KEY_F4: b'\x1b[14~',
+    curses.KEY_F5: b'\x1b[15~',
+    curses.KEY_F6: b'\x1b[17~',
+    curses.KEY_F7: b'\x1b[18~',
+    curses.KEY_F8: b'\x1b[19~',
+    curses.KEY_F9: b'\x1b[20~',
+    curses.KEY_F10: b'\x1b[21~',
+    curses.KEY_F11: b'\x1b[23~',
+    curses.KEY_F12: b'\x1b[24~',
+}
 
 PLATFORM_WINDOWS = platform.platform().lower().startswith('windows')
 if not PLATFORM_WINDOWS:
@@ -23,14 +52,14 @@ else:
 logger = logging.getLogger(__name__)
 
 
-@dataclass
+@dataclass()
 class Texel:
     char: str = ''
     attr: int = 0
     color: int = 0
 
 
-@dataclass
+@dataclass(frozen=True)
 class Color:
     fg: int
     bg: int
@@ -87,8 +116,7 @@ class Terminal:
             ]
         self.initColors()
         self.title = ''
-        self.cells = [[Texel() for _x in range(width)] for _y in range(height)]
-        self.erase()
+        self.cells = [[Texel(0x20, self.currAttr, self.colors) for _x in range(width)] for _y in range(height)]
         self.executeCommand()
 
     @staticmethod
@@ -116,7 +144,7 @@ class Terminal:
                 # Child
                 env = os.environ.copy()
                 signal.signal(signal.SIGINT, signal.SIG_DFL)
-                env['TERM'] = 'rxvt'
+                env['TERM'] = 'xterm'
                 logger.info('Executing %s, %s', self.command, self.commandArgs)
                 execvpe(self.command, self.commandArgs, env=env)
 
@@ -152,9 +180,8 @@ class Terminal:
     def ptyFd(self) -> int:
         return self.__ptyFd
 
-    def setColors(self, _fg: int, _bg: int) -> int:
+    def setColors(self, _fg: int, _bg: int):
         self.colors = defaultFg | (defaultBg << 4)
-        return 0
 
     def getColors(self) -> int:
         return self.colors
@@ -169,7 +196,6 @@ class Terminal:
         return 0
 
     def startCSI(self):
-        # logger.info('startCSI() -> %s', self.escBuf)
         verb = self.escBuf[-1]
         self.csiParam = []
 
@@ -180,7 +206,7 @@ class Terminal:
                 continue
 
             if p == ';':
-                if len(self.csiParam) > MAX_CSI_ESC_PARAMS:
+                if len(self.csiParam) >= MAX_CSI_ESC_PARAMS:
                     return
                 self.csiParam.append(0)
             else:
@@ -241,7 +267,7 @@ class Terminal:
 
     def do_CUP(self):
         """
-        Cursor Up
+        Move Cursor
         """
         if not self.csiParam:
             self.currRow = 0
@@ -277,7 +303,7 @@ class Terminal:
         elif verb == 'F':
             self.currRow -= n
             self.currCol = 0
-        elif verb == 'G`':
+        elif verb in 'G`':
             self.currCol = self.csiParam[0] - 1
         elif verb == 'd':
             self.currRow = self.csiParam[0] - 1
@@ -287,7 +313,6 @@ class Terminal:
         """
         Delete Chars
         """
-        # logger.info('do_DCH()')
         n = self.getNumber()
 
         columns = self.cells[self.currRow]
@@ -295,8 +320,7 @@ class Terminal:
 
         columns[self.currCol: end] = columns[self.currCol + n: self.currCol + n + n]
         for i in range(end, self.cols):
-            columns[i] = Texel()
-            self._resetCell(columns[i])
+            columns[i] = Texel(0x20, self.currAttr, self.colors)
 
     def do_DECSTBM(self):
         """
@@ -329,24 +353,17 @@ class Terminal:
         if not self.scrollMin and self.scrollMax == self.rows - 1:
             self.state &= ~STATE_SCROLL_SHORT
 
-    def _resetCell(self, cell: Texel):
-        cell.char = 0x20
-        cell.attr = self.currAttr
-        cell.color = self.colors
-
     def do_DL(self):
         """
         Delete Lines
         """
         n = self.getNumber()
 
-        for i in range(self.currRow, self.scrollMax):
-            if i + n < self.scrollMax:
+        for i in range(self.currRow, self.scrollMax + 1):
+            if i + n <= self.scrollMax:
                 self.cells[i] = self.cells[i + n]
             else:
-                columns = self.cells[i]
-                for j in range(self.cols):
-                    self._resetCell(columns[j])
+                self._resetRow(i)
 
     def do_ECH(self):
         """
@@ -386,7 +403,6 @@ class Terminal:
         """
         Erase Line
         """
-        # logger.info('do_EL() -> %s', self.csiParam)
         cmd = 0
         if self.csiParam:
             cmd = self.csiParam[0]
@@ -401,15 +417,13 @@ class Terminal:
             eraseStart = self.currCol
             eraseEnd = self.cols - 1
 
-        # logger.info('Erase %s - %s', eraseStart, eraseEnd)
-
         columns = self.cells[self.currRow]
         for i in range(eraseStart, eraseEnd + 1):
             self._resetCell(columns[i])
 
     def do_ICH(self):
         """
-        Insert Chars
+        Insert Blank Chars
         """
         n = self.getNumber()
 
@@ -420,24 +434,17 @@ class Terminal:
         for i in range(self.currCol, self.currCol + n):
             self._resetCell(columns[i])
 
-    def getNumber(self) -> int:
-        n = 1
-        if self.csiParam and self.csiParam[0] > 0:
-            n = self.csiParam[0]
-        return n
-
     def do_IL(self):
+        """
+        Insert Line
+        """
         n = self.getNumber()
 
         self.cells[self.currRow: self.scrollMax] = self.cells[self.currRow - n: self.scrollMax - n]
         # for i in range(self.scrollMax, self.currRow - 1, -1):
         #     self.cells[i] = self.cells[i - n]
-        for i in range(self.currRow, self.currRow + n):
-            if i > self.scrollMax:
-                break
-            columns = self.cells[i]
-            for j in range(self.cols):
-                self._resetCell(columns[j])
+        for i in range(self.currRow, max(self.scrollMax, self.currRow + n)):
+            self._resetRow(i)
 
     def do_RESTORECUR(self):
         """
@@ -457,7 +464,6 @@ class Terminal:
         """
         Set Graphics
         """
-        # logger.info('do_SGR() -> %s', self.csiParam)
         if not self.csiParam:
             # Reset
             self.currAttr = curses.A_NORMAL
@@ -549,7 +555,6 @@ class Terminal:
         """
         Reset Mode
         """
-        # logger.info('do_DEC_RM() -> %s', self.csiParam)
         if not self.csiParam:
             return
         for param in self.csiParam:
@@ -562,7 +567,6 @@ class Terminal:
         """
         Set Mode
         """
-        # logger.info('do_DEC_SM() %s', self.csiParam)
         if not self.csiParam:
             return
 
@@ -572,18 +576,21 @@ class Terminal:
             elif param == 9:
                 self.state |= STATE_MOUSE
 
+    def getNumber(self) -> int:
+        n = 1
+        if self.csiParam and self.csiParam[0] > 0:
+            n = self.csiParam[0]
+        return n
+
     def erase(self):
-        for row in self.cells:
-            for cell in row:
-                self._resetCell(cell)
+        for i in range(self.rows):
+            self._resetRow(i)
 
     def eraseRow(self, rowNum: int):
         if rowNum == -1:
             rowNum = self.currRow
 
-        columns = self.cells[rowNum]
-        for i in range(self.cols):
-            self._resetCell(columns[i])
+        self._resetRow(rowNum)
 
     def eraseRows(self, startRow: int):
         if startRow < 0:
@@ -593,7 +600,7 @@ class Terminal:
             self.eraseRow(row)
 
     def eraseCol(self, col: int):
-        if col == -1:
+        if col < 0:
             col = self.currCol
 
         for i in range(self.rows):
@@ -615,15 +622,11 @@ class Terminal:
         self.escBuf = ''
 
     def setTitle(self):
-        logger.info('setTitle() -> %s', self.escBuf)
         if self.escBuf[1] != '0' or self.escBuf[2] != ';':
             return
         self.title = ''
-        for i in range(3, 79):
-            if self.escBuf[i] == '\a':
-                break
-            self.title += self.escBuf[i]
-
+        title, _ = self.escBuf[3:].split('\a', 1)
+        self.title = title
         self.state |= STATE_TITLE_CHANGED
 
     def tryEscapeSequence(self):
@@ -651,23 +654,27 @@ class Terminal:
         if firstChar == '[' and self.validEscapeSuffix(lastChar):
             self.startCSI()
             self.escapeCancel()
+            return
         elif firstChar == ']' and lastChar == '\a':
             self.setTitle()
             self.escapeCancel()
+            return
         if len(self.escBuf) + 1 >= ESC_SEQ_BUF_SIZE:
             self.escapeCancel()
 
+
     @staticmethod
+    @lru_cache(maxsize=256)
     def validEscapeSuffix(c: str) -> bool:
         return (
                 ('a' <= c <= 'z') or
                 ('A' <= c <= 'Z') or
-                c == '@`'
+                c in '@`'
         )
 
     def clampCursorToBounds(self):
-        self.currRow = max(min(self.rows, self.currRow), 0)
-        self.currCol = max(min(self.cols, self.currCol), 0)
+        self.currRow = max(min(self.rows - 1, self.currRow), 0)
+        self.currCol = max(min(self.cols - 1, self.currCol), 0)
 
     def putChar(self, c: int):
         if self.currCol >= self.cols:
@@ -744,13 +751,19 @@ class Terminal:
         startX = self.cols
         startY = self.rows
 
-        cells = self.cells
+        if deltaY < 0:
+            cells = self.cells[-deltaY:]
+            self.currRow += deltaY
+        else:
+            cells = self.cells[:]
+
         self.cells = [[Texel() for _x in range(width)] for _y in range(height)]
+
         for i, c in enumerate(cells):
             if i < len(self.cells):
                 self.cells[i][:width] = c[:width]
-            if deltaX > 0:
-                self.cells[i].extend(Texel() for _ in range(deltaX))
+                if deltaX > 0:
+                    self.cells[i].extend(Texel() for _ in range(deltaX))
 
         self.cols = width
         self.rows = height
@@ -763,8 +776,12 @@ class Terminal:
             self.eraseCols(startX)
         if deltaY > 0:
             self.eraseRows(startY)
-        self.currCol = 0
-        self.currRow = 0
+
+        if self.currRow >= self.rows:
+            self.currRow = 0
+
+        if self.currCol >= self.cols:
+            self.currCol = 0
 
         if not PLATFORM_WINDOWS:
             b = struct.pack('HHHH', height, width, 0, 0)
@@ -777,9 +794,8 @@ class Terminal:
             return
 
         self.currRow = self.scrollMax
-        self.cells[self.scrollMin:self.scrollMax] = self.cells[self.scrollMin + 1: self.scrollMax + 1]
-        self.cells[self.scrollMax] = [Texel() for _ in range(self.cols)]
-        self.eraseRow(self.scrollMax)
+        self.cells[self.scrollMin: self.scrollMax] = self.cells[self.scrollMin + 1: self.scrollMax + 1]
+        self.cells[self.scrollMax] = [Texel(0x20, self.currAttr, self.colors) for _ in range(self.cols)]
 
     def scrollUp(self):
         self.currRow -= 1
@@ -788,42 +804,13 @@ class Terminal:
 
         self.currRow = self.scrollMin
         self.cells[self.scrollMin + 1:self.scrollMax] = self.cells[self.scrollMin:self.scrollMax - 1]
-        self.cells[self.scrollMin] = [Texel() for _ in range(self.cols)]
-        self.eraseRow(self.scrollMin)
+        self.cells[self.scrollMin] = [Texel(0x20, self.currAttr, self.colors) for _ in range(self.cols)]
 
     def write(self, keyCode):
-        keyTrans = {
-            '\n': b'\r',
-            curses.KEY_UP: b'\x1B[A',
-            curses.KEY_DOWN: b'\x1B[B',
-            curses.KEY_RIGHT: b'\x1B[C',
-            curses.KEY_LEFT: b'\x1B[D',
-            curses.KEY_BACKSPACE: b'\x1B\b',
-            curses.KEY_IC: b'\x1b[2~',
-            curses.KEY_DC: b'\x1b[3~',
-            curses.KEY_HOME: b'\x1b[7~',
-            curses.KEY_END: b'\x1b[8~',
-            curses.KEY_PPAGE: b'\x1b[5~',
-            curses.KEY_NPAGE: b'\x1b[6~',
-            curses.KEY_SUSPEND: b'\x1A',
-            curses.KEY_F1: b'\x1b[11~',
-            curses.KEY_F2: b'\x1b[12~',
-            curses.KEY_F3: b'\x1b[13~',
-            curses.KEY_F4: b'\x1b[14~',
-            curses.KEY_F5: b'\x1b[15~',
-            curses.KEY_F6: b'\x1b[17~',
-            curses.KEY_F7: b'\x1b[18~',
-            curses.KEY_F8: b'\x1b[19~',
-            curses.KEY_F9: b'\x1b[20~',
-            curses.KEY_F10: b'\x1b[21~',
-            curses.KEY_F11: b'\x1b[23~',
-            curses.KEY_F12: b'\x1b[24~',
-        }
-        buffer = keyTrans.get(keyCode)
-        if not buffer:
-            self.writePipe(keyCode)
-        else:
+        if buffer := TERMINAL_KEY_TRANSLATION.get(keyCode):
             self.writePipe(buffer)
+        else:
+            self.writePipe(keyCode)
 
     if not PLATFORM_WINDOWS:
         def readPipe(self) -> int:
@@ -844,7 +831,7 @@ class Terminal:
             poller = select.poll()
             poller.register(self.__ptyFd, select.POLLIN)
             count = 0
-            while poller.poll(10):
+            while poller.poll(5):
                 try:
                     buffer = os.read(self.__ptyFd, 16384).decode('utf-8')
                     if buffer:
@@ -865,6 +852,7 @@ class Terminal:
             try:
                 buffer = self.__childPid.read()
             except BrokenPipeError:
+                self.state |= STATE_CHILD_EXITED
                 return -1
 
             if buffer:
@@ -891,3 +879,10 @@ class Terminal:
             else:
                 self.__childPid.write(keyCode)
 
+    def _resetCell(self, cell: Texel):
+        cell.char = 0x20
+        cell.attr = self.currAttr
+        cell.color = self.colors
+
+    def _resetRow(self, rowNum: int):
+        self.cells[rowNum] = [Texel(0x20, self.currAttr, self.colors) for _ in range(self.cols)]

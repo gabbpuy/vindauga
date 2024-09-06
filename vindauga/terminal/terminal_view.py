@@ -20,6 +20,60 @@ from vindauga.types.view import View
 
 from .terminal import Terminal, STATE_CURSOR_INVIS, STATE_TITLE_CHANGED, STATE_MOUSE
 
+ESC = '\x1B'
+TERMINAL_KEY_MAP = {
+    kbEnter: (10, 0),
+    kbEsc: (ESC, 0),
+    kbDown: (curses.KEY_DOWN, 0),
+    kbUp: (curses.KEY_UP, 0),
+    kbLeft: (curses.KEY_LEFT, 0),
+    kbRight: (curses.KEY_RIGHT, 0),
+    kbBackSpace: (curses.KEY_BACKSPACE, 0),
+    kbTab: (9, 0),
+    kbPgDn: (curses.KEY_NPAGE, 0),
+    kbPgUp: (curses.KEY_PPAGE, 0),
+    kbHome: (curses.KEY_HOME, 0),
+    kbEnd: (curses.KEY_END, 0),
+    kbIns: (curses.KEY_IC, 0),
+    kbDel: (curses.KEY_DC, 0),
+    kbF1: (curses.KEY_F1, 0),
+    kbF2: (curses.KEY_F2, 0),
+    kbF3: (curses.KEY_F3, 0),
+    kbF4: (curses.KEY_F4, 0),
+    kbF5: (curses.KEY_F5, 0),
+    kbF6: (curses.KEY_F6, 0),
+    kbF7: (curses.KEY_F7, 0),
+    kbF8: (curses.KEY_F8, 0),
+    kbF9: (curses.KEY_F9, 0),
+    kbF10: (curses.KEY_F10, 0),
+    kbAltA: (ESC, 'A'),
+    kbAltB: (ESC, 'B'),
+    kbAltC: (ESC, 'C'),
+    kbAltD: (ESC, 'D'),
+    kbAltE: (ESC, 'E'),
+    kbAltF: (ESC, 'F'),
+    kbAltG: (ESC, 'G'),
+    kbAltH: (ESC, 'H'),
+    kbAltI: (ESC, 'I'),
+    kbAltJ: (ESC, 'J'),
+    kbAltK: (ESC, 'K'),
+    kbAltL: (ESC, 'L'),
+    kbAltM: (ESC, 'M'),
+    kbAltN: (ESC, 'N'),
+    kbAltO: (ESC, 'O'),
+    kbAltP: (ESC, 'P'),
+    kbAltQ: (ESC, 'Q'),
+    kbAltR: (ESC, 'R'),
+    kbAltS: (ESC, 'S'),
+    kbAltT: (ESC, 'T'),
+    kbAltU: (ESC, 'U'),
+    kbAltV: (ESC, 'V'),
+    kbAltW: (ESC, 'W'),
+    kbAltX: (ESC, 'X'),
+    kbAltY: (ESC, 'Y'),
+    kbAltZ: (ESC, 'Z'),
+}
+
 logger = logging.getLogger(__name__)
 
 
@@ -40,19 +94,19 @@ class TerminalView(View):
         # TODO: Make this handle utf-8 better
         minY = min(self.size.y, self.terminal.rows)
         minX = min(self.size.x, self.terminal.cols)
-
         for y in range(minY):
             buffer = DrawBuffer(True)
             x = 0
             right = minX
             while x < right:
                 cell = self.terminal.cells[y][x]
-                c_w = wcwidth.wcwidth(chr(cell.char))
+                cell_char = chr(cell.char)
+                c_w = wcwidth.wcwidth(cell_char)
                 attr = cell.attr
                 c = cell.color
                 if attr & curses.A_REVERSE:
                     c = self.reverseColor(c)
-                buffer.putChar(x, chr(cell.char))
+                buffer.putChar(x, cell_char)
                 if c_w > 0:
                     buffer.putAttribute(x, c)
                 if c_w > 1:
@@ -60,6 +114,7 @@ class TerminalView(View):
                     right -= (c_w -1)
                 x += 1
             self.writeLine(0, y, min(x, minX), 1, buffer)
+
         self.setCursor(self.terminal.currCol, self.terminal.currRow)
 
         if self.terminal.state & STATE_CURSOR_INVIS:
@@ -130,60 +185,7 @@ class TerminalView(View):
 
     @staticmethod
     def decodeKey(k: int) -> tuple[int, int]:
-        ESC = '\x1B'
-        keyMap = {
-            kbEnter: (10, 0),
-            kbEsc: (ESC, 0),
-            kbDown: (curses.KEY_DOWN, 0),
-            kbUp: (curses.KEY_UP, 0),
-            kbLeft: (curses.KEY_LEFT, 0),
-            kbRight: (curses.KEY_RIGHT, 0),
-            kbBackSpace: (curses.KEY_BACKSPACE, 0),
-            kbTab: (9, 0),
-            kbPgDn: (curses.KEY_NPAGE, 0),
-            kbPgUp: (curses.KEY_PPAGE, 0),
-            kbHome: (curses.KEY_HOME, 0),
-            kbEnd: (curses.KEY_END, 0),
-            kbIns: (curses.KEY_IC, 0),
-            kbDel: (curses.KEY_DC, 0),
-            kbF1: (curses.KEY_F1, 0),
-            kbF2: (curses.KEY_F2, 0),
-            kbF3: (curses.KEY_F3, 0),
-            kbF4: (curses.KEY_F4, 0),
-            kbF5: (curses.KEY_F5, 0),
-            kbF6: (curses.KEY_F6, 0),
-            kbF7: (curses.KEY_F7, 0),
-            kbF8: (curses.KEY_F8, 0),
-            kbF9: (curses.KEY_F9, 0),
-            kbF10: (curses.KEY_F10, 0),
-            kbAltA: (ESC, 'A'),
-            kbAltB: (ESC, 'B'),
-            kbAltC: (ESC, 'C'),
-            kbAltD: (ESC, 'D'),
-            kbAltE: (ESC, 'E'),
-            kbAltF: (ESC, 'F'),
-            kbAltG: (ESC, 'G'),
-            kbAltH: (ESC, 'H'),
-            kbAltI: (ESC, 'I'),
-            kbAltJ: (ESC, 'J'),
-            kbAltK: (ESC, 'K'),
-            kbAltL: (ESC, 'L'),
-            kbAltM: (ESC, 'M'),
-            kbAltN: (ESC, 'N'),
-            kbAltO: (ESC, 'O'),
-            kbAltP: (ESC, 'P'),
-            kbAltQ: (ESC, 'Q'),
-            kbAltR: (ESC, 'R'),
-            kbAltS: (ESC, 'S'),
-            kbAltT: (ESC, 'T'),
-            kbAltU: (ESC, 'U'),
-            kbAltV: (ESC, 'V'),
-            kbAltW: (ESC, 'W'),
-            kbAltX: (ESC, 'X'),
-            kbAltY: (ESC, 'Y'),
-            kbAltZ: (ESC, 'Z'),
-        }
-        return keyMap.get(k, (-1, 0))
+        return TERMINAL_KEY_MAP.get(k, (-1, 0))
 
     @staticmethod
     def reverseColor(color: int) -> int:
