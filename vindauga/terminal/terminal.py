@@ -144,7 +144,7 @@ class Terminal:
                 # Child
                 env = os.environ.copy()
                 signal.signal(signal.SIGINT, signal.SIG_DFL)
-                env['TERM'] = 'xterm'
+                env['TERM'] = 'rxvt'
                 logger.info('Executing %s, %s', self.command, self.commandArgs)
                 execvpe(self.command, self.commandArgs, env=env)
 
@@ -681,10 +681,10 @@ class Terminal:
             self.currCol = 0
             self.scrollDown()
 
-        columns = self.cells[self.currRow]
-        columns[self.currCol].char = c
-        columns[self.currCol].attr = self.currAttr
-        columns[self.currCol].color = self.colors
+        texel = self.cells[self.currRow][self.currCol]
+        texel.char = c
+        texel.attr = self.currAttr
+        texel.color = self.colors
         self.currCol += 1
 
     def renderCtrlChar(self, c: Union[int, str]):
