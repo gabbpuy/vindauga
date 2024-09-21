@@ -1,6 +1,5 @@
 # -*- coding: utf-8 -*-
 from __future__ import annotations
-from enum import Enum, auto
 import logging
 import sys
 from typing import List, Optional, Set, Union
@@ -23,6 +22,7 @@ from vindauga.constants.state_flags import (sfVisible, sfCursorVis, sfCursorIns,
 from vindauga.events.event import Event
 from vindauga.misc.message import message
 from vindauga.misc.util import clamp
+
 from .command_set import CommandSet
 from .draw_buffer import DrawBuffer, BufferArray, LINE_WIDTH
 from .palette import Palette
@@ -110,7 +110,7 @@ class View(VindaugaObject):
         self.growMode = 0
         self.dragMode = dmLimitLoY
         self.helpCtx = hcNoContext
-        self.owner: Optional[Group] = None
+        self.owner: Optional['Group'] = None
         self.origin = Point()
         self.size = Point()
         self.cursor = Point()
@@ -1425,7 +1425,7 @@ class View(VindaugaObject):
             self.__writeViewRec2(left, right, self, 0)
             self.doRefresh()
 
-    def __moveGrow(self, point: Point, size: Point, limits: Rect, minSize: int, maxSize: int, mode: int):
+    def __moveGrow(self, point: Point, size: Point, limits: Rect, minSize: Point, maxSize: Point, mode: int):
         size.x = min(max(size.x, minSize.x), maxSize.x)
         size.y = min(max(size.y, minSize.y), maxSize.y)
 

@@ -4,7 +4,6 @@ import io
 import itertools
 import logging
 import os
-import shlex
 import time
 from typing import BinaryIO
 

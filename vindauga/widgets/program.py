@@ -10,6 +10,7 @@ from vindauga.constants.command_codes import (cmReleasedFocus, cmCancel, cmSysRe
                                               cmResize, cmValid)
 from vindauga.constants.event_codes import evNothing, evCommand, evKeyDown, evMouseDown, evBroadcast
 from vindauga.constants.keys import kbAltX, kbF10, kbCtrlW, kbF5, kbCtrlF5
+import vindauga.constants.key_mappings as key_mappings
 from vindauga.constants.state_flags import sfVisible, sfSelected, sfFocused, sfModal, sfExposed
 from vindauga.events.event import Event
 from vindauga.menus.menu_bar import MenuBar
@@ -25,7 +26,9 @@ from vindauga.types.status_item import StatusItem
 from vindauga.types.view import View, SHADOW_SIZE
 
 from .desktop import Desktop
+from .dialog import Dialog
 from .status_line import StatusLine
+from .window import Window
 
 logger = logging.getLogger(__name__)
 
@@ -47,7 +50,7 @@ class Program(Group):
 
     exitText = _('~Alt+X~ Exit')
     desktop: Optional[Desktop] = None
-    application: Optional[Application] = None
+    application: Optional['Application'] = None
     cpAppColor = "\x71\x70\x78\x74\x20\x28\x24\x17\x1F\x1A\x31\x31\x1E\x71\x1F" \
                  "\x37\x3F\x3A\x13\x13\x3E\x21\x3F\x70\x7F\x7A\x13\x13\x70\x7F\x7E" \
                  "\x70\x7F\x7A\x13\x13\x70\x70\x7F\x7E\x20\x2B\x2F\x78\x2E\x70\x30" \
@@ -327,7 +330,6 @@ class Program(Group):
         black & white). The shadows are usually painted in the right and bottom
         sides of menus and windows.
         """
-        global showMarkers
         screen = Screen.screen
         if screen.screenMode & 0x00FF != Display.smMono:
             if screen.screenMode & Display.smFont8x8:
@@ -336,7 +338,7 @@ class Program(Group):
                 SHADOW_SIZE.x = 2
 
             SHADOW_SIZE.y = 1
-            showMarkers = False
+            key_mappings.showMarkers = False
             if screen.screenMode & 0x00FF == Display.smBW80:
                 self.appPalette = self.apBlackWhite
             else:
@@ -344,7 +346,7 @@ class Program(Group):
         else:
             SHADOW_SIZE.x = 0
             SHADOW_SIZE.y = 0
-            showMarkers = True
+            key_mappings.showMarkers = True
             self.appPalette = self.apMonochrome
 
     def initMenuBar(self, bounds: Rect):

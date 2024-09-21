@@ -14,7 +14,6 @@ from vindauga.constants.keys import *
 from vindauga.constants.option_flags import ofSelectable
 from vindauga.constants.state_flags import sfVisible, sfCursorIns, sfActive, sfExposed
 from vindauga.events.event import Event
-from vindauga.types.records.find_dialog_record import FindDialogRecord
 from vindauga.types.command_set import CommandSet
 from vindauga.types.palette import Palette
 from vindauga.types.point import Point

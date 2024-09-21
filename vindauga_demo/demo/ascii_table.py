@@ -6,7 +6,7 @@ from vindauga.constants.command_codes import wnNoNumber, wpGrayWindow
 from vindauga.constants.event_codes import evKeyboard, evBroadcast, evMouseDown, evMouseMove
 from vindauga.constants.keys import kbHome, kbEnd, kbUp, kbDown, kbLeft, kbRight
 from vindauga.constants.option_flags import ofFramed, ofSelectable
-from vindauga.constants.window_flags import wfGrow, wfZoom, wfClose
+from vindauga.constants.window_flags import wfGrow, wfZoom
 from vindauga.misc.message import message
 from vindauga.types.draw_buffer import DrawBuffer
 from vindauga.types.rect import Rect

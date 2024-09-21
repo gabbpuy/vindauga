@@ -3,7 +3,6 @@ from __future__ import annotations
 import curses
 import logging
 import os
-import unicodedata
 
 import wcwidth
 
@@ -14,9 +13,11 @@ from vindauga.constants.keys import *
 from vindauga.events.event import Event
 from vindauga.misc.clipboard import Clipboard
 from vindauga.types.collections.collection import Collection
-from vindauga.types.draw_buffer import DrawBuffer, BufferArray
+from vindauga.types.draw_buffer import DrawBuffer
 from vindauga.types.point import Point
+from vindauga.types.rect import Rect
 from vindauga.types.view import View
+from vindauga.widgets.window import Window
 
 from .terminal import Terminal, STATE_CURSOR_INVIS, STATE_TITLE_CHANGED, STATE_MOUSE
 

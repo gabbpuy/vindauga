@@ -72,6 +72,7 @@ class PopupApplication(Application):
         # positioned on the desktop
         mb.options |= ofCentered
 
+        result = None
         # then make sure it's valid and execute it
         if self.validView(mb):
             result = self.desktop.execView(mb)

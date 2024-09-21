@@ -1,7 +1,6 @@
 # -*- coding: utf-8 -*-
 import curses
 from dataclasses import dataclass
-import itertools
 import logging
 import os
 from functools import lru_cache
@@ -54,7 +53,7 @@ logger = logging.getLogger(__name__)
 
 @dataclass()
 class Texel:
-    char: str = ''
+    char: int = 0x0
     attr: int = 0
     color: int = 0
 
@@ -723,10 +722,10 @@ class Terminal:
             pass
 
     def isModeACS(self) -> bool:
-        return self.state & STATE_ALT_CHARSET
+        return bool(self.state & STATE_ALT_CHARSET)
 
     def isModeEscaped(self) -> bool:
-        return self.state & STATE_ESCAPE_MODE
+        return bool(self.state & STATE_ESCAPE_MODE)
 
     def render(self, data: str):
         for c in data:

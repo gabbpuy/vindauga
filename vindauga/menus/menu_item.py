@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 from __future__ import annotations
 import logging
+from typing import Optional
 
 from vindauga.constants.command_codes import hcNoContext
 from vindauga.types.view import View
@@ -18,7 +19,7 @@ class MenuItem:
     """
 
     def __init__(self, name: str, command: int, keyCode: int, helpCtx: int = hcNoContext, params=None,
-                 subMenu: Optional[SubMenu] = None, nextItem: Optional[MenuItem] = None):
+                 subMenu: Optional['SubMenu'] = None, nextItem: Optional[MenuItem] = None):
         self.name = name
         self.command = command
         self.disabled = not View.commandEnabled(command)
