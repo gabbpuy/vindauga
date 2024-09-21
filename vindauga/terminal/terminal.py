@@ -1,4 +1,6 @@
 # -*- coding: utf-8 -*-
+import atexit
+from copy import deepcopy, copy
 import curses
 from dataclasses import dataclass
 import logging
@@ -8,8 +10,9 @@ from os import kill, execvpe, waitpid
 import platform
 import select
 import struct
-import signal
+from signal import *
 from typing import Tuple, Union
+
 
 TERMINAL_KEY_TRANSLATION = {
     '\n': b'\r',
@@ -45,8 +48,10 @@ if not PLATFORM_WINDOWS:
     import pwd
     import termios
     import pty
+    signals = [SIGINT, SIGQUIT]
 else:
     from .windows_shell import WindowsShell
+    signals = [SIGINT, SIGBREAK]
 
 logger = logging.getLogger(__name__)
 
@@ -117,6 +122,11 @@ class Terminal:
         self.title = ''
         self.cells = [[Texel(0x20, self.currAttr, self.colors) for _x in range(width)] for _y in range(height)]
         self.executeCommand()
+        atexit.register(self._destroy, self.__childPid)
+
+        from .terminal_view import TerminalView
+        if not TerminalView.OriginalSignals:
+            TerminalView.OriginalSignals = {s: signal(s, SIG_IGN) for s in signals}
 
     @staticmethod
     def getShell() -> Tuple[str, list]:
@@ -142,8 +152,11 @@ class Terminal:
             if not self.__childPid:
                 # Child
                 env = os.environ.copy()
-                signal.signal(signal.SIGINT, signal.SIG_DFL)
                 env['TERM'] = 'rxvt'
+                env['COLUMNS'] = str(self.cols)
+                env['LINES'] = str(self.rows)
+                env["LANG"] = 'en_US.UTF-8'
+                env["LC_CTYPE"] = 'en_US.UTF-8'
                 logger.info('Executing %s, %s', self.command, self.commandArgs)
                 execvpe(self.command, self.commandArgs, env=env)
 
@@ -158,11 +171,20 @@ class Terminal:
             if self.__ptyFd is None:
                 raise RuntimeError
 
+    @staticmethod
+    def _destroy(pid):
+        kill(pid, SIGKILL)
+
     def destroy(self):
         try:
-            kill(self.__childPid, signal.SIGKILL)
+            kill(self.__childPid, SIGKILL)
         except:
             pass
+        from .terminal_view import TerminalView
+        if not TerminalView.ActiveTerminals:
+            # Restore original signal handlers, we were the last terminal
+            for signal_, handler in TerminalView.OriginalSignals.items():
+                signal(signal_, handler)
 
     def initColors(self):
         self.col.append(Color(0, 0))
@@ -281,6 +303,8 @@ class Terminal:
     def do_CUx(self, verb: str):
         """
         Relative Cursor
+        CUU, CUD, CUF, CUB, CNL, CPL, CHA, HPT, VPA, VPR, HPA
+
         :param verb: Cursor command
         """
         n = self.getNumber()
@@ -313,13 +337,12 @@ class Terminal:
         Delete Chars
         """
         n = self.getNumber()
-
         columns = self.cells[self.currRow]
-        end = max(self.cols, self.currCol + n)
-
-        columns[self.currCol: end] = columns[self.currCol + n: self.currCol + n + n]
-        for i in range(end, self.cols):
-            columns[i] = Texel(0x20, self.currAttr, self.colors)
+        for i in range(self.currCol, self.cols):
+            if i + n < self.cols:
+                columns[i] = columns[i + n]
+            else:
+                columns[i] = Texel(0x20, self.currAttr, self.colors)
 
     def do_DECSTBM(self):
         """
@@ -427,9 +450,9 @@ class Terminal:
         n = self.getNumber()
 
         columns = self.cells[self.currRow]
-        columns[self.cols: self.cols + n] = columns[self.cols - n: self.cols]
-        # for i in range(self.cols, self.cols + n):
-        #     columns[i] = columns[i - n]
+        for i in range(self.cols - 1, self.currCol + n - 1, -1):
+            columns[i] = columns[i - n]
+
         for i in range(self.currCol, self.currCol + n):
             self._resetCell(columns[i])
 
@@ -438,10 +461,8 @@ class Terminal:
         Insert Line
         """
         n = self.getNumber()
-
-        self.cells[self.currRow: self.scrollMax] = self.cells[self.currRow - n: self.scrollMax - n]
-        # for i in range(self.scrollMax, self.currRow - 1, -1):
-        #     self.cells[i] = self.cells[i - n]
+        for i in range(self.scrollMax, self.currentRow + n - 1, -1):
+            self.cells[i] = copy(self.cells[i - n])
         for i in range(self.currRow, max(self.scrollMax, self.currRow + n)):
             self._resetRow(i)
 
@@ -481,7 +502,7 @@ class Terminal:
                 continue
 
             if param in {1, 2, 4}:
-                # Bold
+                # 1=bold, 4=underline
                 self.currAttr |= curses.A_BOLD
                 self.colors |= 8
                 continue
@@ -516,7 +537,7 @@ class Terminal:
                 continue
 
             if param in {22, 24}:
-                # Bold Off
+                # Bold/Underline Off
                 self.currAttr &= ~curses.A_BOLD
                 self.colors &= ~8
                 continue
@@ -538,6 +559,12 @@ class Terminal:
             elif 40 <= param <= 47:
                 # set bg color
                 self.bg = self.colorValues[param - 40] & 0x7
+            elif 90 <= param <= 97:
+                self.fg = self.colorValues[param - 90] & 0xF
+                self.currAttr |= curses.A_BOLD
+            elif 100 <= param <= 107:
+                self.bg = self.colorValues[param - 100] & 0x7
+                self.currAttr |= curses.A_BOLD
             elif param == 39:
                 # Reset fg
                 self.fg = defaultFg
@@ -689,17 +716,21 @@ class Terminal:
     def renderCtrlChar(self, c: Union[int, str]):
         c = chr(c)
         if c == '\r':
+            # carriage return
             self.currCol = 0
         elif c == '\n':
+            # line feed
             self.scrollDown()
         elif c == '\b':
+            # backspace
             if self.currCol > 0:
                 self.currCol -= 1
         elif c == '\t':
-            self.putChar(0x20)
+            # tab
+            if not self.currCol % 8:
+                self.putChar(0x20)
             while self.currCol % 8:
                 self.putChar(0x20)
-
         elif c == '\x1B':
             self.escapeStart()
         elif c == '\x0E':
@@ -728,12 +759,12 @@ class Terminal:
         return bool(self.state & STATE_ESCAPE_MODE)
 
     def render(self, data: str):
-        for c in data:
-            c = ord(c)
+        for cc in data:
+            c = ord(cc)
             if c == 0:
                 continue
             if self.isModeEscaped() and len(self.escBuf) < ESC_SEQ_BUF_SIZE:
-                self.escBuf += chr(c)
+                self.escBuf += cc
                 self.tryEscapeSequence()
             else:
                 if 1 <= c <= 31:
@@ -785,7 +816,7 @@ class Terminal:
         if not PLATFORM_WINDOWS:
             b = struct.pack('HHHH', height, width, 0, 0)
             fcntl.ioctl(self.__ptyFd, termios.TIOCSWINSZ, b)
-            kill(self.__childPid, signal.SIGWINCH)
+            kill(self.__childPid, SIGWINCH)
 
     def scrollDown(self):
         self.currRow += 1

@@ -45,6 +45,7 @@ class TerminalWindow(Window):
         try:
             logger.info('Removing %s from active terminals', self.window)
             TerminalView.ActiveTerminals.remove(self.window)
+            self.window.destroy()
         except ValueError:
             # Terminal is not in the list
             pass

@@ -80,6 +80,7 @@ logger = logging.getLogger(__name__)
 
 class TerminalView(View):
     ActiveTerminals = Collection()
+    OriginalSignals = dict()
 
     def __init__(self, bounds: Rect, parent: Window, command=None, *commandArgs):
         super().__init__(bounds)
@@ -208,3 +209,7 @@ class TerminalView(View):
         Call me on idle; `TerminalView.updateTerminals()`
         """
         TerminalView.ActiveTerminals.forEach(TerminalView.handleTerminal)
+
+    def destroy(self):
+        logger.info('Cleaning up %s', self)
+        self.terminal.destroy()
