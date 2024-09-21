@@ -8,7 +8,7 @@ import os
 from functools import lru_cache
 from pathlib import Path
 import platform
-from typing import Dict, List, Tuple, Optional
+from typing import Dict, List, Tuple, Optional, Sequence
 
 from vindauga.types.display import Display
 
@@ -245,7 +245,7 @@ def setPalette() -> Tuple[Display, array.array, Optional[array.array]]:
 
 
 @lru_cache(1)
-def getColorMap() -> Tuple[Colours]:
+def getColorMap() -> Sequence[Colours]:
     if PLATFORM_IS_CYGWIN or (not PLATFORM_IS_WINDOWS or (PLATFORM_IS_WINDOWS and curses.can_change_color())):
         colorMap = (Colours.Black,
                     Colours.Cyan,

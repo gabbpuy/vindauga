@@ -93,7 +93,7 @@ class View(VindaugaObject):
     showMarkers = False
     errorAttr = 0x4F  # 0xCF
 
-    MOVE_COMMANDS = {kbLeft: Point(-1, 0),
+    MOVE_COMMANDS: dict[int, Point] = {kbLeft: Point(-1, 0),
                      kbRight: Point(1, 0),
                      kbUp: Point(0, -1),
                      kbDown: Point(0, 1),
@@ -336,7 +336,7 @@ class View(VindaugaObject):
                     r.bottomRight += SHADOW_SIZE
                 self.drawUnderRect(r, None)
 
-    def dragView(self, event: Event, mode: int, limits: Rect, minSize: int, maxSize: int):
+    def dragView(self, event: Event, mode: int, limits: Rect, minSize: Point, maxSize: Point):
         """
         Drags the view in the ways specified by the `mode` argument, that is
         interpreted like the `growMode` data member.
@@ -648,7 +648,7 @@ class View(VindaugaObject):
         """
         self.setState(sfCursorVis, False)
 
-    def drawHide(self, lastView: View):
+    def drawHide(self, lastView: Optional[View]):
         """
         Calls `drawCursor()` followed by `drawUnderView()`. The latter
         redraws all subviews (with shadows if required) until the given
@@ -659,7 +659,7 @@ class View(VindaugaObject):
         self.drawCursor()
         self.drawUnderView(bool(self.state & sfShadow), lastView)
 
-    def drawShow(self, lastView: View):
+    def drawShow(self, lastView: Optional[View]):
         """
         Calls `drawView()`, then if `state` data member has the
         `sfShadow` bit set, `drawUnderView()` is called to draw the
@@ -671,7 +671,7 @@ class View(VindaugaObject):
         if self.state & sfShadow:
             self.drawUnderView(True, lastView)
 
-    def drawUnderRect(self, r: Rect, lastView: View):
+    def drawUnderRect(self, r: Rect, lastView: Optional[View]):
         """
         Calls `owner.clip.intersect(r)` to set the area that needs drawing.
         Then, all the subviews from the next view to the given `lastView` are
@@ -685,7 +685,7 @@ class View(VindaugaObject):
         self.owner.drawSubViews(self.nextView(), lastView)
         self.owner.clip = self.owner.getExtent()
 
-    def drawUnderView(self, doShadow: bool, lastView: View):
+    def drawUnderView(self, doShadow: bool, lastView: Optional[View]):
         """
         Calls `drawUnderRect(r, lastView)`, where `r` is the calling view's
         current bounds. If `doShadow` is True, the view's bounds are first
@@ -1126,7 +1126,7 @@ class View(VindaugaObject):
             temp -= cur.origin
         return temp
 
-    def nextView(self) -> View:
+    def nextView(self) -> Optional[View]:
         """
         Returns the next subview in the owner's subview list. None is returned if the
         calling view is the last one in its owner's list.
@@ -1137,7 +1137,7 @@ class View(VindaugaObject):
             return None
         return self.next
 
-    def prevView(self) -> View:
+    def prevView(self) -> Optional[View]:
         """
         Returns the previous subview in the owner's subview list. None is returned if the
         calling view is the first one in its owner's list.
@@ -1298,7 +1298,7 @@ class View(VindaugaObject):
         return initial
 
     @staticmethod
-    def __change(mode: int, delta: int, point: Point, size: Point, ctrlState: int):
+    def __change(mode: int, delta: Point, point: Point, size: Point, ctrlState: int):
         """
         Alter point and size depending on the drag/move mode
 
@@ -1473,7 +1473,7 @@ class View(VindaugaObject):
                 screen.writeRow(offset + left, context.y, [d], 1)
             view.owner.buffer[dst1 + offset] = d
 
-    def __handleMouseDownDrag(self, event: Event, mode: int, limits: Rect, minSize: int, maxSize: int):
+    def __handleMouseDownDrag(self, event: Event, mode: int, limits: Rect, minSize: Point, maxSize: Point):
         """
         Handle mouse down event
         """
@@ -1498,7 +1498,7 @@ class View(VindaugaObject):
             event.mouse.where += point
             self.__moveGrow(self.origin, event.mouse.where, limits, minSize, maxSize, mode)
 
-    def __handleKeyDownDrag(self, event: Event, mode: int, limits: Rect, minSize: int, maxSize: int):
+    def __handleKeyDownDrag(self, event: Event, mode: int, limits: Rect, minSize: Point, maxSize: Point):
         """
         Handle key down event
         """

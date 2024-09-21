@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 from gettext import gettext as _
-from typing import List, Any, Union, Tuple
+from typing import Any, Sequence
 
 from vindauga.constants.buttons import bfNormal
 from vindauga.constants.command_codes import (cmYes, cmNo, cmOK,
@@ -40,7 +40,7 @@ TITLES = {
 }
 
 
-def messageBoxRect(r: Rect, msg: str, messageType: int, buttons: List[int]) -> Any:
+def messageBoxRect(r: Rect, msg: str, messageType: int, buttons: Sequence[int]) -> Any:
 
     dialog = Dialog(r, TITLES[messageType])
 
@@ -68,5 +68,5 @@ def makeRect() -> Rect:
     return r
 
 
-def messageBox(msg: str, messageType: int, buttons: Union[List[int], Tuple[int]]) -> Any:
+def messageBox(msg: str, messageType: int, buttons: Sequence[int]) -> Any:
     return messageBoxRect(makeRect(), msg, messageType, buttons)

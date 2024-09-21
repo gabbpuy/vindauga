@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 import logging
-from typing import List, Union, Tuple
+from typing import List, Union, Sequence
 
 from vindauga.constants.command_codes import (hcNoContext)
 from vindauga.constants.event_codes import evMouseDown, evMouseMove, evKeyDown
@@ -25,7 +25,7 @@ class Cluster(View):
     name = 'Cluster'
     cpCluster = '\x10\x11\x12\x12\x1f'
 
-    def __init__(self, bounds: Rect, strings: Union[List[str], Tuple[str]]):
+    def __init__(self, bounds: Rect, strings: Sequence[str]):
         super().__init__(bounds)
         self._value = 0
         self._sel = 0

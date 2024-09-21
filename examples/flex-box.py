@@ -1,15 +1,13 @@
 # -*- coding:utf-8 -*-
 import logging
 
-from vindauga.constants.option_flags import ofCentered, ofFramed
+from vindauga.constants.option_flags import ofCentered
 from vindauga.constants.window_flags import wfGrow
 from vindauga.types.rect import Rect
 from vindauga.widgets.application import Application
 from vindauga.widgets.button import Button
 from vindauga.widgets.flex_box import FlexBox, GrowDirection
-from vindauga.widgets.input_line import InputLine
 from vindauga.widgets.scroll_dialog import Dialog
-from vindauga.widgets.static_text import StaticText
 
 
 class FlexBoxDemo(Application):

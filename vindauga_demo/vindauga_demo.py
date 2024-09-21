@@ -55,7 +55,7 @@ checkBoxData = 0
 radioButtonData = 0
 inputLineData = ''
 
-demoDialogData = reversed([checkBoxData, radioButtonData, inputLineData])
+demoDialogData = list(reversed([checkBoxData, radioButtonData, inputLineData]))
 
 
 def setupLogging():
@@ -125,7 +125,7 @@ class VindaugaDemo(Application):
                     MenuItem('Ascii ~T~able', AppCommands.cmAsciiCmd, kbNoKey, HelpContexts.hcSAsciiTable) +
                     MenuItem('~C~alculator', AppCommands.cmCalcCmd, kbNoKey, HelpContexts.hcCalculator))
 
-        subMenu2 = (SubMenu('~F~ile', None, HelpContexts.hcFile) +
+        subMenu2 = (SubMenu('~F~ile', 0, HelpContexts.hcFile) +
                     MenuItem('~O~pen', AppCommands.cmOpenCmd, kbF3, HelpContexts.hcFOpen, 'F3') +
                     MenuItem('~C~hange Dir...', AppCommands.cmChDirCmd, kbNoKey, HelpContexts.hcFChangeDir) +
                     MenuItem.newLine() +
@@ -134,7 +134,7 @@ class VindaugaDemo(Application):
                     MenuItem.newLine() +
                     MenuItem('E~x~it', cmQuit, kbAltX, hcNoContext, 'Alt+X'))
 
-        subMenu3 = (SubMenu('~W~indows', None, HelpContexts.hcWindows) +
+        subMenu3 = (SubMenu('~W~indows', 0, HelpContexts.hcWindows) +
                     MenuItem('~R~esize/move', cmResize, kbCtrlF5, HelpContexts.hcWSizeMove, 'Ctrl+F5') +
                     MenuItem('~Z~oom', cmZoom, kbF5, HelpContexts.hcWZoom, 'F5') +
                     MenuItem('~N~ext', cmNext, kbF6, HelpContexts.hcWNext, 'F6') +
@@ -142,11 +142,11 @@ class VindaugaDemo(Application):
                     MenuItem('~T~ile', cmTile, kbNoKey, HelpContexts.hcWTile) +
                     MenuItem('C~a~scade', cmCascade, kbNoKey, HelpContexts.hcWCascade))
 
-        subMenu4 = (SubMenu('~O~ptions', None, HelpContexts.hcOptions) +
+        subMenu4 = (SubMenu('~O~ptions', 0, HelpContexts.hcOptions) +
                     MenuItem('~M~ouse...', AppCommands.cmMouseCmd, kbNoKey, HelpContexts.hcOMouse) +
                     MenuItem('~C~olors...', AppCommands.cmColorCmd, kbNoKey, HelpContexts.hcOColors))
 
-        subMenu5 = (SubMenu('~R~esolution', None, hcNoContext) +
+        subMenu5 = (SubMenu('~R~esolution', 0, hcNoContext) +
                     MenuItem('~1~ 80x25', AppCommands.cmTest80x25, kbNoKey, hcNoContext) +
                     MenuItem('~2~ 80x28', AppCommands.cmTest80x28, kbNoKey, hcNoContext) +
                     MenuItem('~3~ 80x50', AppCommands.cmTest80x50, kbNoKey, hcNoContext) +

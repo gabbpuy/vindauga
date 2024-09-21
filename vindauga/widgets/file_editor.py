@@ -1,9 +1,8 @@
 # -*- coding: utf-8 -*-
-import io
 import logging
 import os
 from pathlib import Path
-from typing import Optional, Union
+from typing import Optional, Union, IO
 
 from vindauga.constants.command_codes import *
 from vindauga.constants.edit_command_codes import *
@@ -86,7 +85,7 @@ class FileEditor(Editor):
         return res
 
     @staticmethod
-    def writeBlock(f: io.FileIO, buf: BufferArray, numBytes: int):
+    def writeBlock(f: IO, buf: BufferArray, numBytes: int):
         str_buffer = ''.join(chr(c) for c in buf[:numBytes])
         while numBytes:
             written = f.write(str_buffer)

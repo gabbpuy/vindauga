@@ -110,6 +110,7 @@ class Screen:
         self.curX = 0
         self.curY = 0
         self.attributeMap = []
+        self.highColourMap = []
 
         self.evIn = None
         self.evOut = None
@@ -257,7 +258,7 @@ class Screen:
             me = MouseEvent(*curses.getmouse())
         except Exception as e:
             # No mouse? No Problem.
-            return
+            return False
 
         event.mouse.controlKeyState = 0
 
