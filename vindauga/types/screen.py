@@ -444,13 +444,15 @@ class Screen:
             logger.exception('drawMouse')
             return
 
-        code = cell & DrawBuffer.CHAR_MASK
-        color = (cell >> DrawBuffer.CHAR_WIDTH) & 0xFF
-
-        if self.screenMode in {Display.smCO80, Display.smFont8x8, Display.smCO256}:
-            if show:
-                color ^= 0x7F
+        if show:
+            code = '↖'
+            attr = curses.A_REVERSE
         else:
+            code = chr(cell & DrawBuffer.CHAR_MASK)
+            attr = 0
+
+        color = (cell >> DrawBuffer.CHAR_WIDTH) & 0xFF
+        if self.screenMode not in {Display.smCO80, Display.smFont8x8, Display.smCO256}:
             if show:
                 if color in {0x07, 0x0f}:
                     color = 0x70
@@ -458,10 +460,8 @@ class Screen:
                     color = 0x0f
 
         stdscr = self.stdscr
-        stdscr.move(self.msWhere.y, self.msWhere.x)
-        stdscr.attrset(self.attributeMap[color])
         try:
-            stdscr.addch(chr(code))
+            stdscr.addstr(self.msWhere.y, self.msWhere.x, code, self.attributeMap[color]|attr)
         except curses.error as e:
             # Writing to the bottom right corner throws an error after it is drawn.
             # If the mouse cursor is in the bottom right...
