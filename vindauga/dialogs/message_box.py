@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 from gettext import gettext as _
-from typing import Any, Sequence
+from typing import Any, Sequence, List
 
 from vindauga.constants.buttons import bfNormal
 from vindauga.constants.command_codes import (cmYes, cmNo, cmOK,
@@ -49,8 +49,8 @@ def messageBoxRect(r: Rect, msg: str, messageType: int, buttons: Sequence[int]) 
 
     x = -2
     buttons = (BUTTONS[b] for b in sorted(buttons))
-    buttonList = [Button(Rect(0, 0, 10, 2), button[0], button[1], bfNormal) for button in buttons]
-    x += sum((2 + b.size.x) for b in buttonList)
+    buttonList: List[Button] = [Button(Rect(0, 0, 10, 2), button[0], button[1], bfNormal) for button in buttons]
+    x += sum((2 + button.size.x) for button in buttonList)
     x = (dialog.size.x - x) // 2
     for b in buttonList:
         dialog.insert(b)

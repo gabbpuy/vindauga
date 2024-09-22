@@ -44,7 +44,7 @@ class Demo(Application):
         bounds.topLeft.y = bounds.bottomRight.y - 1
         return StatusLine(bounds,
                           StatusDef(0, 0xFFFF) +
-                          StatusItem(0, kbF10, cmMenu) +
+                          StatusItem('', kbF10, cmMenu) +
                           StatusItem('~Alt+X~ Exit', kbAltX, cmQuit))
 
     def initMenuBar(self, bounds: Rect) -> MenuBar:

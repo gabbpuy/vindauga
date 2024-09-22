@@ -10,11 +10,13 @@ gettext.install('vindauga')
 class VindaugaObject:
 
     _registry = {}
+    name: str = ''
 
     def __init_subclass__(cls, **kwargs):
         super().__init_subclass__()
         try:
-            VindaugaObject._registry[cls.name] = cls
+            if cls.name:
+                VindaugaObject._registry[cls.name] = cls
         except AttributeError:
             logger.info('A class has no name: %s', cls)
 

@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 from dataclasses import dataclass
 import logging
-from typing import List
+from typing import Sequence
 
 from vindauga.constants.event_codes import evMouseDown, evBroadcast, evKeyDown, meDoubleClick
 from vindauga.constants.keys import kbEnter
@@ -25,8 +25,8 @@ class ListRec:
 
 class GridViewBox(GridView):
 
-    def __init__(self, bounds: Rect, hScrollBar: ScrollBar, vScrollBar: ScrollBar, columnWidths: List[int],
-                 cellData: dict, columns: int, rows: int, decimalPoint: List[int]):
+    def __init__(self, bounds: Rect, hScrollBar: ScrollBar, vScrollBar: ScrollBar, columnWidths: Sequence[int],
+                 cellData: dict, columns: int, rows: int, decimalPoint: Sequence[int]):
         super().__init__(bounds, hScrollBar, vScrollBar, columnWidths)
         self.cellData = cellData or {}
         self.decimalPoint = decimalPoint or [0,] * columns

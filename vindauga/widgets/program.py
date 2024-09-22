@@ -29,6 +29,7 @@ from .desktop import Desktop
 from .dialog import Dialog
 from .status_line import StatusLine
 from .window import Window
+from ..types.point import Point
 
 logger = logging.getLogger(__name__)
 

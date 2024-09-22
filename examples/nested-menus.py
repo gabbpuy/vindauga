@@ -4,7 +4,7 @@ import logging
 from vindauga.constants.buttons import bfDefault
 from vindauga.constants.command_codes import cmQuit, hcNoContext, cmOK
 from vindauga.constants.event_codes import evCommand
-from vindauga.constants.keys import kbAltSpace, kbNoKey, kbAltX, kbAltA, kbAltY, kbAltZ, kbAltF
+from vindauga.constants.keys import kbNoKey, kbAltX, kbAltA, kbAltY, kbAltZ, kbAltF
 from vindauga.constants.option_flags import ofCentered
 from vindauga.events.event import Event
 from vindauga.menus.menu import Menu

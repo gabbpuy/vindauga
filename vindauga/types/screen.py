@@ -154,7 +154,6 @@ class Screen:
 
     @staticmethod
     def kbReadShiftState(ch: Union[str, int]):
-        shift = 0
         if not HAS_IOCTL:
             return get_key_mapping(ch)
         arg = 6

@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 import atexit
-from copy import deepcopy, copy
+from copy import copy
 import curses
 from dataclasses import dataclass
 import logging
@@ -461,7 +461,7 @@ class Terminal:
         Insert Line
         """
         n = self.getNumber()
-        for i in range(self.scrollMax, self.currentRow + n - 1, -1):
+        for i in range(self.scrollMax, self.currRow + n - 1, -1):
             self.cells[i] = copy(self.cells[i - n])
         for i in range(self.currRow, max(self.scrollMax, self.currRow + n)):
             self._resetRow(i)

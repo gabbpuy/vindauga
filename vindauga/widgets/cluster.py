@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 import logging
-from typing import List, Union, Sequence
+from typing import Sequence
 
 from vindauga.constants.command_codes import (hcNoContext)
 from vindauga.constants.event_codes import evMouseDown, evMouseMove, evKeyDown

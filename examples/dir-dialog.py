@@ -15,7 +15,7 @@ class MyApp(Application):
 
     def doWork(self):
         messageBox(f'\003Directory Dialog\nCurrent Directory is {os.getcwd()}', mfInformation, (mfOKButton,))
-        data = self.newDialog()
+        _data = self.newDialog()
         messageBox(f'\003Directory Dialog\nCurrent Directory is now {os.getcwd()}', mfInformation, (mfOKButton,))
 
     def newDialog(self):

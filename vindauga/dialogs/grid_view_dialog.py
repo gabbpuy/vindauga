@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-from typing import List, Any, Optional
+from typing import Any, Optional, Sequence
 
 from vindauga.constants.command_codes import cmListItemSelected
 from vindauga.constants.grow_flags import gfGrowHiX, gfGrowHiY, gfGrowAll
@@ -18,8 +18,8 @@ from vindauga.widgets.scroll_bar import ScrollBar
 
 
 class GridViewDialog(Dialog):
-    def __init__(self, bounds: Rect, title: str, headings: List[str], headRows: int, gridData: Any,
-                 columns: int, rows: int, columnWidth: List[int], decimalPoint: Optional[List[int]]):
+    def __init__(self, bounds: Rect, title: str, headings: Sequence[str], headRows: int, gridData: Any,
+                 columns: int, rows: int, columnWidth: Sequence[int], decimalPoint: Optional[Sequence[int]]):
         super().__init__(bounds, title)
         self.options |= ofCentered
         maxStr = 30

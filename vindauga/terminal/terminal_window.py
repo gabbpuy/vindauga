@@ -29,7 +29,7 @@ class TerminalWindow(Window):
         minLimit.x = TerminalWindow.MIN_WIDTH
         minLimit.y = TerminalWindow.MIN_HEIGHT
 
-    def dragView(self, event: Event, mode: int, limits: Rect, minSize: int, maxSize: int):
+    def dragView(self, event: Event, mode: int, limits: Rect, minSize: Point, maxSize: Point):
         super().dragView(event, mode, limits, minSize, maxSize)
         self.window.changeSize(self.size)
 

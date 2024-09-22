@@ -66,7 +66,7 @@ class PopupApplication(Application):
         MenuItem("E~x~it", cmQuit, kbAltX, hcNoContext, "Alt-X"))))
 
         # now create the menu with no parent
-        mb = MenuBox(bounds, theMenu, 0)
+        mb = MenuBox(bounds, theMenu, None)
 
         # however, if we don't specify appropriate bounds, we must do something to ensure it is appropriately
         # positioned on the desktop

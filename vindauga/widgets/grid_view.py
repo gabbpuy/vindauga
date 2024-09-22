@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 from gettext import gettext as _
 import logging
-from typing import List, Optional
+from typing import Optional, Sequence
 
 from vindauga.constants.command_codes import cmScrollBarClicked, cmScrollBarChanged, cmListItemSelected
 from vindauga.constants.event_codes import evBroadcast, evKeyDown, evMouseDown, evMouseAuto, evMouseMove, meDoubleClick
@@ -29,7 +29,7 @@ class GridView(View):
     cpGridView = '\x1A\x1A\x1B\x1C\x1D\x06'
 
     def __init__(self, bounds: Rect, hScrollBar: Optional[ScrollBar], vScrollBar: Optional[ScrollBar],
-                 columnWidths: List[int]):
+                 columnWidths: Sequence[int]):
         super().__init__(bounds)
         self.leftColumn = 0
         self.topRow = 0

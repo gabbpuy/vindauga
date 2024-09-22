@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 import logging
-from typing import List, Optional
+from typing import Optional, Sequence
 
 from vindauga.constants.event_codes import evMouseDown, meDoubleClick
 from vindauga.events.event import Event
@@ -18,7 +18,7 @@ class GridHeadingView(GridView):
         True: ' ▼'
     }
 
-    def __init__(self, bounds: Rect, columnWidths: List[int], cellText: List[str], columns: int, rows: int,
+    def __init__(self, bounds: Rect, columnWidths: Sequence[int], cellText: Sequence[str], columns: int, rows: int,
                  widget: Optional[GridViewBox] = None):
         self.headingMode = True
         super().__init__(bounds, None, None, columnWidths)

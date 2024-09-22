@@ -1,7 +1,6 @@
 # -*- coding: utf-8 -*-
 import logging
 import time
-import traceback
 
 from vindauga.constants.command_codes import cmMenu, cmQuit
 from vindauga.constants.event_codes import evCommand

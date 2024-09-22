@@ -3,6 +3,7 @@ import inspect
 import logging
 import platform
 from signal import *
+from typing import Any, Optional
 
 from .confirm_exit import confirmExit
 
@@ -11,7 +12,7 @@ logger = logging.getLogger(__name__)
 PLATFORM_IS_WINDOWS = platform.system().lower() == 'windows'
 
 
-oldWinchHandler = None
+oldWinchHandler = Optional[Any]
 
 
 def sigWinchHandler():
