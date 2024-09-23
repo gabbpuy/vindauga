@@ -3,14 +3,14 @@ import atexit
 from copy import copy
 import curses
 from dataclasses import dataclass
+from functools import lru_cache
 import logging
 import os
-from functools import lru_cache
 from os import kill, execvpe, waitpid
 import platform
 import select
-import struct
 from signal import *
+import struct
 from typing import Tuple, Union
 
 
