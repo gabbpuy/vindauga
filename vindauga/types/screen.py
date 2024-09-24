@@ -41,12 +41,15 @@ if PLATFORM_IS_WINDOWS:
     HAS_IOCTL = False
     import msvcrt
     from signal import *
+    from vindauga.mouse.windows import get_cursor_pos
 else:
     import fcntl
     import termios
     from signal import signal, SIGCONT, SIGINT, SIGQUIT, SIGTSTP, SIGWINCH
 
     HAS_IOCTL = 'TIOCLINUX' in dir(termios)
+    def get_cursor_pos():
+        return None
 
 logger = logging.getLogger(__name__)
 
@@ -543,8 +546,19 @@ class Screen:
             except select.error as e:
                 pass
         else:
-            msReady = False
+            msReady = True
             kbReady = msvcrt.kbhit()
+
+        if msReady:
+            if pos := get_cursor_pos():
+                if pos != self.msWhere:
+                    self.drawMouse(False)
+                    self.msWhere = pos
+                    self.drawMouse(True)
+                else:
+                    msReady = False
+            else:
+                msReady = False
 
         if kbReady or kbEscTimer.isRunning() or PLATFORM_IS_WINDOWS:
             self.handleKeyboard()
