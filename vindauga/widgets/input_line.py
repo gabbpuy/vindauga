@@ -126,7 +126,7 @@ class InputLine(View):
 
     def getData(self) -> DataRecord:
         rec = DataRecord()
-        if not self.validator or (self.validator.transfer(''.join(self.current.data), rec, vtGetData) == 0):
+        if not self.validator or not self.validator.transfer(''.join(self.current.data), rec, vtGetData):
             rec.value = ''.join(self.current.data)
         return rec
 
@@ -250,7 +250,7 @@ class InputLine(View):
         self.drawView()
 
     def setData(self, rec):
-        if not self.validator or (self.validator.transfer(self.current.data, rec, vtSetData) == 0):
+        if not self.validator or not self.validator.transfer(self.current.data, rec, vtSetData):
             if isinstance(rec, str):
                 self.current.data = list(rec)
             else:

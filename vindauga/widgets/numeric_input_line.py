@@ -100,6 +100,6 @@ class NumericInputLine(InputLine):
 
     def getData(self) -> DataRecord:
         rec = DataRecord()
-        if not self.validator or (self.validator.transfer(''.join(self.current.data), rec, vtGetData) == 0):
+        if not self.validator or not self.validator.transfer(''.join(self.current.data), rec, vtGetData):
             rec.value = self._toNumber()
         return rec
