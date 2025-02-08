@@ -5,7 +5,10 @@ from typing import Optional, Union
 
 from vindauga.constants.event_codes import evKeyDown
 from vindauga.constants.validation_constants import vtGetData
-from vindauga.constants.keys import kbShiftTab, kbTab, kbBackSpace, kbEnter, kbEsc, kbUp, kbDown, kbDel
+from vindauga.constants.keys import (kbShiftTab, kbTab, kbBackSpace, kbEnter, kbEsc, kbUp, kbDown, kbDel,
+                                     kbLeft, kbShiftLeft, kbRight, kbShiftRight, kbHome, kbShiftHome, kbEnd, kbShiftEnd,
+                                     kbIns, kbCtrlY)
+
 from vindauga.events.event import Event
 from vindauga.types.records.data_record import DataRecord
 from vindauga.types.rect import Rect
@@ -47,7 +50,9 @@ class NumericInputLine(InputLine):
                     v += 1
                 self.setData(v)
                 self.clearEvent(event)
-            elif keyCode not in {kbShiftTab, kbTab, kbBackSpace, kbEnter, kbEsc, kbDel}:
+            elif keyCode not in {kbShiftTab, kbTab, kbBackSpace, kbEnter, kbEsc, kbDel,
+                                 kbLeft, kbShiftLeft, kbRight, kbShiftRight,
+                                 kbHome, kbShiftHome, kbEnd, kbShiftEnd, kbIns, kbCtrlY}:
                 if event.keyDown.charScan.charCode:
                     if not self.isValidChar(event):
                         self.clearEvent(event)
