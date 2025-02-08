@@ -14,7 +14,7 @@ dependencies = [
 
 setup(
     name='vindauga',
-    version='0.1.4',
+    version='0.1.6',
     packages=find_packages(exclude=('test', 'build', 'dist')),
     long_description=long_description,
     long_description_content_type='text/markdown',
