@@ -3,9 +3,7 @@ from __future__ import annotations
 
 import atexit
 import curses
-import itertools
 import logging
-import os
 import sys
 from typing import Optional
 
@@ -60,12 +58,12 @@ class NcursesDisplayAdapter(DisplayAdapter):
 
     def resize(self, width, height: int):
         if curses.is_term_resized(width, height):
-            sys.stdout.write(f'\x1b[{height};{width}t')
+            self._console_ctl.write(f'\x1b[{height};{width}t')
 
     def reload_screen_info(self) -> Point:
         """Reload screen information and return new size"""
         size = self._console_ctl.get_size()
-        curses.resizeterm(size.y, size.x)
+        curses.resize_term(size.y, size.x)
         self.ansi_screen_writer.reset()
         return size
     

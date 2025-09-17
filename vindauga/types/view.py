@@ -573,21 +573,21 @@ class View(VindaugaObject):
                     if left >= right:
                         return False
 
-    def exposedParent(self, left: int, right: int, item):
-        if not (item.state & sfVisible):
+    def exposedParent(self, left: int, right: int, child: View):
+        if not (child.state & sfVisible):
             return False
 
-        if (not item.owner) or item.owner.buffer:
+        if (not child.owner) or child.owner.buffer:
             return True
 
         with self.context as context:
-            context.y += item.origin.y
+            context.y += child.origin.y
 
-            left += item.origin.x
-            right += item.origin.x
-            context.target = item
+            left += child.origin.x
+            right += child.origin.x
+            context.target = child
 
-            group = item.owner
+            group = child.owner
             # Is my parent overlapping me?
             if not group.clip.topLeft.y <= context.y < group.clip.bottomRight.y:
                 return False

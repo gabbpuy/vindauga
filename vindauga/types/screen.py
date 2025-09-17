@@ -81,7 +81,6 @@ class Screen(_Display):
         if mode != Display.smUpdate:
             self.setCrtMode(self.fixCrtMode(mode))
         else:
-            logger.info('setVideoMode(smUpdate)')
             hardware_info.freeScreenBuffer(self.screenBuffer)
             self.screenBuffer = hardware_info.allocateScreenBuffer()
         self.setCrtData()

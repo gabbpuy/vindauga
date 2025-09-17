@@ -1,4 +1,6 @@
 # -*- coding: utf-8 -*-
+import time
+
 import logging
 
 from vindauga.screen_driver.colours.colour_attribute import ColourAttribute
@@ -29,10 +31,11 @@ class ScreenWriter:
 
         @data.setter
         def data(self, data: str):
-            self.__data = [data]  # Store as single string in list
+            self.__data.clear()
+            self.__data.extend(data)  # Store as single string in list
 
         def clear(self):
-            self.__data = []
+            self.__data.clear()
 
         def push(self, data: str):
             self.__data.append(data)  # Append string directly

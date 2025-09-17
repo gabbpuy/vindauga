@@ -184,6 +184,7 @@ class Group(View):
             v.options = saveOptions
             View.TheTopView = saveTopView
             self.setCommands(saveCommands)
+        return cmCancel
 
     def execute(self) -> int:
         stillExecuting = True

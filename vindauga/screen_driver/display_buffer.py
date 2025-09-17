@@ -52,21 +52,38 @@ class DisplayBuffer:
         self.size = Point(0, 0)
         self.caret_size = -1
         self.__caret_size = -1
+        self._flushLocked = False
 
         if self.__limit_fps:
             self.__flush_delay = (1 / 60)
+
+    def free_buffer(self):
+        self._buffer.clear()
+        self._flush_buffer.clear()
+        self._row_damage.clear()
+        self.size = Point(0, 0)
+        self.__caret_position = Point(-1, -1)
+        self.__new_caret_size = 0
+        self.__cursor_position = Point(-1, -1)
+        self.__cursor_visible = False
+        self.__attr_under_cursor = ColourAttribute()
+        self.__flush_delay = 0
+        self.__last_flush = 0
+        self.__pending_flush = 0
+        self.caret_size = -1
+        self.__caret_size = -1
 
     def __in_bounds(self, x: int, y: int) -> bool:
         return 0 <= x < self.size.x and 0 <= y < self.size.y
 
     def __resize_buffer(self):
-        logger.warning(f"__resize_buffer called - size: {self.size.x}x{self.size.y}")
         buffer_size = self.size.x * self.size.y
-        # Clear and recreate buffers (zero-initialized equivalent)
-        self._buffer = []
-        self._buffer = [ScreenCell() for _ in range(buffer_size)]
-        self._flush_buffer = [None] * buffer_size
-        self._row_damage = [self.Range(65536, -65536) for _ in range(self.size.y)]
+        self._buffer.clear()
+        self._buffer.extend(ScreenCell() for _ in range(buffer_size))
+        self._flush_buffer.clear()
+        self._flush_buffer.extend([None] * buffer_size)
+        self._row_damage.clear()
+        self._row_damage.extend(self.Range(65536, -65536) for _ in range(self.size.y))
 
     def __set_dirty(self, x: int, y: int, count: int):
         dam = self._row_damage[y]
@@ -166,7 +183,8 @@ class DisplayBuffer:
     def redraw_screen(self, display: DisplayAdapter):
         self.__screen_touched = True
         self.__last_flush = 0
-        self._flush_buffer = [None] * len(self._flush_buffer)
+        self._flush_buffer.clear()
+        self._flush_buffer.extend([None] * len(self._buffer))
         for r in self._row_damage:
             r.begin = 0
             r.end = self.size.x - 1

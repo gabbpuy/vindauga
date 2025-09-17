@@ -8,6 +8,7 @@ import sys
 import wcwidth
 
 from vindauga.types.display import Display
+from vindauga.types.point import Point
 
 from .adapters.console_adapter import ConsoleAdapter
 from .adapters.display_adapter import DisplayAdapter
@@ -212,7 +213,7 @@ class Platform:
 
     def free_screen_buffer(self):
         with self.console.lock:
-            self.display_buffer = DisplayBuffer()
+            self.display_buffer.free_buffer()
 
     def set_clipboard_text(self, text: str):
         with self.console.lock:

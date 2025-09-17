@@ -377,7 +377,7 @@ class Program(Group):
     def initStatusLine(self, bounds: Rect):
         """
         Creates a new status line.
-       
+
         This method creates a standard `StatusLine` view and returns it
 
         `initStatusLine()` should never be called directly. `initStatusLine()` is
@@ -450,18 +450,14 @@ class Program(Group):
         self.timerQueue.killTimer(id)
 
     def setScreenMode(self, mode):
-        self.lock()
         Mouse.hide()
-        try:
-            Screen.screen.setVideoMode(mode)
-            self.initScreen()
-            self.buffer = Screen.screen.screenBuffer
-            r = Rect(0, 0, Screen.screen.screenWidth, Screen.screen.screenHeight)
-            self.changeBounds(r)
-            self.setState(sfExposed, False)
-            self.setState(sfExposed, True)
-        finally:
-            self.unlock()
+        Screen.screen.setVideoMode(mode)
+        self.initScreen()
+        self.buffer = Screen.screen.screenBuffer
+        r = Rect(0, 0, Screen.screen.screenWidth, Screen.screen.screenHeight)
+        self.changeBounds(r)
+        self.setState(sfExposed, False)
+        self.setState(sfExposed, True)
         self.redraw()
         Mouse.show()
 
