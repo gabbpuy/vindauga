@@ -98,7 +98,6 @@ class Screen(_Display):
         self.screenMode = raw_mode
         logger.debug("DEBUG setCrtData: raw_mode=%s (0x%s), screenMode=%s",
                      raw_mode, hex(raw_mode), self.screenMode)
-        logger.info('Old Screen Dimensions %s', (self.screenWidth, self.screenHeight))
         self.screenWidth = self.getCols()
         self.screenHeight = self.getRows()
         logger.info('Screen Dimensions now %s', (self.screenWidth, self.screenHeight))

@@ -18,6 +18,7 @@ from typing import Tuple, Union
 from vindauga.screen_driver.text.text import Text
 from vindauga.screen_driver.screen_cell.screen_cell import ScreenCell
 from vindauga.screen_driver.colours.colour_attribute import ColourAttribute
+from vindauga.screen_driver.events.utf8_handler import UTF8CharacterAssembler
 
 
 TERMINAL_KEY_TRANSLATION = {
@@ -80,9 +81,10 @@ STATE_TITLE_CHANGED = (1 << 8)
 
 class Terminal:
 
-    def __init__(self, width: int, height: int, flags: int, command=None, *commandArgs):
+    def __init__(self, width: int, height: int, flags: int, command=None, shell_type='pwsh', *commandArgs):
         self.rows = height
         self.cols = width
+        self.shell_type = shell_type
         self.col = []
         self.currRow = 0
         self.currCol = 0
@@ -91,7 +93,7 @@ class Terminal:
         self.savedY = 0
         self.scrollMin = 0
         self.scrollMax = height - 1
-        self._utf8_buffer = b''  # Buffer for partial UTF-8 sequences
+        self._utf8_assembler = UTF8CharacterAssembler()  # Handles UTF-8 character assembly
         self.flags = flags
         self.state = 0
         self.fg = defaultFg
@@ -103,7 +105,7 @@ class Terminal:
             self.commandArgs = [os.path.basename(command)]
             self.commandArgs.extend(commandArgs)
         else:
-            self.command, self.commandArgs = self.getShell()
+            self.command, self.commandArgs = self.getShell(self.shell_type)
         logger.info('Command is %s, %s', self.command, self.commandArgs)
         self.csiParam = []
         self.escBuf = ''
@@ -155,7 +157,7 @@ class Terminal:
         return self._color_cache[bios_attr]
 
     @staticmethod
-    def getShell() -> Tuple[str, list]:
+    def getShell(shell_type: str = 'pwsh') -> Tuple[str, list]:
         if not PLATFORM_WINDOWS:
             profile = pwd.getpwuid(os.getuid())
             if not profile:
@@ -165,7 +167,17 @@ class Terminal:
             else:
                 shell = profile.pw_shell
             return shell, [os.path.basename(shell), '-l']
-        return 'powershell.exe', ['-NoLogo', '-ExecutionPolicy', 'Bypass']
+
+        # Windows shell options
+        if shell_type.lower() == 'cmd':
+            # cmd.exe with UTF-8 encoding
+            return 'cmd.exe', ['/c', 'chcp 65001 >nul & cmd.exe /E:ON /F:ON']
+        elif shell_type.lower() in ('pwsh', 'powershell'):
+            # PowerShell Core (pwsh) - interactive mode with completion enabled
+            return 'pwsh', ['-NoLogo']
+        else:
+            # Default to PowerShell Core
+            return 'pwsh', ['-NoLogo']
 
     if not PLATFORM_WINDOWS:
         def executeCommand(self):
@@ -946,19 +958,26 @@ class Terminal:
             count = 0
             while poller.poll(5):
                 try:
-                    # 16380 is a multiple of 12 which should land on a 3/4 byte boundary for UTF-8 encoded chars..
-                    buffer = os.read(self.__ptyFd, 16380).decode('utf-8')
+                    # Read raw bytes and let Text class handle UTF-8 decoding
+                    buffer = os.read(self.__ptyFd, 16380)
                     if buffer:
-                        try:
-                            self.render(buffer)
-                        except:
-                            logger.exception('terminal.render()')
-                        count += len(buffer)
+                        # Process each byte through UTF8 assembler
+                        decoded_text = ""
+                        for byte_val in buffer:
+                            char = self._utf8_assembler.add_byte(byte_val)
+                            if char is not None:
+                                decoded_text += char
+
+                        if decoded_text:
+                            try:
+                                self.render(decoded_text)
+                            except:
+                                logger.exception('terminal.render()')
+                            count += len(decoded_text)
                     else:
                         break
                 except:
                     break
-                break
             return count
     else:
         def readPipe(self) -> int:
@@ -971,34 +990,13 @@ class Terminal:
                 return -1
 
             if buffer:
-                # Add new bytes to our buffer
-                self._utf8_buffer += buffer
-                
-                # Try to decode as much as possible
+                # Process each byte through UTF8 assembler
                 decoded_text = ""
-                while self._utf8_buffer:
-                    try:
-                        # Try to decode the entire buffer
-                        decoded_text += self._utf8_buffer.decode('utf-8')
-                        self._utf8_buffer = b''  # Success - clear buffer
-                        break
-                    except UnicodeDecodeError as e:
-                        # If we have a partial sequence at the end, save it for next time
-                        if e.start > 0:
-                            # We can decode some characters
-                            decoded_text += self._utf8_buffer[:e.start].decode('utf-8')
-                            self._utf8_buffer = self._utf8_buffer[e.start:]
-                        else:
-                            # The error is at the beginning - might be partial sequence
-                            # Keep the last few bytes for next read
-                            if len(self._utf8_buffer) > 4:
-                                # If buffer is too long, something is wrong - skip the bad byte
-                                logger.warning("Skipping invalid UTF-8 byte: 0x%02x", self._utf8_buffer[0])
-                                self._utf8_buffer = self._utf8_buffer[1:]
-                            else:
-                                # Might be partial sequence, wait for more data
-                                break
-                
+                for byte_val in buffer:
+                    char = self._utf8_assembler.add_byte(byte_val)
+                    if char is not None:
+                        decoded_text += char
+
                 if decoded_text:
                     count = len(decoded_text)
                     try:

@@ -72,7 +72,7 @@ class WindowsShell:
             win32con.FILE_SHARE_READ | win32con.FILE_SHARE_WRITE,
             saAttr,
             win32con.OPEN_EXISTING,
-            win32con.FILE_FLAG_OVERLAPPED,
+            win32con.FILE_FLAG_OVERLAPPED | win32con.FILE_FLAG_NO_BUFFERING,
             10)
 
         win32api.SetHandleInformation(self.hChildStdoutRd, win32con.HANDLE_FLAG_INHERIT, 0)
@@ -93,7 +93,7 @@ class WindowsShell:
             win32con.FILE_SHARE_READ | win32con.FILE_SHARE_WRITE,
             saAttr,
             win32con.OPEN_EXISTING,
-            win32con.FILE_FLAG_OVERLAPPED,
+            win32con.FILE_FLAG_OVERLAPPED | win32con.FILE_FLAG_NO_BUFFERING,
             10)
 
         win32api.SetHandleInformation(self.hChildStderrRd, win32con.HANDLE_FLAG_INHERIT, 0)
@@ -164,21 +164,7 @@ class WindowsShell:
         self.stdout = io.open(msvcrt.open_osfhandle(int(self.hChildStdoutRd), os.O_RDONLY), 'rb', buffering=0, closefd=False)
         self.stderr = io.open(msvcrt.open_osfhandle(int(self.hChildStderrRd), os.O_RDONLY), 'rb', buffering=0, closefd=False)
 
-        # Test pipe state immediately after creation
-        logger.error("*** Testing pipe states after creation")
-        try:
-            (buffer, available, result) = win32pipe.PeekNamedPipe(self.hChildStdoutRd, 1)
-            logger.error("*** stdout pipe: available=%d, result=%d", available, result)
-        except Exception as e:
-            logger.error("*** stdout pipe peek failed: %s", e)
-            
-        try:
-            (buffer, available, result) = win32pipe.PeekNamedPipe(self.hChildStderrRd, 1)
-            logger.error("*** stderr pipe: available=%d, result=%d", available, result)
-        except Exception as e:
-            logger.error("*** stderr pipe peek failed: %s", e)
-
-        logger.error("*** WindowsShell.__call__ COMPLETED successfully")
+        logger.info("WindowsShell initialized successfully")
         fds = WindowPipe(stdin=self.stdin, stdout=self.stdout, stderr=self.stderr)
         return fds
 
@@ -192,15 +178,18 @@ class WindowsShell:
         error, written = win32file.WriteFile(self.hChildStdinWr, buffer)
         if error:
             logger.error('write() Error: -> %s', win32api.GetLastError())
+        else:
+            # Flush the pipe to force immediate output
+            try:
+                win32file.FlushFileBuffers(self.hChildStdinWr)
+            except Exception as e:
+                logger.debug('Flush failed: %s', e)
         return written
 
     @staticmethod
     def __readPipe(handle) -> bytes:
         try:
             (buffer, available, result) = win32pipe.PeekNamedPipe(handle, 1)
-            logger.error("*** PeekNamedPipe: buffer=%r, available=%d, result=%d", buffer, available, result)
-            if available > 0:
-                logger.error("*** Data available, attempting to read %d bytes", available)
         except pywintypes.error as e:
             if e.winerror == 6:  # ERROR_INVALID_HANDLE
                 logger.info("PeekNamedPipe: handle became invalid (child process exited)")
@@ -213,25 +202,19 @@ class WindowsShell:
 
         if result == -1:
              lastError = win32api.GetLastError()
-             logger.error("PeekNamedPipe returned result=-1, lastError=%s, available=%s", lastError, available)
-             
+
              # If data is available despite result=-1, try to read it anyway
              if available > 0:
-                 logger.error("Attempting to read %d bytes despite result=-1", available)
                  try:
                      result, data = win32file.ReadFile(handle, available, None)
                      if result == 0:  # SUCCESS
-                         logger.error("Successfully read data despite PeekNamedPipe result=-1: %r", data[:50])
                          return data
-                     else:
-                         logger.error("ReadFile failed with result: %s", result)
                  except pywintypes.error as e:
-                     logger.error("ReadFile exception: %s (code: %s)", e.strerror, e.winerror)
-             
+                     logger.debug("ReadFile exception: %s (code: %s)", e.strerror, e.winerror)
+
              if lastError == 6:  # ERROR_INVALID_HANDLE
-                 logger.error("Handle became invalid - child process likely exited")
+                 logger.debug("Handle became invalid - child process likely exited")
                  raise BrokenPipeError
-             # For other errors, continue but don't try to read
              return b''
 
         if available > 0:
@@ -244,7 +227,7 @@ class WindowsShell:
                 if e.winerror == 6:  # ERROR_INVALID_HANDLE
                     logger.debug("ReadFile: handle became invalid (child process likely exited)")
                     raise BrokenPipeError
-                logger.error("ReadFile failed: %s (code: %s)", e.strerror, e.winerror)
+                logger.debug("ReadFile failed: %s (code: %s)", e.strerror, e.winerror)
                 raise BrokenPipeError
         
         return b''  # No data available
@@ -264,18 +247,13 @@ class WindowsShell:
             return False
 
     def read(self) -> bytes:
-        logger.error("*** WindowsShell.read() called")
         # Check if process is still running when we get pipe errors
-        if hasattr(self, 'processHandle'):
-            is_running = self.is_process_running()
-            logger.error("*** Process running: %s", is_running)
-            if not is_running:
-                logger.error("Child process (PID %s) has exited", getattr(self, 'dwPid', 'unknown'))
-        
-        logger.error("*** About to read stderr")
-        data = self.__readStderr()
-        if data:
-            logger.error("*** Got stderr data: %r", data)
-            return data
-        logger.error("*** About to read stdout")
-        return self.__readStdout()
+        if hasattr(self, 'processHandle') and not self.is_process_running():
+            logger.info("Child process (PID %s) has exited", getattr(self, 'dwPid', 'unknown'))
+
+        # Read both stdout and stderr, combine them
+        stdout_data = self.__readStdout()
+        stderr_data = self.__readStderr()
+
+        # Return combined data (stdout first, then stderr)
+        return stdout_data + stderr_data
