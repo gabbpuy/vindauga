@@ -169,6 +169,7 @@ class FileDialog(Dialog):
 
     def _readCurrentDirectory(self):
         self.directory = getCurDir()
+        self.fileList.select()
         self.fileList.readDirectory(self.directory, self.wildCard)
 
     def checkDirectory(self, path: Union[str, pathlib.Path]) -> bool:

@@ -57,7 +57,7 @@ class FileList(SortedListBox):
     def readDirectory(self, path: str, wildcard: Optional[str] = None):
         if wildcard:
             path = os.path.join(path, wildcard)
-            return self.readDirectory(path)
+            self.readDirectory(path)
 
         if not path:
             raise RuntimeError
@@ -98,7 +98,7 @@ class FileList(SortedListBox):
         self.newList(fileList)
         self.focusItemNum(0)
         if len(fileList):
-            message(self.owner, evBroadcast, cmFileFocused, self.getList()[0])
+            message(self.owner, evBroadcast, cmFileFocused, self._items[0])
         else:
             noFile = DirectorySearchRecord()
             message(self.owner, evBroadcast, cmFileFocused, noFile)

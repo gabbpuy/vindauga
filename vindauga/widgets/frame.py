@@ -12,6 +12,8 @@ from vindauga.constants.event_codes import evBroadcast, evMouseUp, evMouseDown, 
 from vindauga.constants.option_flags import ofFramed
 from vindauga.constants.state_flags import sfVisible, sfActive, sfDragging
 from vindauga.events.event import Event
+from vindauga.screen_driver.colours.attribute_pair import AttributePair
+from vindauga.screen_driver.colours.colour_attribute import ColourAttribute
 from vindauga.types.draw_buffer import DrawBuffer
 from vindauga.types.palette import Palette
 from vindauga.types.point import Point
@@ -52,18 +54,18 @@ class Frame(View):
         f = 0
         drawable = DrawBuffer()
         if self.state & sfDragging:
-            cFrame = 0x0505
-            cTitle = 0x0005
+            _cFrame = 0x0505
+            _cTitle = 0x0005
         elif not (self.state & sfActive):
-            cFrame = 0x0101
-            cTitle = 0x0002
+            _cFrame = 0x0101
+            _cTitle = 0x0002
         else:
-            cFrame = 0x0503
-            cTitle = 0x0004
+            _cFrame = 0x0503
+            _cTitle = 0x0004
             f = 9
 
-        cFrame = self.getColor(cFrame)
-        cTitle = self.getColor(cTitle)
+        cFrame = self.getColor(_cFrame)
+        cTitle = self.getColor(_cTitle)
 
         width = self.size.x
         lineLength = width - 10
@@ -71,7 +73,7 @@ class Frame(View):
         if self.owner.flags & (wfClose | wfZoom):
             lineLength -= 6
 
-        self.__frameLine(drawable, 0, f, cFrame & 0xFF)
+        self.__frameLine(drawable, 0, f, cFrame)
 
         if self.owner.number != wnNoNumber and self.owner.number < 10:
             lineLength -= 4
@@ -79,7 +81,7 @@ class Frame(View):
                 i = 7
             else:
                 i = 3
-            drawable.putChar(width - i, chr(self.owner.number + ord('0')))
+            drawable.putChar(width - i, chr(self.owner.number + ord('0')), cFrame)
 
         if self.owner:
             title = self.owner.getTitle(lineLength)
@@ -87,21 +89,22 @@ class Frame(View):
                 lineLength = min(wcwidth.wcswidth(title), width - 10)  # min(nameLength(title), width - 10)
                 lineLength = max(lineLength, 0)
                 i = (width - lineLength) >> 1
-                drawable.putChar(i - 1, ' ')
+                drawable.putChar(i - 1, ' ', cTitle)
                 drawable.moveBuf(i, title, cTitle, lineLength)
-                drawable.putChar(i + lineLength, ' ')
+                drawable.putChar(i + lineLength, ' ', cTitle)
 
         if self.state & sfActive:
+            attr_pair = cFrame
             if self.owner.flags & wfClose:
-                drawable.moveCStr(2, self.closeIcon, cFrame)
+                drawable.moveCStr(2, self.closeIcon, attr_pair)
             if self.owner.flags & wfZoom:
                 minSize = Point()
                 maxSize = Point()
                 self.owner.sizeLimits(minSize, maxSize)
                 if self.owner.size == maxSize:
-                    drawable.moveCStr(width - 5, self.unZoomIcon, cFrame)
+                    drawable.moveCStr(width - 5, self.unZoomIcon, attr_pair)
                 else:
-                    drawable.moveCStr(width - 5, self.zoomIcon, cFrame)
+                    drawable.moveCStr(width - 5, self.zoomIcon, attr_pair)
 
         self.writeLine(0, 0, self.size.x, 1, drawable)
 
@@ -113,7 +116,8 @@ class Frame(View):
 
         if self.state & sfActive:
             if self.owner.flags & wfGrow:
-                drawable.moveCStr(width - 2, self.dragIcon, cFrame)
+                attr_pair = cFrame
+                drawable.moveCStr(width - 2, self.dragIcon, attr_pair)
 
         self.writeLine(0, self.size.y - 1, self.size.x, 1, drawable)
 
@@ -182,7 +186,7 @@ class Frame(View):
         if state & (sfActive | sfDragging):
             self.drawView()
 
-    def __frameLine(self, frameBuf: DrawBuffer, y: int, n: int, color: int):
+    def __frameLine(self, frameBuf: DrawBuffer, y: int, n: int, color):
         """
         Explanation of the masks
 
@@ -235,8 +239,17 @@ class Frame(View):
                     for i in range(xMin, xMax):
                         frameMask[i] |= mask1
 
-        line = ''.join(self.frameChars[frameMask[i]] for i in range(self.size.x))
-        frameBuf.moveStr(0, line, color)
+        # Handle both AttributePair and int types
+        if isinstance(color, AttributePair):
+            # AttributePair object
+            color_attr = ColourAttribute.from_bios(color.as_bios())
+        else:
+            # Integer  
+            color_attr = ColourAttribute.from_bios(color)
+        
+        for x in range(self.size.x):
+            frameBuf.putChar(x, self.frameChars[frameMask[x]], color_attr)
+            frameBuf.putAttribute(x, color_attr)
 
     def __dragWindow(self, event: Event, mode: int):
         minBounds = Point()

@@ -41,10 +41,11 @@ class Label(StaticText):
 
         b.moveChar(0, ' ', color, self.size.x)
         if self._text:
-            b.moveCStr(1, self._text, color)
+            attr_pair = color
+            b.moveCStr(1, self._text, attr_pair)
 
         if self.showMarkers:
-            b.putChar(0, SPECIAL_CHARS[scOff])
+            b.putChar(0, SPECIAL_CHARS[scOff], color)
 
         self.writeLine(0, 0, self.size.x, 1, b)
 

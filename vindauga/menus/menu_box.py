@@ -7,8 +7,11 @@ import wcwidth
 from vindauga.constants.option_flags import ofPreProcess
 from vindauga.constants.state_flags import sfShadow
 from vindauga.misc.util import nameLength
+from vindauga.screen_driver.colours.attribute_pair import AttributePair
+from vindauga.screen_driver.colours.colour_attribute import ColourAttribute
 from vindauga.types.draw_buffer import DrawBuffer
 from vindauga.types.rect import Rect
+
 
 from .menu_view import MenuView
 
@@ -32,7 +35,7 @@ class MenuBox(MenuView):
         self.options |= ofPreProcess
 
     @property
-    def cNormal(self) -> int:
+    def cNormal(self) -> AttributePair:
         return self.getColor(0x0301)
 
     @staticmethod
@@ -75,7 +78,7 @@ class MenuBox(MenuView):
         cSelDisabled = self.getColor(0x0505)
         y = 0
         color = self.cNormal
-        self.__frameLine(b, 0, color)
+        self.__frameLine(b, 0, color.as_bios())
         self.writeBuf(0, y, self.size.x, 1, b)
         y += 1
 
@@ -83,7 +86,7 @@ class MenuBox(MenuView):
             for p in self.menu.items:
                 color = self.cNormal
                 if not p.name:
-                    self.__frameLine(b, 15, color)
+                    self.__frameLine(b, 15, color.as_bios())
                 else:
                     if p.disabled:
                         if p is self._current:
@@ -93,16 +96,18 @@ class MenuBox(MenuView):
                     elif p is self._current:
                         color = cSelect
 
-                    self.__frameLine(b, 10, color)
-                    b.moveCStr(3, p.name, color)
+                    self.__frameLine(b, 10, color.as_bios())
+                    
+                    attr_pair = color
+                    b.moveCStr(3, p.name, attr_pair)
                     if not p.command:
-                        b.putChar(self.size.x - 4, self.subMenuIndicator)
+                        b.putChar(self.size.x - 4, self.subMenuIndicator, ColourAttribute.from_bios(color.as_bios()))
                     elif p.param:
-                        b.moveStr(self.size.x - 3 - wcwidth.wcswidth(p.param), p.param, color)
+                        b.moveStr(self.size.x - 3 - wcwidth.wcswidth(p.param), p.param, ColourAttribute.from_bios(color.as_bios()))
                 self.writeBuf(0, y, self.size.x, 1, b)
                 y += 1
         color = self.cNormal
-        self.__frameLine(b, 5, color)
+        self.__frameLine(b, 5, color.as_bios())
         self.writeBuf(0, y, self.size.x, 1, b)
 
     def getItemRect(self, item) -> Rect:
@@ -118,6 +123,6 @@ class MenuBox(MenuView):
         return r
 
     def __frameLine(self, b: DrawBuffer, n: int, color: int):
-        b.moveBuf(0, self.frameChars[n: n + 2], self.cNormal, 2)
-        b.moveChar(2, self.frameChars[n + 2], color, self.size.x - 4)
-        b.moveBuf(self.size.x - 2, self.frameChars[n + 3: n + 5], self.cNormal, 2)
+        b.moveBuf(0, self.frameChars[n: n + 2], ColourAttribute.from_bios(self.cNormal.as_bios()), 2)
+        b.moveChar(2, self.frameChars[n + 2], ColourAttribute.from_bios(color), self.size.x - 4)
+        b.moveBuf(self.size.x - 2, self.frameChars[n + 3: n + 5], ColourAttribute.from_bios(self.cNormal.as_bios()), 2)

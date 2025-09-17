@@ -26,11 +26,12 @@ class FileInputLine(InputLine):
     def handleEvent(self, event: Event):
         super().handleEvent(event)
 
-        if (event.what == evBroadcast and
-                event.message.command == cmFileFocused and not (self.state & sfSelected)):
+        if event.what == evBroadcast and event.message.command == cmFileFocused and not (self.state & sfSelected):
             if event.message.infoPtr.attr & FA_DIREC:
-                p = self.owner.wildCard
-                self.setData(fexpand(os.path.join(event.message.infoPtr.name, p)))
+                # self.setData(os.path.join(event.message.infoPtr.name, self.owner.wildCard))
+                self.current.data = list(os.path.join(event.message.infoPtr.name, self.owner.wildCard))
             else:
-                self.setData(event.message.infoPtr.name)
+                # self.setData(event.message.infoPtr.name)
+                self.current.data = list(event.message.infoPtr.name)
+            self.selectAll(False)
             self.drawView()

@@ -133,6 +133,7 @@ class WindowsShell:
 
         flags = win32process.CREATE_UNICODE_ENVIRONMENT
 
+        logger.debug("Starting child process: %s", self.cmdline)
         try:
             processHandle, threadHandle, dwPid, dwTid = win32process.CreateProcess(
                 None,  # name
@@ -144,21 +145,40 @@ class WindowsShell:
                 None,  # NULL, use parent environment
                 None,  # current directory
                 StartupInfo)  # STARTUPINFO pointer
+            logger.info("Child process started successfully: PID=%s", dwPid)
         except pywintypes.error as e:
-            logger.exception('%s\n%s\n', self.cmdline, e.strerror)
+            logger.exception('Failed to start process %s: %s', self.cmdline, e.strerror)
             messageBox(f'{self.cmdline}\n{e.strerror}', mfError, (mfOKButton,))
             return None
 
-        win32file.CloseHandle(processHandle)
+        # Store process handle to check if child is still running
+        self.processHandle = processHandle
+        self.dwPid = dwPid
+        
         win32file.CloseHandle(threadHandle)
         win32file.CloseHandle(hChildStderrWr)
         win32file.CloseHandle(hChildStdoutWr)
         win32file.CloseHandle(hChildStdinRd)
 
-        self.stdin = io.open(msvcrt.open_osfhandle(int(self.hChildStdinWr), os.O_APPEND), 'wb', buffering=0)
-        self.stdout = io.open(msvcrt.open_osfhandle(int(self.hChildStdoutRd), os.O_RDONLY), 'rb', buffering=0)
-        self.stderr = io.open(msvcrt.open_osfhandle(int(self.hChildStderrRd), os.O_RDONLY), 'rb', buffering=0)
+        self.stdin = io.open(msvcrt.open_osfhandle(int(self.hChildStdinWr), os.O_APPEND), 'wb', buffering=0, closefd=False)
+        self.stdout = io.open(msvcrt.open_osfhandle(int(self.hChildStdoutRd), os.O_RDONLY), 'rb', buffering=0, closefd=False)
+        self.stderr = io.open(msvcrt.open_osfhandle(int(self.hChildStderrRd), os.O_RDONLY), 'rb', buffering=0, closefd=False)
 
+        # Test pipe state immediately after creation
+        logger.error("*** Testing pipe states after creation")
+        try:
+            (buffer, available, result) = win32pipe.PeekNamedPipe(self.hChildStdoutRd, 1)
+            logger.error("*** stdout pipe: available=%d, result=%d", available, result)
+        except Exception as e:
+            logger.error("*** stdout pipe peek failed: %s", e)
+            
+        try:
+            (buffer, available, result) = win32pipe.PeekNamedPipe(self.hChildStderrRd, 1)
+            logger.error("*** stderr pipe: available=%d, result=%d", available, result)
+        except Exception as e:
+            logger.error("*** stderr pipe peek failed: %s", e)
+
+        logger.error("*** WindowsShell.__call__ COMPLETED successfully")
         fds = WindowPipe(stdin=self.stdin, stdout=self.stdout, stderr=self.stderr)
         return fds
 
@@ -178,17 +198,56 @@ class WindowsShell:
     def __readPipe(handle) -> bytes:
         try:
             (buffer, available, result) = win32pipe.PeekNamedPipe(handle, 1)
+            logger.error("*** PeekNamedPipe: buffer=%r, available=%d, result=%d", buffer, available, result)
+            if available > 0:
+                logger.error("*** Data available, attempting to read %d bytes", available)
         except pywintypes.error as e:
+            if e.winerror == 6:  # ERROR_INVALID_HANDLE
+                logger.info("PeekNamedPipe: handle became invalid (child process exited)")
+                raise BrokenPipeError
+            elif e.winerror == 109:  # ERROR_BROKEN_PIPE
+                logger.info("PeekNamedPipe: pipe broken (child process closed pipe)")
+                raise BrokenPipeError
+            logger.error("PeekNamedPipe failed: %s (code: %s)", e.strerror, e.winerror)
             raise BrokenPipeError
 
-        if result == -1 and (lastError := win32api.GetLastError()):
-             raise BrokenPipeError
+        if result == -1:
+             lastError = win32api.GetLastError()
+             logger.error("PeekNamedPipe returned result=-1, lastError=%s, available=%s", lastError, available)
+             
+             # If data is available despite result=-1, try to read it anyway
+             if available > 0:
+                 logger.error("Attempting to read %d bytes despite result=-1", available)
+                 try:
+                     result, data = win32file.ReadFile(handle, available, None)
+                     if result == 0:  # SUCCESS
+                         logger.error("Successfully read data despite PeekNamedPipe result=-1: %r", data[:50])
+                         return data
+                     else:
+                         logger.error("ReadFile failed with result: %s", result)
+                 except pywintypes.error as e:
+                     logger.error("ReadFile exception: %s (code: %s)", e.strerror, e.winerror)
+             
+             if lastError == 6:  # ERROR_INVALID_HANDLE
+                 logger.error("Handle became invalid - child process likely exited")
+                 raise BrokenPipeError
+             # For other errors, continue but don't try to read
+             return b''
 
         if available > 0:
-            result, data = win32file.ReadFile(handle, available, None)
-            if result < 0:
+            try:
+                result, data = win32file.ReadFile(handle, available, None)
+                if result < 0:
+                    raise BrokenPipeError
+                return data
+            except pywintypes.error as e:
+                if e.winerror == 6:  # ERROR_INVALID_HANDLE
+                    logger.debug("ReadFile: handle became invalid (child process likely exited)")
+                    raise BrokenPipeError
+                logger.error("ReadFile failed: %s (code: %s)", e.strerror, e.winerror)
                 raise BrokenPipeError
-            return data
+        
+        return b''  # No data available
 
     def __readStderr(self) -> bytes:
         return self.__readPipe(self.hChildStderrRd)
@@ -196,8 +255,27 @@ class WindowsShell:
     def __readStdout(self) -> bytes:
         return self.__readPipe(self.hChildStdoutRd)
 
+    def is_process_running(self) -> bool:
+        """Check if the child process is still running"""
+        try:
+            exit_code = win32process.GetExitCodeProcess(self.processHandle)
+            return exit_code == win32con.STILL_ACTIVE
+        except:
+            return False
+
     def read(self) -> bytes:
+        logger.error("*** WindowsShell.read() called")
+        # Check if process is still running when we get pipe errors
+        if hasattr(self, 'processHandle'):
+            is_running = self.is_process_running()
+            logger.error("*** Process running: %s", is_running)
+            if not is_running:
+                logger.error("Child process (PID %s) has exited", getattr(self, 'dwPid', 'unknown'))
+        
+        logger.error("*** About to read stderr")
         data = self.__readStderr()
         if data:
+            logger.error("*** Got stderr data: %r", data)
             return data
+        logger.error("*** About to read stdout")
         return self.__readStdout()

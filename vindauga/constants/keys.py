@@ -108,6 +108,7 @@ kbEnd = 0x4f00
 kbDown = 0x5000
 kbShiftDown = 0x5001
 kbCtrlDown = 0x5010
+kbAltDown = 0x5011
 
 kbPgDn = 0x5100
 kbIns = 0x5200
@@ -178,6 +179,20 @@ kbCtrlPgUp = 0x8400
 kbAltBackSpace = 0x0800
 kbNoKey = 0x0000
 
+kbAltEsc = 0x0100
+kbAltBack = 0x0e00
+kbAltHome = 0x9700
+kbAltUp = 0x9800
+kbAltPgUp = 0x9900
+kbAltLeft = 0x9b00
+kbAltRight = 0x9d00
+kbAltEnd = 0x9f00
+kbAltPgDn = 0xa100
+kbAltIns = 0xa200
+kbAltDel = 0xa300
+kbAltTab = 0xa500
+kbAltEnter = 0xa600
+
 #  Keyboard state and shift masks
 kbLeftShift = 0x0001
 kbRightShift = 0x0002
@@ -191,4 +206,6 @@ kbAltShift = kbLeftAlt | kbRightAlt
 kbScrollState = 0x0010
 kbNumState = 0x0020
 kbCapsState = 0x0040
+kbEnhanced = 0x0100
 kbInsState = 0x0080
+kbPaste = 0x0400

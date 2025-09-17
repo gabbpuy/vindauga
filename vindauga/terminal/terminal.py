@@ -1,9 +1,11 @@
 # -*- coding: utf-8 -*-
+import functools
+
 import atexit
 from copy import copy
 import curses
-from dataclasses import dataclass
 from functools import lru_cache
+import itertools
 import logging
 import os
 from os import kill, execvpe, waitpid
@@ -12,6 +14,10 @@ import select
 from signal import *
 import struct
 from typing import Tuple, Union
+
+from vindauga.screen_driver.text.text import Text
+from vindauga.screen_driver.screen_cell.screen_cell import ScreenCell
+from vindauga.screen_driver.colours.colour_attribute import ColourAttribute
 
 
 TERMINAL_KEY_TRANSLATION = {
@@ -55,20 +61,6 @@ else:
 
 logger = logging.getLogger(__name__)
 
-
-@dataclass()
-class Texel:
-    char: int = 0x0
-    attr: int = 0
-    color: int = 0
-
-
-@dataclass(frozen=True)
-class Color:
-    fg: int
-    bg: int
-
-
 defaultFg = 7
 defaultBg = 0
 
@@ -99,13 +91,13 @@ class Terminal:
         self.savedY = 0
         self.scrollMin = 0
         self.scrollMax = height - 1
+        self._utf8_buffer = b''  # Buffer for partial UTF-8 sequences
         self.flags = flags
         self.state = 0
         self.fg = defaultFg
         self.bg = defaultBg
         self.__childPid = -1
         self.__ptyFd = None
-        self.colors = defaultFg | defaultBg
         if command:
             self.command = command
             self.commandArgs = [os.path.basename(command)]
@@ -119,14 +111,48 @@ class Terminal:
             0, 4, 2, 6, 1, 5, 3, 7
             ]
         self.initColors()
+        self._color_cache = {}
+        # Initialize colors after initColors() is called
+        self.colors = self._create_colour_attribute(defaultFg, defaultBg)
         self.title = ''
-        self.cells = [[Texel(0x20, self.currAttr, self.colors) for _x in range(width)] for _y in range(height)]
+        # Initialize cells with ScreenCell objects containing space characters
+        self.cells = []
+        for _y in range(height):
+            row = []
+            for _x in range(width):
+                cell = ScreenCell()
+                cell.char = ' '  # Use string instead of int
+                cell.attr = self._create_colour_attribute()  # Use proper ColourAttribute
+                row.append(cell)
+            self.cells.append(row)
         self.executeCommand()
         atexit.register(self._destroy, self.__childPid)
 
         from .terminal_view import TerminalView
         if not TerminalView.OriginalSignals:
             TerminalView.OriginalSignals = {s: signal(s, SIG_IGN) for s in signals}
+
+    def _create_colour_attribute(self, fg: int = None, bg: int = None, attr: int = 0) -> ColourAttribute:
+        """Convert terminal colors to ColourAttribute"""
+        # Use current colors if not specified
+        if fg is None:
+            fg = self.fg if hasattr(self, 'fg') else defaultFg
+        if bg is None:
+            bg = self.bg if hasattr(self, 'bg') else defaultBg
+            
+        # Create ColourAttribute from terminal color values
+        # Terminal uses standard ANSI colors (0-15), map to BIOS-style attributes
+        bios_attr = (bg << 4) | fg
+        
+        # Add terminal attributes like reverse, bold, etc.
+        if attr & curses.A_REVERSE:
+            bios_attr = ((bios_attr & 0x0F) << 4) | ((bios_attr & 0xF0) >> 4)
+        if attr & curses.A_BOLD:
+            bios_attr |= 0x08  # High intensity
+
+        if bios_attr not in self._color_cache:
+            self._color_cache[bios_attr] = ColourAttribute.from_bios(bios_attr)
+        return self._color_cache[bios_attr]
 
     @staticmethod
     def getShell() -> Tuple[str, list]:
@@ -139,7 +165,7 @@ class Terminal:
             else:
                 shell = profile.pw_shell
             return shell, [os.path.basename(shell), '-l']
-        return 'cmd.exe', ['/u', '/f:on']
+        return 'powershell.exe', ['-NoLogo', '-ExecutionPolicy', 'Bypass']
 
     if not PLATFORM_WINDOWS:
         def executeCommand(self):
@@ -164,16 +190,19 @@ class Terminal:
                 raise RuntimeError
     else:
         def executeCommand(self):
-            command = [self.command] + self.commandArgs[1:]
+            command = [self.command] + self.commandArgs
             self.__childPid = WindowsShell(command)
             self.__ptyFd = self.__childPid()
-            logger.info('handles: %s', self.__ptyFd)
             if self.__ptyFd is None:
+                logger.error("*** __ptyFd is None, raising RuntimeError")
                 raise RuntimeError
 
     @staticmethod
     def _destroy(pid):
-        kill(pid, SIGKILL)
+        try:
+            kill(pid, SIGKILL)
+        except:
+            pass
 
     def destroy(self):
         try:
@@ -187,11 +216,12 @@ class Terminal:
                 signal(signal_, handler)
 
     def initColors(self):
-        self.col.append(Color(0, 0))
-        for i in range(8):
-            for j in range(8):
-                if i != 7 or j != 0:
-                    self.col.append(Color(fg=i, bg=j))
+        """Initialize color palette with ColourAttribute objects"""
+        self.col.append(ColourAttribute.from_bios(0))  # Default: black on black
+        for bg, fg in itertools.product(range(8), range(8)):
+            if bg != 7 or fg != 0:  # Skip white on black (default is reversed)
+                bios_attr = (bg << 4) | fg
+                self.col.append(ColourAttribute.from_bios(bios_attr))
 
     @property
     def pid(self) -> int:
@@ -201,20 +231,15 @@ class Terminal:
     def ptyFd(self) -> int:
         return self.__ptyFd
 
-    def setColors(self, _fg: int, _bg: int):
-        self.colors = defaultFg | (defaultBg << 4)
+    def setColors(self, fg: int, bg: int):
+        """Set current foreground and background colors"""
+        self.fg = fg
+        self.bg = bg
+        self.colors = self._create_colour_attribute(fg, bg)
 
-    def getColors(self) -> int:
+    def getColors(self) -> ColourAttribute:
+        """Get current colors as ColourAttribute"""
         return self.colors
-
-    def pairContentVision(self, c: int) -> Tuple[int, int]:
-        return self.col[c].fg, self.col[c].bg
-
-    def findColorPair(self, fg: int, bg: int) -> int:
-        for i in range(64):
-            if self.col[i].fg == fg and self.col[i].bg == bg:
-                return i
-        return 0
 
     def startCSI(self):
         verb = self.escBuf[-1]
@@ -342,7 +367,9 @@ class Terminal:
             if i + n < self.cols:
                 columns[i] = columns[i + n]
             else:
-                columns[i] = Texel(0x20, self.currAttr, self.colors)
+                cell = columns[i]
+                cell.char = ' '
+                cell.attr = self._create_colour_attribute()
 
     def do_DECSTBM(self):
         """
@@ -571,11 +598,12 @@ class Terminal:
             elif param == 49:
                 self.bg = defaultBg
 
-            self.colors = self.fg | (self.bg << 4)
-            if self.currAttr & curses.A_BOLD:
-                self.colors |= 8
-            if self.currAttr & curses.A_BLINK:
-                self.colors |= 128
+            self.colors = self._create_colour_attribute(self.fg, self.bg, self.currAttr)
+            # self.colors = self.fg | (self.bg << 4)
+            # if self.currAttr & curses.A_BOLD:
+            #     self.colors |= 8
+            # if self.currAttr & curses.A_BLINK:
+            #     self.colors |= 128
 
     def do_DEC_RM(self):
         """
@@ -702,19 +730,31 @@ class Terminal:
         self.currRow = max(min(self.rows - 1, self.currRow), 0)
         self.currCol = max(min(self.cols - 1, self.currCol), 0)
 
-    def putChar(self, c: int):
+    def putChar(self, c: str):
+        """Put a UTF-8 character, handling combining characters properly"""
         if self.currCol >= self.cols:
             self.currCol = 0
             self.scrollDown()
 
-        texel = self.cells[self.currRow][self.currCol]
-        texel.char = c
-        texel.attr = self.currAttr
-        texel.color = self.colors
-        self.currCol += 1
+        cell = self.cells[self.currRow][self.currCol]
+        
+        # Check if this is a combining character (width = 0)
+        char_width = Text.width(c)
+        if char_width == 0 and self.currCol > 0:
+            # Combining character - add to previous cell
+            prev_cell = self.cells[self.currRow][self.currCol - 1]
+            if prev_cell.char:
+                prev_cell.char += c
+            return  # Don't advance cursor for combining characters
+        
+        # Normal character
+        cell.char = c
+        cell.attr = self._create_colour_attribute(attr=self.currAttr)
+        
+        # Advance cursor by character width (1 for normal chars, 2 for wide chars)
+        self.currCol += max(1, char_width)
 
-    def renderCtrlChar(self, c: Union[int, str]):
-        c = chr(c)
+    def renderCtrlChar(self, c: str):
         if c == '\r':
             # carriage return
             self.currCol = 0
@@ -728,9 +768,9 @@ class Terminal:
         elif c == '\t':
             # tab
             if not self.currCol % 8:
-                self.putChar(0x20)
+                self.putChar(' ')
             while self.currCol % 8:
-                self.putChar(0x20)
+                self.putChar(' ')
         elif c == '\x1B':
             self.escapeStart()
         elif c == '\x0E':
@@ -759,18 +799,34 @@ class Terminal:
         return bool(self.state & STATE_ESCAPE_MODE)
 
     def render(self, data: str):
-        for cc in data:
-            c = ord(cc)
-            if c == 0:
+        """Render UTF-8 text properly, handling combining characters and escape sequences"""
+        text_pos = 0
+        
+        while text_pos < len(data):
+            # Get next character with proper UTF-8 handling
+            success, new_text_pos, char_width = Text.next_with_width(data, text_pos)
+            if not success:
+                break
+                
+            char = data[text_pos:new_text_pos]
+            
+            # Skip null characters
+            if char == '\x00':
+                text_pos = new_text_pos
                 continue
+                
             if self.isModeEscaped() and len(self.escBuf) < ESC_SEQ_BUF_SIZE:
-                self.escBuf += cc
+                self.escBuf += char
                 self.tryEscapeSequence()
             else:
-                if 1 <= c <= 31:
-                    self.renderCtrlChar(c)
-                    continue
-                self.putChar(c)
+                # Check if it's a control character
+                if len(char) == 1 and 1 <= ord(char) <= 31:
+                    self.renderCtrlChar(char)
+                else:
+                    # Normal character (including combining characters)
+                    self.putChar(char)
+            
+            text_pos = new_text_pos
 
     def resize(self, width: int, height: int):
         if not (width and height):
@@ -787,13 +843,26 @@ class Terminal:
         else:
             cells = self.cells[:]
 
-        self.cells = [[Texel() for _x in range(width)] for _y in range(height)]
+        # Initialize cells with ScreenCell objects
+        self.cells = []
+        for _y in range(height):
+            row = []
+            for _x in range(width):
+                cell = ScreenCell()
+                cell.char = ' '
+                cell.attr = self._create_colour_attribute()
+                row.append(cell)
+            self.cells.append(row)
 
         for i, c in enumerate(cells):
             if i < len(self.cells):
                 self.cells[i][:width] = c[:width]
                 if deltaX > 0:
-                    self.cells[i].extend(Texel() for _ in range(deltaX))
+                    for _ in range(deltaX):
+                        cell = ScreenCell()
+                        cell.char = ' '
+                        cell.attr = self._create_colour_attribute()
+                        self.cells[i].append(cell)
 
         self.cols = width
         self.rows = height
@@ -825,7 +894,14 @@ class Terminal:
 
         self.currRow = self.scrollMax
         self.cells[self.scrollMin: self.scrollMax] = self.cells[self.scrollMin + 1: self.scrollMax + 1]
-        self.cells[self.scrollMax] = [Texel(0x20, self.currAttr, self.colors) for _ in range(self.cols)]
+        # Create new row of ScreenCells
+        new_row = []
+        for _ in range(self.cols):
+            cell = ScreenCell()
+            cell.char = ' '
+            cell.attr = self._create_colour_attribute()
+            new_row.append(cell)
+        self.cells[self.scrollMax] = new_row
 
     def scrollUp(self):
         self.currRow -= 1
@@ -834,7 +910,14 @@ class Terminal:
 
         self.currRow = self.scrollMin
         self.cells[self.scrollMin + 1:self.scrollMax] = self.cells[self.scrollMin:self.scrollMax - 1]
-        self.cells[self.scrollMin] = [Texel(0x20, self.currAttr, self.colors) for _ in range(self.cols)]
+        # Create new row of ScreenCells
+        new_row = []
+        for _ in range(self.cols):
+            cell = ScreenCell()
+            cell.char = ' '
+            cell.attr = self._create_colour_attribute()
+            new_row.append(cell)
+        self.cells[self.scrollMin] = new_row
 
     def write(self, keyCode):
         if buffer := TERMINAL_KEY_TRANSLATION.get(keyCode):
@@ -863,7 +946,8 @@ class Terminal:
             count = 0
             while poller.poll(5):
                 try:
-                    buffer = os.read(self.__ptyFd, 16384).decode('utf-8')
+                    # 16380 is a multiple of 12 which should land on a 3/4 byte boundary for UTF-8 encoded chars..
+                    buffer = os.read(self.__ptyFd, 16380).decode('utf-8')
                     if buffer:
                         try:
                             self.render(buffer)
@@ -883,15 +967,44 @@ class Terminal:
                 buffer = self.__childPid.read()
             except BrokenPipeError:
                 self.state |= STATE_CHILD_EXITED
+                logger.exception('readPipe() - child exited?')
                 return -1
 
             if buffer:
-                buffer = buffer.decode('utf-8')
-                count = len(buffer)
-                try:
-                    self.render(buffer)
-                except:
-                    logger.exception('terminal.render()')
+                # Add new bytes to our buffer
+                self._utf8_buffer += buffer
+                
+                # Try to decode as much as possible
+                decoded_text = ""
+                while self._utf8_buffer:
+                    try:
+                        # Try to decode the entire buffer
+                        decoded_text += self._utf8_buffer.decode('utf-8')
+                        self._utf8_buffer = b''  # Success - clear buffer
+                        break
+                    except UnicodeDecodeError as e:
+                        # If we have a partial sequence at the end, save it for next time
+                        if e.start > 0:
+                            # We can decode some characters
+                            decoded_text += self._utf8_buffer[:e.start].decode('utf-8')
+                            self._utf8_buffer = self._utf8_buffer[e.start:]
+                        else:
+                            # The error is at the beginning - might be partial sequence
+                            # Keep the last few bytes for next read
+                            if len(self._utf8_buffer) > 4:
+                                # If buffer is too long, something is wrong - skip the bad byte
+                                logger.warning("Skipping invalid UTF-8 byte: 0x%02x", self._utf8_buffer[0])
+                                self._utf8_buffer = self._utf8_buffer[1:]
+                            else:
+                                # Might be partial sequence, wait for more data
+                                break
+                
+                if decoded_text:
+                    count = len(decoded_text)
+                    try:
+                        self.render(decoded_text)
+                    except:
+                        logger.exception('terminal.render()')
             return count
 
     if not PLATFORM_WINDOWS:
@@ -909,10 +1022,15 @@ class Terminal:
             else:
                 self.__childPid.write(keyCode)
 
-    def _resetCell(self, cell: Texel):
-        cell.char = 0x20
-        cell.attr = self.currAttr
-        cell.color = self.colors
+    def _resetCell(self, cell: ScreenCell):
+        cell.char = ' '
+        cell.attr = self._create_colour_attribute()
 
     def _resetRow(self, rowNum: int):
-        self.cells[rowNum] = [Texel(0x20, self.currAttr, self.colors) for _ in range(self.cols)]
+        new_row = []
+        for _ in range(self.cols):
+            cell = ScreenCell()
+            cell.char = ' '
+            cell.attr = self._create_colour_attribute()
+            new_row.append(cell)
+        self.cells[rowNum] = new_row

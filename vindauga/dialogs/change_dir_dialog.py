@@ -136,5 +136,5 @@ class ChangeDirDialog(Dialog):
         try:
             os.chdir(path)
             return False
-        except Exception as e:
+        except Exception:
             return True

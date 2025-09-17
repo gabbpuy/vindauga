@@ -142,8 +142,8 @@ class ListViewer(View):
 
                     b.moveStr(curCol + 1, text, color)
                     if showMarkers:
-                        b.putChar(curCol, SPECIAL_CHARS[scOff])
-                        b.putChar(curCol + colWidth - 2, SPECIAL_CHARS[scOff + 1])
+                        b.putChar(curCol, SPECIAL_CHARS[scOff], color)
+                        b.putChar(curCol + colWidth - 2, SPECIAL_CHARS[scOff + 1], color)
                 elif i == 0 and j == 0:
                     b.moveStr(curCol + 1, self.emptyText, self.getColor(1))
 

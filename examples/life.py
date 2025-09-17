@@ -14,9 +14,10 @@
  * event will the author be liable for any lost revenue or profits or
  * other special, indirect and consequential damages.
 """
-
 import array
+from collections import defaultdict
 from enum import IntEnum, auto
+import itertools
 import logging
 import random
 from typing import Tuple
@@ -34,8 +35,8 @@ from vindauga.menus.menu_bar import MenuBar
 from vindauga.menus.menu_item import MenuItem
 from vindauga.menus.sub_menu import SubMenu
 from vindauga.misc.message import message
+from vindauga.screen_driver import ScreenCell
 from vindauga.types.command_set import CommandSet
-from vindauga.types.draw_buffer import DrawBuffer
 from vindauga.types.point import Point
 from vindauga.types.rect import Rect
 from vindauga.types.status_def import StatusDef
@@ -415,15 +416,13 @@ class Board:
     def __init__(self, width: int, height: int):
         self.__width = width
         self.__height = height
-        self.__board = array.array('B', [0, ] * (width * height))
+        self.__board = defaultdict(lambda: 0)
 
     def __getitem__(self, loc: Tuple[int, int]):
-        x, y = loc
-        return self.__board[y * self.__width + x]
+        return self.__board[loc]
 
     def __setitem__(self, loc: Tuple[int, int], val: int):
-        x, y = loc
-        self.__board[y * self.__width + x] = val
+        self.__board[loc] = val
 
     @property
     def board(self) -> array.array:
@@ -446,11 +445,10 @@ class LifeInterior(View):
         oldSize = self.size
         newSize = bounds.bottomRight
         work = Board(newSize.x, newSize.y)
-        for y in range(oldSize.y):
-            h = y * oldSize.y
-            work.board[h:h + oldSize.x] = self.__board.board[h:h + oldSize.x]
+        for y, x in itertools.product(range(oldSize.y), range(oldSize.x)):
+            work[x, y] = self.__board[x, y]
         self.__board = work
-
+        self.__row_cache = [0,] * self.size.y
         super().changeBounds(bounds)
 
     def clearBoard(self):
@@ -460,12 +458,14 @@ class LifeInterior(View):
 
     def draw(self):
         color = 0x4F if self.__running else 0x1F
-        i = self.size.x * self.size.y
-        buf = array.array('L', [0x20, ] * (self.size.x * self.size.y))
-        for x in range(i):
-            if self.__board.board[x]:
-                buf[x] = color << DrawBuffer.CHAR_WIDTH | 0x00D6
-        self.writeBuf(0, 0, self.size.x, self.size.y, buf)
+        cell_char = ScreenCell(0x00D6 | (color << 8))
+        off_char = ScreenCell(0x020)
+        for y in range(self.size.y):
+            buf = [
+                cell_char if self.__board[x, y] else off_char
+                for x in range(self.size.x)
+            ]
+            self.writeLine(0, y, self.size.x, 1, buf)
 
     def getPattern(self, pat: int):
         if not self.__board:
@@ -528,27 +528,27 @@ class LifeInterior(View):
         work = Board(self.size.x, self.size.y)
 
         differences = 0
-        for y in range(self.size.y):
-            for x in range(self.size.x):
-                n = (self.present(x - 1, y - 1) + self.present(x, y - 1) +
-                     self.present(x + 1, y - 1) + self.present(x - 1, y) +
-                     self.present(x + 1, y) + self.present(x - 1, y + 1) +
-                     self.present(x, y + 1) + self.present(x + 1, y + 1))
+        for y, x in itertools.product(range(self.size.y), range(self.size.x)):
+            n = (self.present(x - 1, y - 1) + self.present(x, y - 1) +
+                 self.present(x + 1, y - 1) + self.present(x - 1, y) +
+                 self.present(x + 1, y) + self.present(x - 1, y + 1) +
+                 self.present(x, y + 1) + self.present(x + 1, y + 1))
 
-                if self.__board[x, y] == 1:
-                    if n in {2, 3}:
-                        work[x, y] = 1
-                if self.__board[x, y] == 0:
-                    if n == 3:
-                        work[x, y] = 1
-                if self.__board[x, y] != work[x, y]:
-                    differences += 1
+            if self.__board[x, y] == 1:
+                if n in {2, 3}:
+                    work[x, y] = 1
+            if self.__board[x, y] == 0:
+                if n == 3:
+                    work[x, y] = 1
+            if self.__board[x, y] != work[x, y]:
+                differences += 1
 
-        self.__board = work
         if not differences:
             self.__running = False
+        else:
+            self.__board = work
 
-    def present(self, x: int, y: int):
+    def present(self, x: int, y: int) -> int:
         if not (0 < x < self.size.x and 0 < y < self.size.y):
             return 0
         if self.__board[x, y] == 0:

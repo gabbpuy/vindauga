@@ -2,34 +2,38 @@
 from __future__ import annotations
 from gettext import gettext as _
 import logging
-import queue
+import threading
 from typing import Any, Optional
 
-from vindauga.constants.command_codes import (cmReleasedFocus, cmCancel, cmSysRepaint, cmSysResize, cmSysWakeup,
-                                              cmSelectWindowNum, cmQuit, cmCommandSetChanged, cmMenu, cmClose, cmZoom,
-                                              cmResize, cmValid)
+from vindauga.constants.command_codes import (cmReleasedFocus, cmCancel, cmSelectWindowNum, cmQuit, cmCommandSetChanged, cmMenu, cmClose, cmZoom,
+                                              cmResize, cmValid, cmScreenChanged, cmTimerExpired)
 from vindauga.constants.event_codes import evNothing, evCommand, evKeyDown, evMouseDown, evBroadcast
-from vindauga.constants.keys import kbAltX, kbF10, kbCtrlW, kbF5, kbCtrlF5
-import vindauga.constants.key_mappings as key_mappings
+import vindauga.constants.keys
 from vindauga.constants.state_flags import sfVisible, sfSelected, sfFocused, sfModal, sfExposed
+import vindauga.constants.key_mappings as key_mappings
 from vindauga.events.event import Event
+from vindauga.events.event_queue import event_queue
 from vindauga.menus.menu_bar import MenuBar
 from vindauga.misc.character_codes import getAltChar
 from vindauga.misc.message import message
+from vindauga.mouse.mouse import Mouse
+from vindauga.screen_driver.hardware_info import hardware_info
 from vindauga.types.display import Display
 from vindauga.types.group import Group
 from vindauga.types.palette import Palette
+from vindauga.types.point import Point
 from vindauga.types.rect import Rect
 from vindauga.types.screen import Screen
 from vindauga.types.status_def import StatusDef
 from vindauga.types.status_item import StatusItem
+from vindauga.types.timer_queue import TimerQueue
 from vindauga.types.view import View, SHADOW_SIZE
 
 from .desktop import Desktop
 from .dialog import Dialog
 from .status_line import StatusLine
 from .window import Window
-from ..types.point import Point
+
 
 logger = logging.getLogger(__name__)
 
@@ -82,21 +86,21 @@ class Program(Group):
                       "\x0F\x0F\x07\x70\x07\x07\x70\x07\x07\x07\x70\x0F\x07\x07\x01\x00" \
                       "\x07\x0F\x07\x70\x70\x07\x0F\x70"
 
-    color = Palette(cpAppColor)
-    blackWhite = Palette(cpAppBlackWhite)
-    monochrome = Palette(cpAppMonochrome)
-    palettes = [color, blackWhite, monochrome]
     apColor = 0
     apBlackWhite = 1
     apMonochrome = 2
-    pending = queue.Queue()
+    pending: Event = Event(evNothing)
+    timerQueue = TimerQueue()
+    eventTimeoutMs = 20
 
     def __init__(self):
-        w = Screen.screen.screenWidth
-        h = Screen.screen.screenHeight
+        w = hardware_info.getScreenCols()
+        h = hardware_info.getScreenRows()
         super().__init__(Rect(0, 0, w, h))
-
-        self.appPalette = self.apColor
+        color = Palette(self.cpAppColor)
+        blackWhite = Palette(self.cpAppBlackWhite)
+        monochrome = Palette(self.cpAppMonochrome)
+        self.palettes = [color, blackWhite, monochrome]
         self.initScreen()
         self.state = sfVisible | sfSelected | sfFocused | sfModal | sfExposed
         self.options = 0
@@ -112,7 +116,6 @@ class Program(Group):
 
         self.menuBar = self.initMenuBar(self.getExtent())
         self.insert(self.menuBar)
-        Screen.screen.doRepaint += 1
 
     def shutdown(self):
         self.statusLine = None
@@ -157,7 +160,7 @@ class Program(Group):
                 pD.setData(data)
             try:
                 c = Program.desktop.execView(pD)
-            except:
+            except Exception:
                 logger.exception('Dialog failed.')
                 c = cmCancel
             if c != cmCancel:
@@ -165,6 +168,14 @@ class Program(Group):
             self.destroy(pD)
 
         return c, data
+
+    def eventWaitTimeout(self):
+        timeout_ms = min(Program.timerQueue.timeUntilNextTimeout(), 2**64)
+        if timeout_ms < 0:
+            return self.eventTimeoutMs
+        if self.eventTimeoutMs < 0:
+            return timeout_ms
+        return min(timeout_ms, self.eventTimeoutMs)
 
     def getEvent(self, event: Event):
         """
@@ -187,36 +198,27 @@ class Program(Group):
 
         :param event: Event object to be modified
         """
-        screen = Screen.screen
-        try:
-            event.setFrom(Program.pending.get_nowait())
-        except queue.Empty:
-            screen.getEvent(event)
-            if event.what == evCommand:
-                c = event.message.command
-                if c == cmSysRepaint:
-                    self.redraw()
-                    self.clearEvent(event)
-                elif c == cmSysResize:
-                    screen.curX = screen.curY = 0
-                    self.buffer = screen.screenBuffer
-                    self.changeBounds(Rect(0, 0,
-                                           screen.screenWidth,
-                                           screen.screenHeight))
+        if Program.pending.what != evNothing:
+            event.setFrom(Program.pending)
+            Program.pending.what = evNothing
+        else:
+            event_queue.waitForEvents(10)  # Reasonable timeout for event processing
+            event.getMouseEvent()
 
-                    self.setState(sfExposed, False)
-                    self.setState(sfExposed, True)
-                    self.redraw()
-                    self.clearEvent(event)
-                elif c == cmSysWakeup:
-                    self.clearEvent(event)
+            if event.what == evNothing:
+                event.getKeyEvent()
+                if event.what == evNothing:
                     self.idle()
 
         if self.statusLine:
-            if ((event.what & evKeyDown) or
-                (event.what & evMouseDown) and self.firstThat(self.hasMouse, event) is self.statusLine
-            ):
+            if event.what in (evKeyDown, evMouseDown) and self.firstThat(self.hasMouse, event) is self.statusLine:
                 self.statusLine.handleEvent(event)
+
+        if event.what == evCommand and event.message.command == cmScreenChanged:
+            logger.warning("Program received cmScreenChanged event - calling setScreenMode(smUpdate)")
+            self.setScreenMode(Display.smUpdate)
+            logger.warning("setScreenMode(smUpdate) completed")
+            self.clearEvent(event)
 
     def putEvent(self, event: Event):
         """
@@ -232,7 +234,7 @@ class Program(Group):
         """
         e = Event(evNothing)
         e.setFrom(event)
-        Program.pending.put(e)
+        Program.pending = e
 
     def handleEvent(self, event: Event):
         """
@@ -270,11 +272,15 @@ class Program(Group):
             self.endModal(cmQuit)
             self.clearEvent(event)
 
+    @staticmethod
+    def handleTimeout(id: TimerId, self):
+        message(self, evBroadcast, cmTimerExpired, id)
+
     def getPalette(self) -> Palette:
-        return self.palettes[self.appPalette]
+        return self.appPalette
 
     def setPalette(self, palette: Palette):
-        self.palettes[self.appPalette] = palette
+        self.appPalette = palette
 
     def idle(self):
         """
@@ -300,6 +306,8 @@ class Program(Group):
         if View.commandSetChanged:
             message(self, evBroadcast, cmCommandSetChanged, None)
             View.commandSetChanged = False
+
+        self.timerQueue.collectExpiredTimers(self.handleTimeout, self)
 
     def initDesktop(self, bounds: Rect):
         """
@@ -339,16 +347,16 @@ class Program(Group):
                 SHADOW_SIZE.x = 2
 
             SHADOW_SIZE.y = 1
-            key_mappings.showMarkers = False
+            self.showMarkers = False
             if screen.screenMode & 0x00FF == Display.smBW80:
-                self.appPalette = self.apBlackWhite
+                self.appPalette = self.palettes[self.apBlackWhite]
             else:
-                self.appPalette = self.apColor
+                self.appPalette = self.palettes[self.apColor]
         else:
             SHADOW_SIZE.x = 0
             SHADOW_SIZE.y = 0
-            key_mappings.showMarkers = True
-            self.appPalette = self.apMonochrome
+            self.showMarkers = True
+            self.appPalette = self.palettes[self.apMonochrome]
 
     def initMenuBar(self, bounds: Rect):
         """
@@ -381,11 +389,11 @@ class Program(Group):
         """
         bounds.topLeft.y = bounds.bottomRight.y - 1
         return StatusLine(bounds, StatusDef(0, 0xFFFF) +
-                          StatusItem(self.exitText, kbAltX, cmQuit) +
-                          StatusItem('', kbF10, cmMenu) +
-                          StatusItem('', kbCtrlW, cmClose) +
-                          StatusItem('', kbF5, cmZoom) +
-                          StatusItem('', kbCtrlF5, cmResize))
+                          StatusItem(self.exitText, vindauga.constants.keys.kbAltX, cmQuit) +
+                          StatusItem('', vindauga.constants.keys.kbF10, cmMenu) +
+                          StatusItem('', vindauga.constants.keys.kbCtrlW, cmClose) +
+                          StatusItem('', vindauga.constants.keys.kbF5, cmZoom) +
+                          StatusItem('', vindauga.constants.keys.kbCtrlF5, cmResize))
 
     def insertWindow(self, window: Window):
         """
@@ -414,18 +422,6 @@ class Program(Group):
         """
         self.execute()
 
-    def setScreenMode(self, *_args):
-        """
-        Resizes and redraws the screen.
-
-        :param _args: unused. Used to be screen mode.
-        """
-        r = Rect(0, 0, Screen.screen.screenWidth, Screen.screen.screenHeight)
-        self.changeBounds(r)
-        self.setState(sfExposed, False)
-        self.setState(sfExposed, True)
-        self.redraw()
-
     def validView(self, view: View):
         """
         Checks if a view is valid.
@@ -449,6 +445,28 @@ class Program(Group):
             self.destroy(view)
             return None
         return view
+
+    def killTimer(self, id: TimerId):
+        self.timerQueue.killTimer(id)
+
+    def setScreenMode(self, mode):
+        self.lock()
+        Mouse.hide()
+        try:
+            Screen.screen.setVideoMode(mode)
+            self.initScreen()
+            self.buffer = Screen.screen.screenBuffer
+            r = Rect(0, 0, Screen.screen.screenWidth, Screen.screen.screenHeight)
+            self.changeBounds(r)
+            self.setState(sfExposed, False)
+            self.setState(sfExposed, True)
+        finally:
+            self.unlock()
+        self.redraw()
+        Mouse.show()
+
+    def setTimer(self, timeoutMs: int, periodMs: int) -> TimerId:
+        return self.timerQueue.setTimer(timeoutMs, periodMs)
 
 
 def getDesktopSize() -> Point:

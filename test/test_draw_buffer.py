@@ -13,7 +13,7 @@ class TestDrawBuffer(TestCase):
         """
         Test Move Buf
         """
-        b = DrawBuffer(True)
+        b = DrawBuffer()
         b.moveBuf(0, 'abcdefghijk', 0, 5)
         data = b[:10].tolist()
         result = [ord(c) for c in 'abcde\0\0\0\0\0']
@@ -23,7 +23,7 @@ class TestDrawBuffer(TestCase):
         """
         Test Move Buf
         """
-        b = DrawBuffer(True)
+        b = DrawBuffer()
         b.moveBuf(0, 'abcdefghijk', 0xFF, 5)
         data = b[:10].tolist()
         result = [0xFF0000 | ord(c) for c in 'abcde'] + [0x00] * 5

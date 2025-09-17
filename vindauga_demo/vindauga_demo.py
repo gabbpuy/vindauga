@@ -3,10 +3,6 @@ import logging
 import os
 import sys
 
-from demo.app_commands import AppCommands
-from demo.ascii_table import AsciiChart
-from demo.help_contexts import HelpContexts
-
 from vindauga.constants.buttons import bfDefault, bfNormal
 from vindauga.constants.command_codes import cmMenu, cmQuit, cmClose, hcNoContext, cmNext, cmZoom, cmHelp, cmResize, \
     cmCancel, cmOK, cmCascade, cmTile
@@ -21,7 +17,7 @@ from vindauga.dialogs.color_dialog import ColorDialog
 from vindauga.dialogs.file_dialog import FileDialog, fdOpenButton
 from vindauga.dialogs.mouse_dialog import MouseDialog
 from vindauga.events.event import Event
-from vindauga.events.event_queue import EventQueue
+from vindauga.events.event_queue import event_queue
 from vindauga.gadgets.puzzle import PuzzleWindow
 from vindauga.menus.menu_bar import MenuBar
 from vindauga.menus.menu_item import MenuItem
@@ -48,6 +44,10 @@ from vindauga.widgets.radio_buttons import RadioButtons
 from vindauga.widgets.static_text import StaticText
 from vindauga.widgets.status_line import StatusLine
 
+from demo.app_commands import AppCommands
+from demo.ascii_table import AsciiChart
+from demo.help_contexts import HelpContexts
+
 logger = logging.getLogger('vindauga.vindauga_demo')
 
 
@@ -58,13 +58,13 @@ inputLineData = ''
 demoDialogData = list(reversed([checkBoxData, radioButtonData, inputLineData]))
 
 
-def setupLogging():
-    logger = logging.getLogger('vindauga')
+def setupLogging(logger_name: str):
+    logger = logging.getLogger(logger_name)
     logger.propagate = False
-    format = '%(name)s\t %(message)s'
+    format = '%(asctime)s.%(msecs)03d\t%(name)s\t%(levelname)s\t%(message)s'
     logger.setLevel(logging.DEBUG)
-    handler = logging.StreamHandler(open('vindauga.log', 'wt'))
-    handler.setFormatter(logging.Formatter(format))
+    handler = logging.StreamHandler(open(f'{logger_name}.log', 'wt'))
+    handler.setFormatter(logging.Formatter(format, datefmt='%H:%M:%S'))
     logger.addHandler(handler)
 
 
@@ -387,10 +387,10 @@ class VindaugaDemo(Application):
         mouseCage = self.validView(MouseDialog())
         if mouseCage:
             mouseCage.helpCtx = HelpContexts.hcOMMouseDBox
-            mouseCage.setData([EventQueue.mouseReverse])
+            mouseCage.setData([event_queue.mouseReverse])
             if self.desktop.execView(mouseCage) != cmCancel:
                 data = mouseCage.getData()
-                EventQueue.mouseReverse = data[0].value
+                event_queue.mouseReverse = data[0].value
             self.destroy(mouseCage)
 
     def openFile(self, fileSpec):
@@ -410,7 +410,8 @@ def run():
 
 
 if __name__ == '__main__':
-    setupLogging()
+    setupLogging('vindauga')
+
     try:
         run()
     except:

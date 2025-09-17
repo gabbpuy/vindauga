@@ -54,7 +54,6 @@ class ColorDisplay(View):
                     self._color = (self._color & 0x0F) | ((event.message.infoPtr << 4) & 0xF0)
                 elif event.message.command == cmColorForegroundChanged:
                     self._color = (self._color & 0xF0) | (event.message.infoPtr & 0x0F)
-                message(self.owner, evBroadcast, cmSetColorIndex, self._color)
                 self.drawView()
 
     def setColor(self, color: int):
