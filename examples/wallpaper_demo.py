@@ -1,11 +1,15 @@
 # -*- coding: utf-8 -*-
 import logging
 from pathlib import Path
+import random
+
+from PIL import Image, ImageDraw, ImageFont
 
 from vindauga.constants.buttons import bfDefault
-from vindauga.constants.command_codes import hcNoContext, cmOK, cmWallpaperToggleBlocks, cmWallpaperToggleColor
+from vindauga.constants.command_codes import hcNoContext, cmOK, cmWallpaperToggleBlocks, cmWallpaperToggleColor, cmCancel
+from vindauga.constants.message_flags import mfError, mfOKButton
 from vindauga.constants.event_codes import evCommand, evBroadcast
-from vindauga.constants.keys import kbAltA, kbAltW, kbAltB, kbAltC
+from vindauga.constants.keys import kbAltA, kbAltW, kbAltB, kbAltC, kbAltF, kbAltL
 from vindauga.constants.option_flags import ofCentered
 from vindauga.events.event import Event
 from vindauga.misc.message import message
@@ -17,16 +21,20 @@ from vindauga.menus.sub_menu import SubMenu
 from vindauga.types.rect import Rect
 
 from vindauga.widgets.application import Application
+from vindauga.widgets.background import Background
 from vindauga.widgets.button import Button
 from vindauga.widgets.desktop import Desktop
 from vindauga.widgets.dialog import Dialog
 from vindauga.widgets.static_text import StaticText
 from vindauga.widgets.wallpaper_background import WallpaperBackground
+from vindauga.dialogs.file_dialog import FileDialog, fdOpenButton
+from vindauga.dialogs.message_box import messageBox
 
 logger = logging.getLogger('vindauga.wallpaper_demo')
 
 # Command codes
 cmAbout = 100
+cmLoadImage = 101
 
 
 class WallpaperDemo(Application):
@@ -40,14 +48,9 @@ class WallpaperDemo(Application):
 
     def initMenuBar(self, bounds: Rect) -> MenuBar:
         bounds.bottomRight.y = bounds.topLeft.y + 1
-
+        fileMenu = SubMenu('~F~ile', 0, hcNoContext) + MenuItem('~L~oad Image...', cmLoadImage, kbAltL, hcNoContext)
         aboutMenu = SubMenu('~A~bout', 0, hcNoContext) + MenuItem('~A~bout Demo', cmAbout, kbAltA, hcNoContext)
-
-        wallpaperMenu = (SubMenu('~W~allpaper', kbAltW, hcNoContext) +
-                         MenuItem('Toggle ~B~locks', cmWallpaperToggleBlocks, kbAltB, hcNoContext) +
-                         MenuItem('Toggle ~C~olor', cmWallpaperToggleColor, kbAltC, hcNoContext))
-
-        return MenuBar(bounds, aboutMenu + wallpaperMenu)
+        return MenuBar(bounds, fileMenu + aboutMenu)
 
     def initDesktop(self, bounds: Rect) -> Desktop:
         bounds.topLeft.y += 1
@@ -63,11 +66,8 @@ class WallpaperDemo(Application):
             if command == cmAbout:
                 self._show_about_dialog()
                 self.clearEvent(event)
-            elif command == cmWallpaperToggleBlocks:
-                self._toggle_blocks()
-                self.clearEvent(event)
-            elif command == cmWallpaperToggleColor:
-                self._toggle_color()
+            elif command == cmLoadImage:
+                self._load_image_dialog()
                 self.clearEvent(event)
 
     def _show_about_dialog(self):
@@ -87,6 +87,54 @@ class WallpaperDemo(Application):
         self.desktop.execView(d)
         self.destroy(d)
 
+    def _load_image_dialog(self):
+        """Show file dialog to load a new wallpaper image."""
+        # Use single wildcard since FileList.readDirectory doesn't support multiple wildcards
+        fileSpec = "*"
+
+        d = FileDialog(fileSpec, 'Load Wallpaper Image', '~N~ame', fdOpenButton, 100)
+        if d and self.desktop.execView(d) != cmCancel:
+            filename = d.getFilename()
+            logger.info("Selected file: %s", filename)
+
+            # Validate that the selected file is an image
+            if not self._is_image_file(filename):
+                messageBox("Please select an image file.\n\n"
+                          "Supported formats:\n"
+                          "PNG, JPG, JPEG, GIF, BMP, TIFF",
+                          mfError, (mfOKButton,))
+                self.destroy(d)
+                return
+
+            # Find the wallpaper background and set the new image
+            wallpaper_bg = self._find_wallpaper_background()
+            if wallpaper_bg:
+                try:
+                    wallpaper_bg.set_image(filename)
+                    logger.info("Successfully loaded new wallpaper: %s", filename)
+                except Exception as e:
+                    logger.error("Failed to load wallpaper image %s: %s", filename, e)
+                    messageBox(f"Failed to load image:\n{filename}\n\n"
+                              f"Error: {str(e)}",
+                              mfError, (mfOKButton,))
+            else:
+                logger.error("Could not find WallpaperBackground to update")
+                messageBox("Internal error: Could not find wallpaper background to update.",
+                          mfError, (mfOKButton,))
+
+            self.destroy(d)
+
+    def _is_image_file(self, filename: str) -> bool:
+        """Check if filename has a supported image extension."""
+        if not filename:
+            return False
+
+        # Convert to lowercase for case-insensitive comparison
+        lower_filename = filename.lower()
+        image_extensions = ['.png', '.jpg', '.jpeg', '.gif', '.bmp', '.tiff']
+
+        return any(lower_filename.endswith(ext) for ext in image_extensions)
+
     def _find_wallpaper_background(self):
         """Find WallpaperBackground in desktop children."""
         if not self.desktop:
@@ -104,26 +152,6 @@ class WallpaperDemo(Application):
         logger.warning("No WallpaperBackground found in desktop children")
         return None
 
-    def _toggle_blocks(self):
-        """Toggle between ASCII and block characters."""
-        logger.info("Broadcasting toggle blocks command")
-        wallpaper_bg = self._find_wallpaper_background()
-        if wallpaper_bg:
-            logger.info("Sending toggle blocks message to WallpaperBackground")
-            message(wallpaper_bg, evBroadcast, cmWallpaperToggleBlocks, None)
-        else:
-            logger.warning("No WallpaperBackground found to send message to")
-
-    def _toggle_color(self):
-        """Toggle color rendering."""
-        logger.info("Broadcasting toggle color command")
-        wallpaper_bg = self._find_wallpaper_background()
-        if wallpaper_bg:
-            logger.info("Sending toggle color message to WallpaperBackground")
-            message(wallpaper_bg, evBroadcast, cmWallpaperToggleColor, None)
-        else:
-            logger.warning("No WallpaperBackground found to send message to")
-
 
 class WallpaperDesktop(Desktop):
     """
@@ -139,10 +167,13 @@ class WallpaperDesktop(Desktop):
         image_extensions = ['.png', '.jpg', '.jpeg', '.gif', '.bmp', '.tiff']
         sample_image = None
 
+        random.shuffle(image_extensions)
+
         for ext in image_extensions:
-            for img_file in examples_dir.glob(f'*{ext}'):
-                sample_image = str(img_file)
-                break
+            try:
+                sample_image = random.choice(list(examples_dir.glob('*' + ext)))
+            except IndexError:
+                continue
             if sample_image:
                 break
 
@@ -155,17 +186,12 @@ class WallpaperDesktop(Desktop):
             wallpaper_bg = WallpaperBackground(
                 bounds,
                 sample_image,
-                pattern='▒',
-                use_blocks=False,  # Start with ASCII art
-                use_color=True,  # Start with color
-                enhance_contrast=1.2
             )
             logger.info("Created wallpaper background with image: %s", sample_image)
             return wallpaper_bg
         except Exception as e:
-            logger.error("Failed to create wallpaper background: %s", e)
+            logger.exception("Failed to create wallpaper background: %s", e)
             # Fallback to regular background
-            from vindauga.widgets.background import Background
             return Background(bounds, '▒')
 
     def _create_test_image(self, output_path: Path) -> str:
@@ -173,7 +199,6 @@ class WallpaperDesktop(Desktop):
         Create a simple test image if no sample image is available.
         """
         try:
-            from PIL import Image, ImageDraw, ImageFont
 
             # Create a colorful test pattern
             width, height = 200, 150
@@ -229,5 +254,5 @@ if __name__ == '__main__':
         app.run()
         logger.info("Demo completed")
     except Exception as e:
-        logger.error("Demo failed: %s", e)
+        logger.exception("Demo failed: %s", e)
         raise

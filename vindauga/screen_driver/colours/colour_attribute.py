@@ -128,7 +128,6 @@ class ColourAttribute:
         return self == ColourAttribute.from_bios(other)
 
     def __ior__(self, other: ColourAttribute | int):
-        # C++ TAttrPair::operator|= simply assigns: _attrs[0] = attr
         # It doesn't do bitwise OR, it's an assignment operation
         if isinstance(other, ColourAttribute):
             self._fg = other._fg
@@ -141,6 +140,9 @@ class ColourAttribute:
             self._bg = other_attr._bg
             self._style = other_attr._style
         return self
+
+    def __int__(self) -> int:
+        return self.as_bios()
 
 
 @singledispatch

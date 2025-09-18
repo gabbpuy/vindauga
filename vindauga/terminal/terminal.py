@@ -171,7 +171,7 @@ class Terminal:
         # Windows shell options
         if shell_type.lower() == 'cmd':
             # cmd.exe with UTF-8 encoding
-            return 'cmd.exe', ['/c', 'chcp 65001 >nul & cmd.exe /E:ON /F:ON']
+            return 'cmd.exe', ['/c', 'chcp 65001 >nul: & cmd.exe /E:ON /F:ON']
         elif shell_type.lower() in ('pwsh', 'powershell'):
             # PowerShell Core (pwsh) - interactive mode with completion enabled
             return 'pwsh', ['-NoLogo']

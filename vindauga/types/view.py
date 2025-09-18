@@ -911,11 +911,11 @@ class View(VindaugaObject):
         # Extract high byte (highlight attribute) and low byte (normal attribute)
         high_index = (color >> 8) & 0xFF
         low_index = color & 0xFF
-        
+
         # Map both indices through the palette system
         high_attr = self.mapColor(high_index) if high_index != 0 else ColourAttribute()
         low_attr = self.mapColor(low_index)
-        
+
         # Create AttributePair with mapped colors
         return AttributePair(pair=(low_attr, high_attr))
 
@@ -954,14 +954,14 @@ class View(VindaugaObject):
         color = ColourAttribute()
 
         if len(palette):
-            if 0 < index and index <= len(palette):
-                color = ColourAttribute.from_bios(palette[index])
+            if 0 < index <= len(palette):
+                color = palette[index]
             else:
                 return ColourAttribute.from_bios(self.errorAttr)
         else:
             color = ColourAttribute.from_bios(index)
 
-        if color == 0:
+        if int(color) == 0:
             return ColourAttribute.from_bios(self.errorAttr)
         if self.owner:
             return self.owner.mapColor(color.to_bios())

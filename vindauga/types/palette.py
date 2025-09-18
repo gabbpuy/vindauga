@@ -38,8 +38,9 @@
 #----------------------------------------------------------------------#
 """
 from __future__ import annotations
-import array
-from typing import Union
+from typing import List, Union
+
+from vindauga.screen_driver import ColourAttribute
 
 
 class Palette:
@@ -52,11 +53,14 @@ class Palette:
     frames, buttons, text, and so on.
     """
 
-    def __init__(self, palette: Union[Palette, str] = ''):
+    def __init__(self, palette: Union[Palette, str, List[ColourAttribute]] = ''):
         if isinstance(palette, (Palette,)):
-            self.palette = array.array('B', palette.palette)
+            self.palette = palette.palette[:]
         else:
-            self.palette = array.array('B', (ord(p) for p in palette))
+            if isinstance(palette, list):
+                self.palette = palette[:]
+            else:
+                self.palette = [ColourAttribute.from_bios(ord(c)) for c in palette]
 
     def __len__(self):
         return len(self.palette)

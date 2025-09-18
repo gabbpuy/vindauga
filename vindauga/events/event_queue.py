@@ -28,6 +28,7 @@ class EventQueue:
         self.downTicks = 0
         self.mouseReverse = False
         self.doubleDelay = 8  # Double-click timing delay
+        self.repeatDelay = 8
         self.autoTicks = 0
         self.autoDelay = 0
 
@@ -81,10 +82,9 @@ class EventQueue:
                 return
 
             if event.mouse.buttons != 0 and self.lastMouse.buttons == 0:
-                # Double/triple click detection would go here
-                if (event.mouse.buttons == self.downMouse.buttons and event.mouse.where == self.downMouse.where
-                        and event.what - self.downTicks <= self.doubleDelay
-                ):
+                if (event.mouse.buttons == self.downMouse.buttons and
+                        event.mouse.where == self.downMouse.where and
+                        event.what - self.downTicks <= self.doubleDelay):
                     if not (self.downMouse.eventFlags & (meDoubleClick | meTripleClick)):
                         event.mouse.eventFlags |= meDoubleClick
                     elif self.downMouse.eventFlags & meDoubleClick:
@@ -92,7 +92,8 @@ class EventQueue:
                         event.mouse.eventFlags |= meTripleClick
 
                 self.downMouse.copy(event.mouse)
-                self.downTicks = event.what
+                self.autoTicks = self.downTicks = event.what
+                self.autoDelay = self.repeatDelay
                 event.what = evMouseDown
                 self.lastMouse.copy(event.mouse)
                 return

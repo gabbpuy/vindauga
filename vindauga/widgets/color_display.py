@@ -7,6 +7,7 @@ from vindauga.constants.colors import cmColorBackgroundChanged, cmColorForegroun
 from vindauga.constants.event_codes import evBroadcast
 from vindauga.events.event import Event
 from vindauga.misc.message import message
+from vindauga.screen_driver import ColourAttribute
 from vindauga.types.draw_buffer import DrawBuffer
 from vindauga.types.rect import Rect
 from vindauga.types.view import View
@@ -51,12 +52,12 @@ class ColorDisplay(View):
             emc = event.message.command
             if emc in {cmColorBackgroundChanged, cmColorForegroundChanged}:
                 if event.message.command == cmColorBackgroundChanged:
-                    self._color = (self._color & 0x0F) | ((event.message.infoPtr << 4) & 0xF0)
+                    self._color = (int(self._color) & 0x0F) | (int(event.message.infoPtr << 4) & 0xF0)
                 elif event.message.command == cmColorForegroundChanged:
-                    self._color = (self._color & 0xF0) | (event.message.infoPtr & 0x0F)
+                    self._color = (int(self._color) & 0xF0) | (int(event.message.infoPtr) & 0x0F)
                 self.drawView()
 
-    def setColor(self, color: int):
+    def setColor(self, color: ColourAttribute):
         """
         Change the currently displayed color. Sets `self.color` to `color',
         broadcasts the change to the owning group, then calls `drawView()`.

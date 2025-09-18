@@ -2,11 +2,12 @@
 from dataclasses import dataclass
 import logging
 import os
-import platform
 from typing import Any
 
 from .termcap_colours import TermCapColours
 from .quirks import TerminalQuirks
+
+logger = logging.getLogger(__name__)
 
 
 @dataclass
@@ -16,7 +17,6 @@ class TermCap:
 
     @classmethod
     def get_display_capabilities(cls, console_ctl: Any, display_adapter: Any):
-        logger = logging.getLogger(__name__)
         quirks = TerminalQuirks.NONE
         colour_term = os.getenv('COLORTERM', None)
         term = os.getenv('TERM', None)

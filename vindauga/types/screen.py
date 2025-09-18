@@ -128,7 +128,6 @@ class Screen(_Display):
         self.flushScreen()
     
     def makeBeep(self):
-        """Make a beep sound - matches C++ TScreen::makeBeep()"""
         try:
             # Try to make a system beep sound
             print('\a', end='', flush=True)

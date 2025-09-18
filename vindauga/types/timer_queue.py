@@ -11,7 +11,7 @@ from vindauga.screen_driver.hardware_info import hardware_info
 
 
 def systemTimeMs():
-    return hardware_info.getTickCount() * 55
+    return hardware_info.getTickCount() * 55000
 
 
 @dataclass

@@ -99,9 +99,9 @@ class ColorSelector(View):
     def __handleBroadcastEvent(self, event: Event):
         if event.message.command == cmColorSet:
             if self._selectorType == ColorSel.csBackground:
-                self._color = event.message.infoPtr >> 4
+                self._color = int(event.message.infoPtr) >> 4
             else:
-                self._color = event.message.infoPtr & 0x0f
+                self._color = int(event.message.infoPtr) & 0x0f
             self.drawView()
 
     def __handleKeyDownEvent(self, key: int, maxCol: int, width: int) -> bool:

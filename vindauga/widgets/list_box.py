@@ -59,8 +59,8 @@ class ListBox(ListViewer):
         else:
             self.setRange(0)
 
-        if self._range > 0:
-            self.focusItem(0)
+        # if self._range > 0:
+        #     self.focusItem(0)
         self.drawView()
 
     def setData(self, record: ListBoxRec):

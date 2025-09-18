@@ -143,10 +143,9 @@ class HardwareInfo:
     def requestClipboardText(self):
         self.__platform.request_clipboard_text()
         
-    def getTickCount(self) -> int:
+    def getTickCount(self) -> float:
         """Get tick count for timing"""
-        # Return milliseconds since some epoch, similar to GetTickCount() on Windows
-        return int(time.time() * 1000)
+        return time.time()
 
     def clearPendingEvent(self):
         self.pendingEvent = None

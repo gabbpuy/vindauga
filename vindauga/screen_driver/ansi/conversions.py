@@ -79,7 +79,7 @@ def convert_indexed8(colour: DesiredColour, termcap: TermCap, is_fg: bool) -> Co
 
 def convert_indexed256(colour: DesiredColour, termcap: TermCap, is_fg: bool) -> ColourConversionReturn:
     if colour.is_xterm():
-        idx = colour.as_xterm()
+        idx = int(colour.as_xterm())
         return ColourConversionReturn(TermColour(TermColourTypes.Indexed, idx))
     elif colour.is_rgb():
         idx = RGB_toXTerm16(*tuple(colour.as_rgb()))
@@ -109,8 +109,8 @@ def convert_colour(colour: DesiredColour,
     return cnv.colour, cnv.extra_style
 
 
-def convert_attributes(attribute: ColourAttribute, last_attribute: TermAttribute, termcap: TermCap, buf: str) -> tuple[
-    str, TermAttribute]:
+def convert_attributes(attribute: ColourAttribute, last_attribute: TermAttribute, termcap: TermCap,
+                       buf: str) -> tuple[str, TermAttribute]:
     attr = TermAttribute()
     if isinstance(attribute, int):
         attribute = ColourAttribute.from_bios(attribute)
