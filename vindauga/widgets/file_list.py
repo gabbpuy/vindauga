@@ -76,23 +76,26 @@ class FileList(SortedListBox):
             if s:
                 record.setStatInfo('..', s)
             else:
-                record.name = '..'
-                record.size = 0
-                record.time = datetime.fromtimestamp(0x210000)
-                record.attr = FA_DIREC
+                record._name = '..'
+                record._size = 0
+                record._time = datetime.fromtimestamp(0x210000)
+                record._attr = FA_DIREC
+                record._stat_set = True
             fileList.append(record)
 
         root, directories, files = next(os.walk(directory), (directory, [], []))
         for localDir in directories:
             record = DirectorySearchRecord()
-            s = os.stat(os.path.join(root, localDir))
-            record.setStatInfo(localDir, s)
+            # s = os.stat(os.path.join(root, localDir))
+            # record.setStatInfo(localDir, s)
+            record._name = os.path.join(root, localDir)
             fileList.append(record)
 
         for f in fnmatch.filter(files, wildcard):
             record = DirectorySearchRecord()
-            s = os.stat(os.path.join(root, f))
-            record.setStatInfo(f, s)
+            # s = os.stat(os.path.join(root, f))
+            # record.setStatInfo(f, s)
+            record._name = os.path.join(root, f)
             fileList.append(record)
 
         self.newList(fileList)
