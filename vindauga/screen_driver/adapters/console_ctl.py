@@ -6,7 +6,6 @@ import os
 import struct
 import sys
 from typing import Optional, IO
-from win32console import PyConsoleScreenBufferType
 
 from vindauga.types.point import Point
 
@@ -16,6 +15,7 @@ if sys.platform != 'win32':
 
 if sys.platform == 'win32':
     import win32console
+    from win32console import PyConsoleScreenBufferType
     import win32file
     INPUT = 0
     STARTUP_OUTPUT = 1
