@@ -3,8 +3,7 @@ from __future__ import annotations
 import logging
 
 from vindauga.events.mouse_event import MouseEvent
-from vindauga.constants.event_codes import evNothing, evMouseDown, evMouseUp, evMouseMove, evMouseWheel, meMouseMoved, \
-    meDoubleClick, meTripleClick, evMouseAuto, evKeyDown
+import vindauga.constants.event_codes as event_codes
 from vindauga.constants.keys import kbPaste, kbEnter, kbTab
 from vindauga.mouse.mouse import Mouse
 from vindauga.screen_driver.hardware_info import hardware_info
@@ -50,7 +49,7 @@ class EventQueue:
         """
         if self.mouseEvents:
             if self.pendingMouseUp:
-                event.what = evMouseUp
+                event.what = event_codes.evMouseUp
                 event.mouse.copy(self.lastMouse)
                 self.lastMouse.buttons = 0
                 self.pendingMouseUp = False
@@ -63,18 +62,18 @@ class EventQueue:
 
             if event.mouse.buttons == 0 and self.lastMouse.buttons != 0:
                 if event.mouse.where == self.lastMouse.where:
-                    event.what = evMouseUp
+                    event.what = event_codes.evMouseUp
                     buttons = self.lastMouse.buttons
                     # Make a copy to avoid shared object issues
                     self.lastMouse.copy(event.mouse)
                     event.mouse.buttons = buttons
                 else:
-                    event.what = evMouseMove
+                    event.what = event_codes.evMouseMove
                     up = event.mouse
                     where = up.where
                     event.mouse = self.lastMouse
                     event.mouse.where = where
-                    event.mouse.eventFlags |= meMouseMoved
+                    event.mouse.eventFlags |= event_codes.meMouseMoved
                     up.buttons = self.lastMouse.buttons
                     self.lastMouse = up
                     self.pendingMouseUp = True
@@ -84,46 +83,46 @@ class EventQueue:
                 if (event.mouse.buttons == self.downMouse.buttons and
                         event.mouse.where == self.downMouse.where and
                         event.what - self.downTicks <= self.doubleDelay):
-                    if not (self.downMouse.eventFlags & (meDoubleClick | meTripleClick)):
-                        event.mouse.eventFlags |= meDoubleClick
-                    elif self.downMouse.eventFlags & meDoubleClick:
-                        event.mouse.eventFlags &= ~meDoubleClick
-                        event.mouse.eventFlags |= meTripleClick
+                    if not (self.downMouse.eventFlags & (event_codes.meDoubleClick | event_codes.meTripleClick)):
+                        event.mouse.eventFlags |= event_codes.meDoubleClick
+                    elif self.downMouse.eventFlags & event_codes.meDoubleClick:
+                        event.mouse.eventFlags &= ~event_codes.meDoubleClick
+                        event.mouse.eventFlags |= event_codes.meTripleClick
 
                 self.downMouse.copy(event.mouse)
                 self.autoTicks = self.downTicks = event.what
                 self.autoDelay = self.repeatDelay
-                event.what = evMouseDown
+                event.what = event_codes.evMouseDown
                 self.lastMouse.copy(event.mouse)
                 return
 
             event.mouse.buttons = self.lastMouse.buttons
 
             if event.mouse.wheel != 0:
-                event.what = evMouseWheel
+                event.what = event_codes.evMouseWheel
                 self.lastMouse.copy(event.mouse)
                 return
 
             if event.mouse.where != self.lastMouse.where:
-                event.what = evMouseMove
-                event.mouse.eventFlags |= meMouseMoved
+                event.what = event_codes.evMouseMove
+                event.mouse.eventFlags |= event_codes.meMouseMoved
                 self.lastMouse.copy(event.mouse)
                 return
 
             if event.mouse.buttons != 0 and event.what - self.autoTicks > self.autoDelay:
                 self.autoTicks = event.what
                 self.autoDelay = 1
-                event.what = evMouseAuto
+                event.what = event_codes.evMouseAuto
                 self.lastMouse.copy(event.mouse)
                 return
 
-        event.what = evNothing
+        event.what = event_codes.evNothing
 
     def getMouseState(self, event) -> bool:
         """
         Get mouse state
         """
-        event.what = evNothing
+        event.what = event_codes.evNothing
         mouse_event = hardware_info.getMouseEvent()
         if not mouse_event:
             return False
@@ -146,13 +145,13 @@ class EventQueue:
         if self._shouldSkipLf:
             self._shouldSkipLf = False
             # Skip a LF, since we had previously read a CR
-            if (event.what == evKeyDown and
+            if (event.what == event_codes.evKeyDown and
                     (event.keyDown.controlKeyState & kbPaste) != 0 and
                     ((event.keyDown.textLength == 0 and event.keyDown.charScan.charCode == '\n') or
                      (event.keyDown.textLength == 1 and event.keyDown.text and event.keyDown.text[0] == '\n'))):
                 self.getKeyOrPasteEvent(event)
 
-        if event.what == evKeyDown and (event.keyDown.controlKeyState & kbPaste) != 0:
+        if event.what == event_codes.evKeyDown and (event.keyDown.controlKeyState & kbPaste) != 0:
             if event.keyDown.textLength == 0:
                 event.keyDown.text[0] = chr(event.keyDown.charScan.charCode)
                 event.keyDown.textLength = 1
@@ -203,14 +202,14 @@ class EventQueue:
         Read a single key press from hardware
         """
         if not hardware_info.getKeyEvent(event):
-            event.what = evNothing
-        return event.what != evNothing
+            event.what = event_codes.evNothing
+        return event.what != event_codes.evNothing
 
     def isTextEvent(self, event) -> bool:
         """
         Check if event is a text event (for paste detection).
         """
-        return (event.what == evKeyDown and
+        return (event.what == event_codes.evKeyDown and
                 (event.keyDown.textLength != 0 or
                  event.keyDown.keyCode == kbEnter or
                  event.keyDown.keyCode == kbTab))
@@ -228,7 +227,7 @@ class EventQueue:
                 if success:
                     # Extract the character sequence
                     char_sequence = remaining_text[:next_index]
-                    event.what = evKeyDown
+                    event.what = event_codes.evKeyDown
                     event.keyDown.keyCode = 0
                     event.keyDown.controlKeyState = kbPaste
                     event.keyDown.text = char_sequence
@@ -252,7 +251,7 @@ class EventQueue:
 
     def __createEvent(self):
         from vindauga.events.event import Event
-        return Event(evNothing)
+        return Event(event_codes.evNothing)
 
     def getKeyOrPasteEvent(self, event) -> None:
         """
@@ -297,7 +296,7 @@ class EventQueue:
             self.keyEventIndex += 1
             self.keyEventCount -= 1
         else:
-            event.what = evNothing
+            event.what = event_codes.evNothing
 
 
 # Create singleton instance

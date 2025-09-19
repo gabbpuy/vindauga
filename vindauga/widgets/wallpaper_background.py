@@ -33,6 +33,7 @@ class WallpaperBackground(Background):
         self._image_path = str(Path(image_path).resolve())
         # Cached image data
         self._char_lines: Optional[List[str]] = None
+        self._drawLock = False
         # Load image on initialization
         self._load_image()
 
@@ -42,6 +43,8 @@ class WallpaperBackground(Background):
         _w, _h, self._char_lines = wallpaper(self._image_path, self.getBounds(), self)
 
     def draw(self):
+        if self._drawLock:
+            return
         for y, line in enumerate(itertools.islice(self._char_lines, 0, max(len(self._char_lines), self.size.y))):
             self.writeLine(0, y, self.size.x, 1, line)
 
@@ -51,6 +54,14 @@ class WallpaperBackground(Background):
         """
         self._load_image()
         self.drawView()
+
+    def changeBounds(self, bounds: Rect):
+        self._drawLock = True
+        try:
+            super().changeBounds(bounds)
+        finally:
+            self._drawLock = False
+        self.reload_image()
 
     def set_image(self, image_path: str):
         """
