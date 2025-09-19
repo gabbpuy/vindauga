@@ -115,6 +115,7 @@ class Screen(_Display):
 
     def setScreenSize(self, width, height):
         hardware_info.resize(width, height)
+        self.setVideoMode(Display.smUpdate)
 
     def suspend(self):
         if self.startupMode != self.screenMode:

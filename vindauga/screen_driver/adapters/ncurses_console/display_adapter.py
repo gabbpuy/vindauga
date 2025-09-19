@@ -52,9 +52,9 @@ class NcursesDisplayAdapter(DisplayAdapter):
                 pass
             self._stdscr = None
 
-    def resize(self, width, height: int):
-        if curses.is_term_resized(width, height):
-            self._console_ctl.write(f'\x1b[{height};{width}t')
+    def resize(self, width: int, height: int):
+        # Doesn't work in WSL (even though works for CMD/PWSH), works in MinTTY
+        self._console_ctl.write(f'\x1b[8;{height};{width}t')
 
     def reload_screen_info(self) -> Point:
         """

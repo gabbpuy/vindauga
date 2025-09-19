@@ -243,6 +243,10 @@ class Platform:
         """
         return self.__init_and_get_char_width(char_code)
 
+    def resize(self, width: int, height: int):
+        with self.console.lock:
+            self.console.resize(width, height)
+
     @staticmethod
     def signal_callback(enter: bool):
         instance: Platform = Platform.instance()

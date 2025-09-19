@@ -153,6 +153,9 @@ class HardwareInfo:
     def clearPendingEvent(self):
         self.pendingEvent = None
 
+    def resize(self, width: int, height: int):
+        self.__platform.resize(width, height)
+
 
 # Create singleton instance
 hardware_info = HardwareInfo()

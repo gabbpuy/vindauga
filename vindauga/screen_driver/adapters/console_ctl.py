@@ -363,15 +363,6 @@ class ConsoleCtl:
             """
             Get console font size
             """
-
-            # Try KDFONTOP ioctl first (Linux console)
-            for fd in self.fds:
-                try:
-                    # This would need linux/kd.h constants, skip for now
-                    pass
-                except Exception:
-                    pass
-            
             # Fallback: calculate from window size in pixels vs characters
             for fd in self.fds:
                 try:

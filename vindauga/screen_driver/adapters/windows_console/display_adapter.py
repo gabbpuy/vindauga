@@ -260,5 +260,4 @@ class WindowsConsoleDisplayAdapter(DisplayAdapter):
             return TermAttribute(TermColour.default(), TermColour.default())
 
     def resize(self, width: int, height: int):
-        subprocess.call(['mode', 'con:', f'cols={width}', f'lines={height}'], shell=True)
-        # trigger resize.. ?
+        self._console_ctl.write(f'\x1b[8;{height};{width}t')

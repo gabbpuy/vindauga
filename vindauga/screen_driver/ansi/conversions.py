@@ -17,12 +17,8 @@ from .writers import write_attributes
 logger = logging.getLogger(__name__)
 
 # Pre-compute common enum values as integers to avoid enum operations
-_STYLE_BOLD = int(StyleMask.Bold)
 _STYLE_ITALIC = int(StyleMask.Italic)
 _STYLE_UNDERLINE = int(StyleMask.Underline)
-_STYLE_BLINK = int(StyleMask.Blink)
-_STYLE_REVERSE = int(StyleMask.Reverse)
-_STYLE_STRIKE = int(StyleMask.Strike)
 
 
 class ColourConversionReturn:
@@ -32,7 +28,6 @@ class ColourConversionReturn:
 
     def __int__(self):
         val: int = int(self.colour) | int(self.extra_style) << 32
-        # Removed endianness conversion - may be causing issues
         return val
 
 
