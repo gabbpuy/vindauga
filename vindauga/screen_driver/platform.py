@@ -104,8 +104,15 @@ class Platform:
         """
         if sys.platform == 'win32':
             # Windows: Use Win32ConsoleAdapter
+            from .adapters.windows_console.display_adapter import WindowsConsoleDisplayAdapter
+            from .adapters.windows_console.input_adapter import WindowsConsoleInputAdapter
             from .adapters.windows_console.console_adapter import WindowsConsoleAdapter
-            return WindowsConsoleAdapter.create()
+
+            con = ConsoleCtl.getInstance()
+            input_state = InputState()
+            display = WindowsConsoleDisplayAdapter.create(con)
+            windows_input = WindowsConsoleInputAdapter(con, display, input_state, True)
+            return WindowsConsoleAdapter.create(con, self.display_buffer, input_state, display, windows_input)
         else:
             from .adapters.ncurses_console.display_adapter import NcursesDisplayAdapter
             from .adapters.ncurses_console.input_adapter import NcursesInputAdapter
@@ -184,15 +191,20 @@ class Platform:
 
             if color_count == 0:
                 mode = Display.smMono  # Monochrome mode
-                return mode
-            elif color_count >= 256:
-                # Color mode with 256+ color support (base mode + flag)
-                mode = Display.smCO80 | Display.smColor256
-                return mode
             else:
-                # Basic color mode
                 mode = Display.smCO80
-                return mode
+
+            if color_count >= 256:
+                mode |= Display.smColor256
+
+            if color_count >= 256**3:
+                mode |= Display.smColorHigh
+
+            font_size = self.console.display.get_font_size()
+            if font_size.x > 0 and font_size.y > 0 and font_size.x >= font_size.y:
+                mode |= Display.smFont8x8
+
+            return mode
 
     def set_caret_size(self, size: int):
         self.display_buffer.set_caret_size(size)

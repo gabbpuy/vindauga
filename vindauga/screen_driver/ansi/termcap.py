@@ -25,7 +25,6 @@ class TermCap:
             colours = TermCapColours.Direct
         else:
             _colours = display_adapter.get_colour_count()
-            
             if _colours >= 256**3:
                 colours = TermCapColours.Direct
             elif _colours >= 256:

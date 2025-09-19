@@ -13,7 +13,7 @@ class ConsoleAdapter:
     def set_clipboard_text(self, text) -> bool:
         return False
 
-    def request_clipboard_text(self) -> str:
+    def request_clipboard_text(self, *args) -> str:
         return ''
 
     def resize(self, width: int, height: int):

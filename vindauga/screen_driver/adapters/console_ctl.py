@@ -1,10 +1,14 @@
 # -*- coding: utf-8 -*-
 from __future__ import annotations
+from dataclasses import dataclass
 import logging
 import os
 import struct
 import sys
 from typing import Optional, IO
+from win32console import PyConsoleScreenBufferType
+
+from vindauga.types.point import Point
 
 if sys.platform != 'win32':
     import fcntl
@@ -13,8 +17,10 @@ if sys.platform != 'win32':
 if sys.platform == 'win32':
     import win32console
     import win32file
+    INPUT = 0
+    STARTUP_OUTPUT = 1
+    ACTIVE_OUTPUT = 2
 
-from vindauga.types.point import Point
 
 logger = logging.getLogger(__name__)
 
@@ -48,12 +54,6 @@ class ConsoleCtl:
             cls._instance._cleanup_console()
         cls._instance = None
 
-    def getTerminalType(self) -> str:
-        """
-        Get terminal type string
-        """
-        return self._term_type
-
     def get_input_fd(self) -> int:
         """
         Get input file descriptor for event polling (Unix only)
@@ -71,17 +71,17 @@ class ConsoleCtl:
         return self.fds[1]
 
     if sys.platform == 'win32':
+        @dataclass
+        class ConsoleHandle:
+            handle: Optional[PyConsoleScreenBufferType] = None
+            owning: bool = False
+
         def _setup_console(self):
             """
             Set up Windows console handles
             """
-            # Windows: console handles
-            self.cn = [{'handle': None, 'owning': False} for _ in range(3)]  # input, startupOutput, activeOutput
+            self.cn = [self.ConsoleHandle() for _ in range(3)]
             self.owns_console = False
-
-            INPUT = 0
-            STARTUP_OUTPUT = 1
-            ACTIVE_OUTPUT = 2
 
             # Check if we have console handles via standard handles
             channels = [
@@ -96,11 +96,14 @@ class ConsoleCtl:
                     handle = win32console.GetStdHandle(std_handle_type)
                     if self._is_console_handle(handle):
                         have_console = True
-                        if not self._is_valid_handle(self.cn[index]['handle']):
-                            self.cn[index] = {'handle': handle, 'owning': False}
+                        if not self._is_valid_handle(self.cn[index].handle):
+                            self.cn[index].handle = handle
+                            self.cn[index].owning = False
                 except Exception:
+                    logger.exception('Failed to handle console handle: %s, %s', std_handle_type, index)
                     pass
 
+            logger.info("Console handles created: %s", self.cn)
             # Allocate console if we don't have one
             if not have_console:
                 try:
@@ -111,7 +114,8 @@ class ConsoleCtl:
                     pass
 
             # Set up input handle if not already set
-            if not self._is_valid_handle(self.cn[INPUT]['handle']):
+            if not self._is_valid_handle(self.cn[INPUT].handle):
+                logger.info('Input Handle not Set, creating...')
                 try:
                     handle = win32file.CreateFile(
                         'CONIN$',
@@ -122,12 +126,15 @@ class ConsoleCtl:
                         0,
                         0
                     )
-                    self.cn[INPUT] = {'handle': handle, 'owning': True}
+                    # self.cn[INPUT] = {'handle': handle, 'owning': True}
+                    self.cn[INPUT].handle = handle
+                    self.cn[INPUT].owning = True
                 except Exception:
                     pass
 
             # Set up startup output handle if not already set
-            if not self._is_valid_handle(self.cn[STARTUP_OUTPUT]['handle']):
+            if not self._is_valid_handle(self.cn[STARTUP_OUTPUT].handle):
+                logger.info('Startup Output Handle not Set, creating...')
                 try:
                     handle = win32file.CreateFile(
                         'CONOUT$',
@@ -138,37 +145,37 @@ class ConsoleCtl:
                         0,
                         0
                     )
-                    self.cn[STARTUP_OUTPUT] = {'handle': handle, 'owning': True}
+                    self.cn[STARTUP_OUTPUT].handle = handle
+                    self.cn[STARTUP_OUTPUT].owning = True
                 except Exception:
                     pass
 
             # Create active output screen buffer
             try:
+                logger.info('Creating Active Output Handle')
                 handle = win32console.CreateConsoleScreenBuffer(
                     win32file.GENERIC_READ | win32file.GENERIC_WRITE,
                     0,
                     None,
-                    win32console.CONSOLE_TEXTMODE_BUFFER,
-                    None
-                )
-                self.cn[ACTIVE_OUTPUT] = {'handle': handle, 'owning': True}
+                    win32console.CONSOLE_TEXTMODE_BUFFER)
+                self.cn[ACTIVE_OUTPUT].handle = handle
+                self.cn[ACTIVE_OUTPUT].owning = True
 
                 # Set screen buffer size to match window size
                 try:
-                    sb_info = win32console.GetConsoleScreenBufferInfo(self.cn[STARTUP_OUTPUT]['handle'])
+                    sb_handle: PyConsoleScreenBufferType = self.cn[STARTUP_OUTPUT].handle
+                    sb_info = sb_handle.GetConsoleScreenBufferInfo()
                     window = sb_info['Window']
                     size = win32console.PyCOORDType(
                         window.Right - window.Left + 1,
                         window.Bottom - window.Top + 1
                     )
-                    win32console.SetConsoleScreenBufferSize(handle, size)
+                    sb_handle.SetConsoleScreenBufferSize(size)
                 except Exception:
-                    pass
-
-                # Set as active screen buffer
-                win32console.SetConsoleActiveScreenBuffer(handle)
+                    logger.exception('Failed to get console screen buffer size')
+                handle.SetConsoleActiveScreenBuffer()
             except Exception:
-                pass
+                logger.exception('Failed to create Active Output Handle')
 
         def _cleanup_console(self):
             """
@@ -176,14 +183,15 @@ class ConsoleCtl:
             """
             try:
                 # Restore startup output as active buffer
-                if self._is_valid_handle(self.cn[1]['handle']):  # startupOutput
-                    win32console.SetConsoleActiveScreenBuffer(self.cn[1]['handle'])
+                if self._is_valid_handle(self.cn[STARTUP_OUTPUT].handle):  # startupOutput
+                    sb_handle: PyConsoleScreenBufferType = self.cn[STARTUP_OUTPUT].handle
+                    sb_handle.SetConsoleActiveScreenBuffer()
 
                 # Close owned handles
                 for console in self.cn:
-                    if console['owning'] and self._is_valid_handle(console['handle']):
+                    if console.owning and self._is_valid_handle(console.handle):
                         try:
-                            win32file.CloseHandle(console['handle'])
+                            console.handle.Close()
                         except Exception:
                             pass
 
@@ -198,8 +206,8 @@ class ConsoleCtl:
             Write to Windows console
             """
             try:
-                if data and self.cn[2]['handle']:  # activeOutput
-                    win32console.WriteConsoleA(self.cn[2]['handle'], data.encode('utf-8'))
+                if data and self.cn[ACTIVE_OUTPUT].handle:  # activeOutput
+                    self.cn[ACTIVE_OUTPUT].handle.WriteConsole(data)
             except Exception:
                 pass
 
@@ -214,7 +222,7 @@ class ConsoleCtl:
             Check if Windows handle is a console handle
             """
             try:
-                win32console.GetConsoleMode(handle)
+                handle.GetConsoleMode()
                 return True
             except Exception:
                 return False
@@ -230,13 +238,17 @@ class ConsoleCtl:
             Get console size
             """
             try:
-                sb_info = win32console.GetConsoleScreenBufferInfo(self.cn[2]['handle'])  # activeOutput
+                sb_handle: PyConsoleScreenBufferType = self.cn[ACTIVE_OUTPUT].handle
+                sb_info = sb_handle.GetConsoleScreenBufferInfo()
                 window = sb_info['Window']
+                logger.info('Window Size is %s', window)
                 return Point(
                     max(window.Right - window.Left + 1, 0),
                     max(window.Bottom - window.Top + 1, 0)
                 )
             except Exception:
+                logger.exception(
+                    "Failed to get console size")
                 return Point(0, 0)
         
         def get_font_size(self) -> Point:
@@ -244,10 +256,11 @@ class ConsoleCtl:
             Get console font size
             """
             try:
-                font_info = win32console.GetCurrentConsoleFont(self.cn[2]['handle'], False)  # activeOutput
+                sb_handle: PyConsoleScreenBufferType = self.cn[ACTIVE_OUTPUT].handle
+                _, font_info = sb_handle.GetCurrentConsoleFont(False)  # activeOutput
                 return Point(
-                    font_info['X'],
-                    font_info['Y']
+                    font_info.X,
+                    font_info.Y
                 )
             except Exception:
                 return Point(0, 0)

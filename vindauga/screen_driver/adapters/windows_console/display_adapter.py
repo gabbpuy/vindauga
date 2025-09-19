@@ -1,11 +1,13 @@
 # -*- coding: utf-8 -*-
-import subprocess
-
+from __future__ import annotations
 import logging
+from typing import Optional
+import subprocess
 
 import win32console
 
 from vindauga.screen_driver import ColourAttribute
+from vindauga.screen_driver.adapters.console_ctl import ConsoleCtl
 from vindauga.types.point import Point
 from vindauga.screen_driver.adapters.display_adapter import DisplayAdapter
 from vindauga.screen_driver.ansi.screen_writer import ScreenWriter
@@ -34,124 +36,83 @@ class ConsoleWrapper:
                 logger.error("ConsoleWrapper.write: %s", e)
 
 
+ENABLE_VIRTUAL_TERMINAL_PROCESSING = 0x04
+DISABLE_NEWLINE_AUTO_RETURN = 0x08
+
+
 class WindowsConsoleDisplayAdapter(DisplayAdapter):
     """
     Windows Console Display adapter
     """
+    _instance: Optional[WindowsConsoleDisplayAdapter] = None
 
-    def __init__(self, use_ansi: bool = False):
-        self._console_out_handle = None
+    @classmethod
+    def create(cls, console_ctl: ConsoleCtl) -> WindowsConsoleDisplayAdapter:
+        if cls._instance is None:
+            cls._instance = cls(console_ctl, True)
+        return cls._instance
+
+    def __init__(self, console_ctl: ConsoleCtl, use_ansi: bool = False):
+        self._console_ctl = console_ctl
+        self._ansi_screen_writer = None
         self._size = Point(80, 25)  # Default size
         self._last_font_info = None
-        self._ansi_screen_writer = None
         self._caret_pos = Point(-1, -1)
         self._last_attr = 0x07  # Default white on black
         self._buffer = []
-        self._use_ansi = use_ansi
+        self._console_out_handle = win32console.GetStdHandle(win32console.STD_OUTPUT_HANDLE)
+        if use_ansi:
+            self._ansi_screen_writer = ScreenWriter(
+                self._console_ctl, TermCap.get_display_capabilities(self._console_ctl, self))
 
-        try:
-            self._console_out_handle = win32console.GetStdHandle(win32console.STD_OUTPUT_HANDLE)
+    def reload_screen_info(self):
+        last_size = self._size
+        self._size = self._console_ctl.get_size()
 
-            mode = self._console_out_handle.GetConsoleMode()
-            mode &= ~win32console.ENABLE_WRAP_AT_EOL_OUTPUT  # Avoid scrolling when reaching end of line
+        if last_size != self._size:
+            sb_info = self._console_out_handle.GetConsoleScreenBufferInfo()
+            cur_pos = sb_info['CursorPosition']
+            coord_zero = win32console.PyCOORDType(0, 0)
+            self._console_out_handle.SetConsoleCursorPosition(coord_zero)
+            coord_size = win32console.PyCOORDType(self._size.x, self._size.y)
+            self._console_out_handle.SetConsoleScreenBufferSize(coord_size)
+            self._console_out_handle.SetConsoleCursorPosition(cur_pos)
 
-            if use_ansi:
-                mode |= getattr(win32console, 'DISABLE_NEWLINE_AUTO_RETURN', 0x8)  # Do not do CR on LF
-                mode |= getattr(win32console, 'ENABLE_VIRTUAL_TERMINAL_PROCESSING', 0x4)  # Allow ANSI escape sequences
+        font_info = self._console_out_handle.GetCurrentConsoleFont(False)
+        if font_info != self._last_font_info:
+            # WinWidth.reset()
+            self._last_font_info = font_info
 
-            self._console_out_handle.SetConsoleMode(mode)
-
-            # Check if VT sequences were actually enabled
-            new_mode = self._console_out_handle.GetConsoleMode()
-            supports_vt = bool(new_mode & getattr(win32console, 'ENABLE_VIRTUAL_TERMINAL_PROCESSING', 0x4))
-
-            # Initialize ANSI screen writer if VT processing is available
-            if supports_vt and use_ansi:
-                console_wrapper = ConsoleWrapper(self._console_out_handle)
-                termcap = TermCap()
-                self._ansi_screen_writer = ScreenWriter(console_wrapper, termcap)
-
-            self.reload_screen_info()
-
-        except Exception as e:
-            logger.error("WindowsConsoleDisplayAdapter: initialization failed: %s", e)
-
-    def reload_screen_info(self) -> Point:
-        """
-        Get current console screen buffer size - mirrors Win32Display::reloadScreenInfo
-        """
-        try:
-            last_size = self._size
-
-            # Get console screen buffer info to determine size
-            csbi = self._console_out_handle.GetConsoleScreenBufferInfo()
-            logger.info('Console Screen Buffer Info: %s', csbi)
-            window = csbi['Window']
-            self._size = Point(
-                window.Right - window.Left + 1,
-                window.Bottom - window.Top + 1
-            )
-
-            if last_size != self._size:
-                # Size changed - set cursor to (0,0) to prevent console crash
-                cur_pos = csbi['CursorPosition']
-                coord_zero = win32console.PyCOORDType(0, 0)
-                self._console_out_handle.SetConsoleCursorPosition(coord_zero)
-
-                # Make sure buffer size matches viewport size
-                coord_size = win32console.PyCOORDType(self._size.x, self._size.y)
-                self._console_out_handle.SetConsoleScreenBufferSize(coord_size)
-
-                # Restore cursor position
-                self._console_out_handle.SetConsoleCursorPosition(cur_pos)
-
-            # Handle font changes
-            try:
-                font_info = self._console_out_handle.GetCurrentConsoleFont(False)
-                if font_info != self._last_font_info:
-                    self._last_font_info = font_info
-            except Exception:
-                pass
-
-            if self._ansi_screen_writer:
-                self._ansi_screen_writer.reset()
-            else:
-                self._caret_pos = Point(-1, -1)
-                self._last_attr = 0x07
-
-            return self._size
-
-        except Exception as e:
-            logger.error("WindowsConsoleDisplayAdapter.reload_screen_info: %s", e)
-            return Point(80, 25)
+        if self._ansi_screen_writer:
+            self._ansi_screen_writer.reset()
+        else:
+            self._caret_pos = Point(-1, -1)
+            self._last_attr = 0x00
+        return self._size
 
     def get_colour_count(self) -> int:
         """
-        Windows Console color count - mirrors Win32Display::getColorCount
+        Windows Console color count
         """
-        if not self._console_out_handle:
-            return 16
-
         try:
             console_mode = self._console_out_handle.GetConsoleMode()
-            if console_mode & getattr(win32console, 'ENABLE_VIRTUAL_TERMINAL_PROCESSING', 0x4):
+            if console_mode & ENABLE_VIRTUAL_TERMINAL_PROCESSING:
                 return 256 * 256 * 256  # True color with VT sequences
             return 16
         except Exception:
+            logger.exception("Exception while getting color count")
             return 16
 
     def get_font_size(self) -> Point:
         """
         Get console font size
         """
-        return Point(8, 12)  # Typical console font size
+        return self._console_ctl.get_font_size()
 
     def write_cell(self, pos: Point, text: str, attr: ColourAttribute, double_width: bool = False):
         """
         Write cell to console at position - mirrors Win32Display::writeCell
         """
-        if not self._console_out_handle:
-            return
 
         if self._ansi_screen_writer:
             self._ansi_screen_writer.write_cell(pos, text, attr, double_width)
@@ -183,9 +144,6 @@ class WindowsConsoleDisplayAdapter(DisplayAdapter):
         """
         Set cursor size
         """
-        if not self._console_out_handle:
-            return
-
         try:
             # SetConsoleCursorInfo expects (dwSize, bVisible) tuple
             # where dwSize is 1-100 (percentage of cell height) and bVisible is boolean
@@ -203,9 +161,6 @@ class WindowsConsoleDisplayAdapter(DisplayAdapter):
         """
         Clear the console screen
         """
-        if not self._console_out_handle:
-            return
-
         if self._ansi_screen_writer:
             self._ansi_screen_writer.clear_screen()
             return
@@ -220,7 +175,6 @@ class WindowsConsoleDisplayAdapter(DisplayAdapter):
 
             # Fill characters with spaces
             self._console_out_handle.FillConsoleOutputCharacter(' ', length, coord)
-
             self._last_attr = attr
 
         except Exception as e:
@@ -230,9 +184,6 @@ class WindowsConsoleDisplayAdapter(DisplayAdapter):
         """
         Flush any pending output
         """
-        if not self._console_out_handle:
-            return
-
         if self._ansi_screen_writer:
             self._ansi_screen_writer.flush()
         else:
@@ -240,7 +191,7 @@ class WindowsConsoleDisplayAdapter(DisplayAdapter):
                 if self._buffer:
                     # Write buffered text to console
                     text = bytes(self._buffer).decode('utf-8', errors='replace')
-                    self._console_out_handle.WriteConsole(text)
+                    self._console_ctl.write(text)
                     self._buffer.clear()
             except Exception as e:
                 logger.error("WindowsConsoleDisplayAdapter.flush: %s", e)
@@ -267,9 +218,6 @@ class WindowsConsoleDisplayAdapter(DisplayAdapter):
         """
         Set caret position
         """
-        if not self._console_out_handle:
-            return
-
         if self._ansi_screen_writer:
             self._ansi_screen_writer.set_caret_pos(pos)
             return

@@ -1,10 +1,8 @@
 # -*- coding: utf-8 -*-
 from __future__ import annotations
-
 import atexit
 import curses
 import logging
-import sys
 from typing import Optional
 
 from vindauga.screen_driver import ColourAttribute

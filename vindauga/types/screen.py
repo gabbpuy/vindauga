@@ -67,17 +67,16 @@ class Screen(_Display):
         self.screenWidth: int = 0
         self.screenHeight: int = 0
         self.screenMode: int = 0
+        self.clearOnSuspend: bool = False  # Set to False to prevent grey screen during resize
 
         hardware_info.setupConsole()
         # Expose platform for compatibility checking
-        startup_mode = self.getCrtMode()
-        self.startupMode = startup_mode
+        self.startupMode = self.getCrtMode()
         self.startupCursor = self.getCursorType()
         self.screenBuffer: list[ScreenCell] = hardware_info.allocateScreenBuffer()
         self.setCrtData()
-
         self.cursorLines: int = 0
-        self.clearOnSuspend: bool = False  # Set to False to prevent grey screen during resize
+
 
     def setVideoMode(self, mode: int):
         if mode != Display.smUpdate:

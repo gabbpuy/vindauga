@@ -91,7 +91,7 @@ def convert_direct(colour: DesiredColour, termcap: TermCap, is_fg: bool) -> Colo
     if colour.is_rgb():
         rgb = colour.as_rgb()
         return ColourConversionReturn(TermColour(TermColourTypes.RGB, rgb))
-    return convert_indexed16(colour, termcap, is_fg)
+    return convert_indexed256(colour, termcap, is_fg)
 
 
 colour_converters: dict[TermCapColours, Callable[[DesiredColour, TermCap, bool], ColourConversionReturn]] = {

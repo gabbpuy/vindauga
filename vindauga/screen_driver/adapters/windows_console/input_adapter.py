@@ -1,7 +1,9 @@
 # -*- coding: utf-8 -*-
+import locale
 import logging
 import sys
 
+import win32api
 import win32console
 
 from vindauga.constants.command_codes import cmScreenChanged
@@ -14,7 +16,9 @@ from vindauga.constants.keys import (
 )
 from vindauga.events.mouse_event import MouseEvent
 from vindauga.events.key_down_event import KeyDownEvent
+from vindauga.screen_driver.adapters.console_ctl import ConsoleCtl
 from vindauga.screen_driver.adapters.input_adapter import InputAdapter
+from vindauga.screen_driver.events.input_state import InputState
 from vindauga.types.point import Point
 
 from .scan_code_tables import NORMAL_CVT, SHIFT_CVT, CTRL_CVT, ALT_CVT
@@ -27,14 +31,14 @@ class WindowsConsoleInputAdapter(InputAdapter):
     """
     Windows Console input event source
     """
-    def __init__(self):
+    def __init__(self, console_ctl: ConsoleCtl, display, input_state: InputState, mouse_enabled: bool = True):
         self._input_handle = None
         self._output_handle = None
         self._startup_input_mode = None
         self._startup_output_mode = None
         self._startup_input_cp = None
         self._startup_output_cp = None
-        
+
         try:
             self._input_handle = win32console.GetStdHandle(win32console.STD_INPUT_HANDLE)
             self._output_handle = win32console.GetStdHandle(win32console.STD_OUTPUT_HANDLE)
@@ -49,12 +53,10 @@ class WindowsConsoleInputAdapter(InputAdapter):
 
     def _setup_console_modes(self):
         """
-
         Set up console modes
-    """
+        """
         try:
-            import win32api
-            
+
             # Save startup states for restoration
             self._startup_input_mode = self._input_handle.GetConsoleMode()
             self._startup_output_mode = self._output_handle.GetConsoleMode()
@@ -102,7 +104,6 @@ class WindowsConsoleInputAdapter(InputAdapter):
             win32console.SetConsoleOutputCP(65001)
             
             # Set locale for UTF-8 support
-            import locale
             try:
                 locale.setlocale(locale.LC_ALL, ".utf8")
             except locale.Error:
