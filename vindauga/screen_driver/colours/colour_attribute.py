@@ -70,13 +70,17 @@ class ColourAttribute:
         return get_fore(self).is_bios and get_back(self).is_bios and not get_style(self)
 
     def as_bios(self) -> int:
-        """Get as BIOS attribute if possible, otherwise return default."""
+        """
+        Get as BIOS attribute if possible, otherwise return default.
+        """
         if not self.is_bios():
             return 0x07  # Default white on black
         return int(get_fore(self).as_bios()) | (int(get_back(self).as_bios()) << 4)
 
     def to_bios(self) -> int:
-        """Convert any color attribute to BIOS format."""
+        """
+        Convert any color attribute to BIOS format.
+        """
         fg = get_fore(self)
         bg = get_back(self)
         fg_bios = int(fg.to_bios(True))
@@ -84,7 +88,9 @@ class ColourAttribute:
         return fg_bios | (bg_bios << 4)
 
     def to_rgb(self) -> tuple[DesiredColour, DesiredColour]:
-        """Convert colors to RGB format, returning (fg, bg) tuple."""
+        """
+        Convert colors to RGB format, returning (fg, bg) tuple.
+        """
 
         fg = get_fore(self)
         bg = get_back(self)
@@ -116,7 +122,9 @@ class ColourAttribute:
         return DesiredColour.from_rgb(fg_rgb), DesiredColour.from_rgb(bg_rgb)
 
     def supports_rgb(self) -> bool:
-        """Check if this attribute uses RGB colors."""
+        """
+        Check if this attribute uses RGB colors.
+        """
         fg = get_fore(self)
         bg = get_back(self)
         return fg.is_rgb() or bg.is_rgb()

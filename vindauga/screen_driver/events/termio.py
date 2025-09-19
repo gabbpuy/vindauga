@@ -116,7 +116,6 @@ class TermIO:
     """
     Handles terminal I/O operations and input parsing
     """
-
     def parse_event(self, buf: GetChBuf, event: Event, state: InputState) -> ParseResult:
         """
         Parse input event from character buffer
@@ -198,7 +197,9 @@ class TermIO:
         return res
 
     def parse_csi_key(self, csi: CSIData, event: Event, state: InputState) -> ParseResult:
-        """Parse CSI key sequence"""
+        """
+        Parse CSI key sequence
+        """
 
         terminator = csi.terminator
 
@@ -268,7 +269,9 @@ class TermIO:
         return ParseResult.Accepted
 
     def parse_ss3_key(self, buf: GetChBuf, event: Event) -> ParseResult:
-        """Parse SS3 key sequence"""
+        """
+        Parse SS3 key sequence
+        """
         read, mod = buf.get_num()
         if not read:
             return ParseResult.Rejected
@@ -279,7 +282,9 @@ class TermIO:
         return ParseResult.Accepted
 
     def key_from_letter(self, letter: int, mod: int, key_down: KeyDownEvent) -> bool:
-        """Convert letter to key with modifiers"""
+        """
+        Convert letter to key with modifiers
+        """
         if letter not in LETTER_KEY_MAP:
             return False
         key_code = LETTER_KEY_MAP[letter]
@@ -291,7 +296,9 @@ class TermIO:
         return True
 
     def key_with_xterm_mods(self, key_code: int, mods: int) -> KeyDownEvent:
-        """Create key event with XTerm modifiers"""
+        """
+        Create key event with XTerm modifiers
+        """
         mods -= 1  # XTermModDefault = 1
 
         tv_mods = 0
@@ -328,7 +335,9 @@ class TermIO:
         return key_down.keyCode != 0 or key_down.textLength != 0
 
     def normalize_key(self, key_event: KeyDownEvent):
-        """Normalize key event"""
+        """
+        Normalize key event
+        """
 
         key = Key(key_event.keyCode, key_event.controlKeyState)
 
@@ -360,7 +369,9 @@ class TermIO:
             key_event.controlKeyState |= (orig_mods & Keys.kbAltShift)
 
     def mouse_on(self, console_ctl: 'ConsoleCtl') -> None:
-        """Enable mouse reporting"""
+        """
+        Enable mouse reporting
+        """
         # ANSI escape sequences to enable mouse reporting
         """
             1 0 0 0  -> Send Mouse X & Y on button press and release.
@@ -371,7 +382,6 @@ class TermIO:
             1 0 0 6  -> Enable SGR Mouse Mode.
             1 0 1 5  -> Enable urxvt Mouse Mode.
         """
-
         seq = (
             "\x1B[?1001s"  # Save old hilite mouse reporting
             "\x1B[?1000h"  # Enable mouse reporting
@@ -381,7 +391,10 @@ class TermIO:
         console_ctl.write(seq)
 
     def mouse_off(self, console_ctl: 'ConsoleCtl') -> None:
-        """Disable mouse reporting"""
+        """
+
+        Disable mouse reporting
+        """
         # ANSI escape sequences to disable mouse reporting
         seq = (
             "\x1B[?1006l"  # Disable SGR extended mouse reporting
@@ -392,7 +405,9 @@ class TermIO:
         console_ctl.write(seq)
 
     def key_mods_on(self, console_ctl: 'ConsoleCtl') -> None:
-        """Enable key modifier reporting"""
+        """
+        Enable key modifier reporting
+        """
         # ANSI escape sequences to enable key modifier reporting
         seq = (
             "\x1B[?1036s"   # Save metaSendsEscape (XTerm).
@@ -419,7 +434,9 @@ class TermIO:
         console_ctl.write(seq)
 
     def key_mods_off(self, console_ctl: 'ConsoleCtl') -> None:
-        """Disable key modifier reporting"""
+        """
+        Disable key modifier reporting
+        """
         seq = (
           "\x1B[?9001l" # Disable win32-input-mode (Conpty).
           "\x1B[<u"     # Restore previous keyboard mode (Kitty).
@@ -431,7 +448,9 @@ class TermIO:
         console_ctl.write(seq)
 
     def parse_x10_mouse(self, buf: GetChBuf, event: Event, state: InputState) -> ParseResult:
-        """Parse X10 mouse sequence - basic implementation"""
+        """
+        Parse X10 mouse sequence - basic implementation
+        """
         # X10 mouse format: ESC[Mbxy where b=button+32, x=col+32, y=row+32
         but_m = buf.get()
         mod = but_m & (mmAlt | mmCtrl)
@@ -543,21 +562,27 @@ class TermIO:
         return ''.join(map(chr, s))
 
     def _parse_cpr(self, csi: CSIData, state: InputState) -> ParseResult:
-        """Parse Cursor Position Report - basic implementation"""
+        """
+        Parse Cursor Position Report - basic implementation
+        """
         if csi.length != 2:
             return ParseResult.Rejected
         state.got_response = True
         return ParseResult.Ignored
 
     def _parse_dcs(self, buf: GetChBuf, state: InputState) -> ParseResult:
-        """Parse DCS sequence"""
+        """
+        Parse DCS sequence
+        """
         s = self._read_until_bel_or_st(buf)
         if '726561642d636c6970626f617264' in s:
             state.has_full_osc52 = True
         return ParseResult.Ignored
 
     def _parse_osc(self, buf: GetChBuf, state: InputState) -> ParseResult:
-        """Parse OSC sequence"""
+        """
+        Parse OSC sequence
+        """
         s = self._read_until_bel_or_st(buf)
         if len(s) > 3 and s[:3] == '52':
             if (begin := s.find(';', 3)) != -1:

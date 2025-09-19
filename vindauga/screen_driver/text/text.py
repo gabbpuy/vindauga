@@ -15,10 +15,11 @@ class Text:
     """
     Provides sophisticated text handling with Unicode support and screen cell drawing.
     """
-
     @staticmethod
     def width(text: str) -> int:
-        """Returns the display width of text using wcwidth."""
+        """
+        Returns the display width of text using wcwidth.
+        """
         try:
             return wcwidth.wcswidth(text) or 0
         except ImportError:
@@ -27,7 +28,9 @@ class Text:
 
     @staticmethod
     def measure(text: str) -> TextMetrics:
-        """Returns the width, character count and grapheme count of text."""
+        """
+        Returns the width, character count and grapheme count of text.
+        """
         width = Text.width(text)
         char_count = len(text)
 
@@ -41,7 +44,9 @@ class Text:
 
     @staticmethod
     def next_char(text: str, start_index: int = 0) -> int:
-        """Returns the length in bytes of the next character."""
+        """
+        Returns the length in bytes of the next character.
+        """
         if start_index >= len(text):
             return 0
 
@@ -57,7 +62,9 @@ class Text:
 
     @staticmethod
     def next(text: str, index: int) -> tuple[bool, int]:
-        """Advance index by one character. Returns (success, new_index)."""
+        """
+        Advance index by one character. Returns (success, new_index).
+        """
         if index >= len(text):
             return False, index
 
@@ -66,14 +73,18 @@ class Text:
 
     @staticmethod
     def prev(text: str, index: int) -> int:
-        """Returns the length of the character before index."""
+        """
+        Returns the length of the character before index.
+        """
         if index <= 0 or index > len(text):
             return 0
         return Text.prev_char(text, index)
 
     @staticmethod
     def next_with_width(text: str, index: int) -> tuple[bool, int, int]:
-        """Advance index and width by one character. Returns (success, new_index, width_delta)."""
+        """
+        Advance index and width by one character. Returns (success, new_index, width_delta).
+        """
         if index >= len(text):
             return False, index, 0
 
@@ -89,7 +100,9 @@ class Text:
 
     @staticmethod
     def prev_char(text: str, index: int) -> int:
-        """Returns the length of the character before index."""
+        """
+        Returns the length of the character before index.
+        """
         if index <= 0 or index > len(text):
             return 0
 
@@ -105,7 +118,9 @@ class Text:
 
     @staticmethod
     def to_code_page(text: str) -> str:
-        """Convert first character to current code page (simplified)."""
+        """
+        Convert first character to current code page (simplified).
+        """
         if not text:
             return '\0'
 
@@ -176,7 +191,9 @@ class Text:
 
     @staticmethod
     def draw_char(cells: list[ScreenCell], char: str, attr: ColourAttribute = None):
-        """Fill cells with the given character."""
+        """
+        Fill cells with the given character.
+        """
         if attr:
             template_cell = ScreenCell()
             set_cell(template_cell, char, attr)
@@ -315,22 +332,30 @@ class Text:
 
 # Convenience functions for common operations
 def measure_text(text: str) -> TextMetrics:
-    """Convenience function to measure text."""
+    """
+    Convenience function to measure text.
+    """
     return Text.measure(text)
 
 
 def text_width(text: str) -> int:
-    """Convenience function to get text width."""
+    """
+    Convenience function to get text width.
+    """
     return Text.width(text)
 
 
 def text_fits_width(text: str, max_width: int) -> bool:
-    """Check if text fits within given width."""
+    """
+    Check if text fits within given width.
+    """
     return Text.width(text) <= max_width
 
 
 def truncate_text(text: str, max_width: int, ellipsis: str = '...') -> str:
-    """Truncate text to fit within max_width, adding ellipsis if needed."""
+    """
+    Truncate text to fit within max_width, adding ellipsis if needed.
+    """
     if Text.width(text) <= max_width:
         return text
 

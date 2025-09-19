@@ -32,11 +32,15 @@ class Event:
         self.message.infoPtr = who
 
     def getMouseEvent(self):
-        """Get mouse event"""
+        """
+        Get mouse event
+        """
         event_queue.getMouseEvent(self)
     
     def getKeyEvent(self):
-        """Get keyboard event"""
+        """
+        Get keyboard event
+        """
         event_queue.getKeyEvent(self)
 
     def __repr__(self):

@@ -135,7 +135,9 @@ class Terminal:
             TerminalView.OriginalSignals = {s: signal(s, SIG_IGN) for s in signals}
 
     def _create_colour_attribute(self, fg: int = None, bg: int = None, attr: int = 0) -> ColourAttribute:
-        """Convert terminal colors to ColourAttribute"""
+        """
+        Convert terminal colors to ColourAttribute
+        """
         # Use current colors if not specified
         if fg is None:
             fg = self.fg if hasattr(self, 'fg') else defaultFg
@@ -228,7 +230,9 @@ class Terminal:
                 signal(signal_, handler)
 
     def initColors(self):
-        """Initialize color palette with ColourAttribute objects"""
+        """
+        Initialize color palette with ColourAttribute objects
+        """
         self.col.append(ColourAttribute.from_bios(0))  # Default: black on black
         for bg, fg in itertools.product(range(8), range(8)):
             if bg != 7 or fg != 0:  # Skip white on black (default is reversed)
@@ -244,13 +248,17 @@ class Terminal:
         return self.__ptyFd
 
     def setColors(self, fg: int, bg: int):
-        """Set current foreground and background colors"""
+        """
+        Set current foreground and background colors
+        """
         self.fg = fg
         self.bg = bg
         self.colors = self._create_colour_attribute(fg, bg)
 
     def getColors(self) -> ColourAttribute:
-        """Get current colors as ColourAttribute"""
+        """
+        Get current colors as ColourAttribute
+        """
         return self.colors
 
     def startCSI(self):
@@ -743,7 +751,9 @@ class Terminal:
         self.currCol = max(min(self.cols - 1, self.currCol), 0)
 
     def putChar(self, c: str):
-        """Put a UTF-8 character, handling combining characters properly"""
+        """
+        Put a UTF-8 character, handling combining characters properly
+        """
         if self.currCol >= self.cols:
             self.currCol = 0
             self.scrollDown()
@@ -811,7 +821,9 @@ class Terminal:
         return bool(self.state & STATE_ESCAPE_MODE)
 
     def render(self, data: str):
-        """Render UTF-8 text properly, handling combining characters and escape sequences"""
+        """
+        Render UTF-8 text properly, handling combining characters and escape sequences
+        """
         text_pos = 0
         
         while text_pos < len(data):

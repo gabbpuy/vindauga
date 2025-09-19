@@ -24,7 +24,9 @@ class DrawBuffer:
         self.data = [ScreenCell() for _ in range(self.width)]
 
     def _normalize_attribute(self, attr):
-        """Convert int/AttributePair to ColourAttribute"""
+        """
+        Convert int/AttributePair to ColourAttribute
+        """
         if isinstance(attr, AttributePair):
             return attr.attrs[0]  # Use first (normal) attribute
         elif isinstance(attr, int):
@@ -222,7 +224,9 @@ class DrawBuffer:
         return Text.width(text)
 
     def __getitem__(self, key):
-        """Support for subscripting and slicing the buffer"""
+        """
+        Support for subscripting and slicing the buffer
+        """
         if isinstance(key, slice):
             return self.data[key]
         elif isinstance(key, int):
@@ -231,11 +235,15 @@ class DrawBuffer:
             raise TypeError("Key must be int or slice")
 
     def __len__(self):
-        """Return the width of the buffer"""
+        """
+        Return the width of the buffer
+        """
         return self.width
 
     def __setitem__(self, key, value):
-        """Support for setting buffer contents via subscripting"""
+        """
+        Support for setting buffer contents via subscripting
+        """
         if isinstance(key, slice):
             self.data[key] = value
         elif isinstance(key, int):

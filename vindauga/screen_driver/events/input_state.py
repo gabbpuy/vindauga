@@ -20,5 +20,7 @@ class InputState:
     last_mouse_pos: Point = field(default_factory=lambda: Point(0, 0))
 
     def reset(self):
-        """Reset transient state"""
+        """
+        Reset transient state
+        """
         self.got_response = False

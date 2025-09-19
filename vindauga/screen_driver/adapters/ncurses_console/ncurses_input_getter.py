@@ -10,13 +10,14 @@ class NcursesInputGetter(InputGetter):
     """
     Curses-based input getter with unget support
     """
-    
     def __init__(self, screen=None):
         self.screen = screen
         self.pending_count = 0
         
     def get(self) -> int:
-        """Get next character"""
+        """
+        Get next character
+        """
         if not self.screen:
             return -1
             
@@ -29,7 +30,9 @@ class NcursesInputGetter(InputGetter):
             return curses.ERR
     
     def unget(self, key: int) -> None:
-        """Push character back """
+        """
+        Push character back
+        """
         try:
             if curses.ungetch(key) != curses.ERR:
                 self.pending_count += 1
@@ -37,5 +40,7 @@ class NcursesInputGetter(InputGetter):
             pass
     
     def has_pending(self) -> bool:
-        """Check if characters are pending """
+        """
+        Check if characters are pending
+        """
         return self.pending_count > 0

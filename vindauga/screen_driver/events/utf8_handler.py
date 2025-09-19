@@ -106,7 +106,6 @@ class UTF8CharacterAssembler:
     """
     Assembles UTF-8 characters from byte stream
     """
-
     def __init__(self):
         self._partial_bytes: list[int] = []
         self._expected_length = 0
@@ -172,6 +171,8 @@ class UTF8CharacterAssembler:
         return None
 
     def reset(self):
-        """Reset assembler state"""
+        """
+        Reset assembler state
+        """
         self._partial_bytes = []
         self._expected_length = 0

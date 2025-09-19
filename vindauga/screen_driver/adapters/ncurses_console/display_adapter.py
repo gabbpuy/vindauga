@@ -22,7 +22,6 @@ class NcursesDisplayAdapter(DisplayAdapter):
     """
     Ncurses-based display adapter providing full terminal control
     """
-    
     _instance: Optional[NcursesDisplayAdapter] = None
     
     def __init__(self, console_ctl: ConsoleCtl):
@@ -60,39 +59,55 @@ class NcursesDisplayAdapter(DisplayAdapter):
             self._console_ctl.write(f'\x1b[{height};{width}t')
 
     def reload_screen_info(self) -> Point:
-        """Reload screen information and return new size"""
+        """
+        Reload screen information and return new size
+        """
         size = self._console_ctl.get_size()
         curses.resize_term(size.y, size.x)
         self.ansi_screen_writer.reset()
         return size
     
     def get_colour_count(self) -> int:
-        """Get number of supported colors"""
+        """
+        Get number of supported colors
+        """
         color_count = curses.COLORS if curses.has_colors() else 0
         return color_count
 
     def get_font_size(self) -> Point:
-        """Get font size (estimated for terminals)"""
+        """
+        Get font size (estimated for terminals)
+        """
         return self._console_ctl.get_font_size()
     
     def write_cell(self, pos: Point, text: str, attr: ColourAttribute, double_width: bool = False):
-        """Write single cell using ncurses"""
+        """
+        Write single cell using ncurses
+        """
         self.ansi_screen_writer.write_cell(pos, text, attr, double_width)
 
     def set_caret_position(self, pos: Point):
-        """Set cursor position"""
+        """
+        Set cursor position
+        """
         self.ansi_screen_writer.set_caret_pos(pos)
 
     def clear_screen(self):
-        """Clear screen"""
+        """
+        Clear screen
+        """
         self.ansi_screen_writer.clear_screen()
 
     def flush(self):
-        """Flush output to screen"""
+        """
+        Flush output to screen
+        """
         self.ansi_screen_writer.flush()
 
     def cleanup(self):
-        """Cleanup curses display - restore terminal to normal state"""
+        """
+        Cleanup curses display - restore terminal to normal state
+        """
         if self._stdscr:
             try:
                 # Restore cursor
@@ -105,5 +120,7 @@ class NcursesDisplayAdapter(DisplayAdapter):
                 self._stdscr = None
 
     def __del__(self):
-        """Cleanup ncurses on destruction"""
+        """
+        Cleanup ncurses on destruction
+        """
         self.cleanup()

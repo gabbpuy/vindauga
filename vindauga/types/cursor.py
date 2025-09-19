@@ -19,14 +19,15 @@ class Cursor:
     """
     Handles cursor position calculation and visibility.
     """
-
     def __init__(self):
         self.view: View | None = None
         self.x: int = 0
         self.y: int = 0
 
     def reset_cursor(self, view: View):
-        """Reset cursor position and visibility for the given view"""
+        """
+        Reset cursor position and visibility for the given view
+        """
         
         self.view = view
         self.x = view.cursor.x
@@ -46,7 +47,9 @@ class Cursor:
         hardware_info.setCaretSize(caret_size)
 
     def _compute_caret_size(self) -> int:
-        """Compute the appropriate caret size based on view state and visibility"""
+        """
+        Compute the appropriate caret size based on view state and visibility
+        """
         if not self.view:
             return 0
 
@@ -78,7 +81,9 @@ class Cursor:
         return 0
 
     def _caret_covered(self, view: View, x: int, y: int) -> bool:
-        """Check if cursor is covered by another view"""
+        """
+        Check if cursor is covered by another view
+        """
         if not view.owner:
             return False
 
@@ -94,7 +99,9 @@ class Cursor:
         return False
 
     def _decide_caret_size(self) -> int:
-        """Decide cursor size based on insert mode state"""
+        """
+        Decide cursor size based on insert mode state
+        """
         if not self.view:
             return 0
 
@@ -111,7 +118,9 @@ class Cursor:
         return 7  # Default small cursor
 
     def _convert_to_screen_coords(self) -> tuple[int, int]:
-        """Convert view-relative cursor coordinates to absolute screen coordinates"""
+        """
+        Convert view-relative cursor coordinates to absolute screen coordinates
+        """
         if not self.view:
             return 0, 0
             

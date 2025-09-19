@@ -36,7 +36,9 @@ GRAYSCALE_STEPS = [
 
 
 def find_256_color_index(r, g, b):
-    """Find the nearest 256 color index for an RGB color"""
+    """
+    Find the nearest 256 color index for an RGB color
+    """
     if r == g and g == b:  # Grayscale
         if r < 8:
             return 16

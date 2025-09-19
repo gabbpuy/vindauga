@@ -214,7 +214,6 @@ class NcursesInputAdapter(InputAdapter):
     """
     NCurses-based input adapter
     """
-
     KEY_ESC = 0x1B
     READ_TIMEOUT_MS = 10
 
@@ -231,7 +230,9 @@ class NcursesInputAdapter(InputAdapter):
         logger.info('NCursesInputAdapter initialized')
 
     def _initialize_ncurses_input(self):
-        """Initialize ncurses input"""
+        """
+        Initialize ncurses input
+        """
         try:
             # Get stdscr from display if available
             self._stdscr = self._display._stdscr
@@ -263,7 +264,9 @@ class NcursesInputAdapter(InputAdapter):
             logger.error("Failed to initialize ncurses input: %s", e)
 
     def _restore_console(self):
-        """Restore console to normal state on exit"""
+        """
+        Restore console to normal state on exit
+        """
         if self._stdscr:
             if self._mouse_enabled:
                 term_io.mouse_off(self._console_ctl)
@@ -271,13 +274,17 @@ class NcursesInputAdapter(InputAdapter):
             term_io.consume_unprocessed_input(self._console_ctl, self._input_getter, self._input_state)
 
     def has_pending_events(self) -> bool:
-        """Check if input events are pending"""
+        """
+        Check if input events are pending
+        """
         if not self._input_getter:
             return False
         return self._input_getter.has_pending()
 
     def get_nonblock(self) -> int:
-        """Non-blocking character get"""
+        """
+        Non-blocking character get
+        """
         if not self._input_getter or not self._stdscr:
             return -1
 
@@ -287,7 +294,9 @@ class NcursesInputAdapter(InputAdapter):
         return k
 
     def get_event(self, event) -> bool:
-        """Get next input event"""
+        """
+        Get next input event
+        """
         if not self._input_getter:
             return False
 
@@ -314,7 +323,9 @@ class NcursesInputAdapter(InputAdapter):
         return False
 
     def _process_key_event(self, k: int, event) -> bool:
-        """Process key event"""
+        """
+        Process key event
+        """
         keys = [k]
         num_keys = 1
         event.what = evKeyDown
@@ -354,7 +365,9 @@ class NcursesInputAdapter(InputAdapter):
         return is_valid
 
     def _detect_alt(self, keys: list) -> bool:
-        """Detect Alt key combinations"""
+        """
+        Detect Alt key combinations
+        """
         k = self.get_nonblock()
         if k != curses.ERR:
             keys[0] = k
@@ -362,7 +375,9 @@ class NcursesInputAdapter(InputAdapter):
         return False
 
     def _parse_printable_char(self, key_event: KeyDownEvent, keys: list, num_keys) -> int:
-        """Parse printable character"""
+        """
+        Parse printable character
+        """
         # Convert character to UTF-8 bytes
 
         num_keys = self._read_utf8_char(keys, num_keys)
@@ -393,7 +408,9 @@ class NcursesInputAdapter(InputAdapter):
         return num_keys
 
     def _parse_curses_mouse(self, event) -> bool:
-        """Parse mouse event from ncurses"""
+        """
+        Parse mouse event from ncurses
+        """
         try:
             mouse_info = curses.getmouse()
 

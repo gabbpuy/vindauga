@@ -39,7 +39,9 @@ class AttributePair:
         return self
 
     def __and__(self, other: int):
-        """Bitwise AND with 0xFF returns the low attribute (first element)"""
+        """
+        Bitwise AND with 0xFF returns the low attribute (first element)
+        """
         if other == 0xFF:
             return self._attrs[0]
         return self.as_bios() & other
@@ -58,7 +60,9 @@ class AttributePair:
         return not self.__eq__(other)
 
     def __bool__(self):
-        """Support truth testing - AttributePair is True if it has non-zero attributes"""
+        """
+        Support truth testing - AttributePair is True if it has non-zero attributes
+        """
         return bool(self._attrs[0]) or bool(self._attrs[1])
 
     def __hash__(self):
@@ -89,7 +93,9 @@ class AttributePair:
         return self._attrs
     
     def as_colour_attribute(self):
-        """Get first (normal) attribute as ColourAttribute for DrawBuffer compatibility"""
+        """
+        Get first (normal) attribute as ColourAttribute for DrawBuffer compatibility
+        """
         return self._attrs[0]
     
     def as_bios(self) -> int:

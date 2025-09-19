@@ -71,7 +71,9 @@ class CellChar:
         return ''.join(self._text[: self._text_length])
 
     def get_char(self) -> str:
-        """Get the character representation of this cell."""
+        """
+        Get the character representation of this cell.
+        """
         if self._text_length == 0:
             return ' '  # Empty cell shows as space
         return self.get_text()

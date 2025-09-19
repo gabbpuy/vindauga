@@ -16,7 +16,9 @@ class HandleSignal:
 
 
 class SignalHandler:
-    """Cross-platform signal handling for terminal events."""
+    """
+    Cross-platform signal handling for terminal events.
+    """
 
     if sys.platform != 'win32':
         handledSignals: list[int] = [signal.SIGINT, signal.SIGQUIT, signal.SIGILL,
@@ -28,7 +30,9 @@ class SignalHandler:
 
     @staticmethod
     def enable(callback: Callable[[bool], None] | None = None):
-        """Enable the signal handler."""
+        """
+        Enable the signal handler.
+        """
         if sys.platform == 'win32':
             pass
         else:
@@ -59,5 +63,7 @@ class SignalHandler:
 
 
 def get_signal_handler() -> SignalHandler:
-    """Get the global signal handler instance."""
+    """
+    Get the global signal handler instance.
+    """
     return SignalHandler

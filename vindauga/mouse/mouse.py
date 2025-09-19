@@ -25,7 +25,9 @@ class HW_Mouse:
 
     @staticmethod
     def _getEvent(event: MouseEvent):
-        """Get mouse event"""
+        """
+        Get mouse event
+        """
         event.buttons = 0
         event.wheel = 0
         event.where.x = 0

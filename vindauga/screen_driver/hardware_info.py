@@ -119,7 +119,9 @@ class HardwareInfo:
         return False
 
     def __readEvents(self):
-        """Read events from platform and add them to the queue."""
+        """
+        Read events from platform and add them to the queue.
+        """
         if not self.__eventQ:
             while len(self.__eventQ) < self.eventQ_Size:
                 event = self.__new_event()
@@ -143,7 +145,9 @@ class HardwareInfo:
         self.__platform.request_clipboard_text()
         
     def getTickCount(self) -> float:
-        """Get tick count for timing"""
+        """
+        Get tick count for timing
+        """
         return time.time()
 
     def clearPendingEvent(self):

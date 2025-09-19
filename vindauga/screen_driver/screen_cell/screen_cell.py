@@ -18,12 +18,16 @@ class ScreenCell:
 
     @property
     def char(self) -> str:
-        """Get the character in this cell."""
+        """
+        Get the character in this cell.
+        """
         return self._ch.get_char()
 
     @char.setter
     def char(self, value: str):
-        """Set the character in this cell."""
+        """
+        Set the character in this cell.
+        """
         self._ch.move_char(value)
 
     def is_wide(self) -> bool:
@@ -40,26 +44,36 @@ class ScreenCell:
 
 
 def get_attr(cell: ScreenCell):
-    """Get the color attribute from a screen cell."""
+    """
+    Get the color attribute from a screen cell.
+    """
     return cell.attr
 
 
 def set_attr(cell: ScreenCell, attr):
-    """Set the color attribute of a screen cell."""
+    """
+    Set the color attribute of a screen cell.
+    """
     cell.attr = attr
 
 
 def get_char(cell: ScreenCell) -> str:
-    """Get the character from a screen cell."""
+    """
+    Get the character from a screen cell.
+    """
     return cell.char
 
 
 def set_char(cell: ScreenCell, ch: str):
-    """Set the character in a screen cell."""
+    """
+    Set the character in a screen cell.
+    """
     cell.char = ch
 
 
 def set_cell(cell: ScreenCell, ch: str, attr):
-    """Set both character and attribute in a screen cell."""
+    """
+    Set both character and attribute in a screen cell.
+    """
     set_char(cell, ch)
     set_attr(cell, attr)

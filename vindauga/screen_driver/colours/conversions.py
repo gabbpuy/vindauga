@@ -21,12 +21,16 @@ def pack(r: int, g: int, b: int):
 
 
 def XTerm16toBIOS(idx: int) -> ColourBIOS:
-    """Convert XTerm16 index to BIOS color (they use the same format)."""
+    """
+    Convert XTerm16 index to BIOS color (they use the same format).
+    """
     return ColourBIOS(idx)
 
 
 def BIOS_to_XTerm16(bios_color) -> int:
-    """Convert BIOS color to XTerm16 index with proper mapping."""
+    """
+    Convert BIOS color to XTerm16 index with proper mapping.
+    """
     bios_to_xterm = [0, 4, 2, 6, 1, 5, 3, 7, 8, 12, 10, 14, 9, 13, 11, 15]
     
     from .colour_bios import ColourBIOS

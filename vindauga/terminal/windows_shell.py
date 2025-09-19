@@ -239,7 +239,9 @@ class WindowsShell:
         return self.__readPipe(self.hChildStdoutRd)
 
     def is_process_running(self) -> bool:
-        """Check if the child process is still running"""
+        """
+        Check if the child process is still running
+        """
         try:
             exit_code = win32process.GetExitCodeProcess(self.processHandle)
             return exit_code == win32con.STILL_ACTIVE

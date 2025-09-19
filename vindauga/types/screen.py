@@ -52,7 +52,9 @@ class Screen(_Display):
 
     @classmethod
     def init(cls):
-        """Initialize the global screen instance"""
+        """
+        Initialize the global screen instance
+        """
         if cls.screen is None:
             cls.screen = cls()
         return cls.screen
@@ -124,7 +126,9 @@ class Screen(_Display):
         hardware_info.restoreConsole()
 
     def refresh(self):
-        """Refresh the screen display"""
+        """
+        Refresh the screen display
+        """
         self.flushScreen()
     
     def makeBeep(self):

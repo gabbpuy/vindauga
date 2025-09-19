@@ -18,7 +18,6 @@ class EventQueue:
     """
     EventQueue
     """
-
     def __init__(self):
         self.mouseEvents = True  # Assume mouse is available
         self.pendingMouseUp = False
@@ -139,7 +138,9 @@ class EventQueue:
         return True
 
     def getKeyEvent(self, event) -> None:
-        """Get keyboard event with paste handling and line ending conversion."""
+        """
+        Get keyboard event with paste handling and line ending conversion.
+        """
         self.getKeyOrPasteEvent(event)
 
         if self._shouldSkipLf:
@@ -162,17 +163,23 @@ class EventQueue:
             event.keyDown.keyCode = 0
 
     def waitForEvents(self, timeoutMs: int) -> None:
-        """Wait for events with timeout."""
+        """
+        Wait for events with timeout.
+        """
         # Only wait if no paste text and no queued key events
         if self.pasteText is None and self.keyEventCount == 0:
             hardware_info.waitForEvents(timeoutMs)
 
     def suspend(self) -> None:
-        """Suspend event processing."""
+        """
+        Suspend event processing.
+        """
         Mouse.suspend()
 
     def resume(self) -> None:
-        """Resume event processing."""
+        """
+        Resume event processing.
+        """
         if not Mouse.present():
             Mouse.resume()
         if not Mouse.present():
@@ -186,24 +193,32 @@ class EventQueue:
             Mouse.setRange(Screen.screen.screenWidth - 1, Screen.screen.screenHeight - 1)
 
     def wakeUp(self) -> None:
-        """Wake up event loop (thread-safe)."""
+        """
+        Wake up event loop (thread-safe).
+        """
         hardware_info.interruptEventWait()
 
     def readKeyPress(self, event) -> bool:
-        """Read a single key press from hardware"""
+        """
+        Read a single key press from hardware
+        """
         if not hardware_info.getKeyEvent(event):
             event.what = evNothing
         return event.what != evNothing
 
     def isTextEvent(self, event) -> bool:
-        """Check if event is a text event (for paste detection)."""
+        """
+        Check if event is a text event (for paste detection).
+        """
         return (event.what == evKeyDown and
                 (event.keyDown.textLength != 0 or
                  event.keyDown.keyCode == kbEnter or
                  event.keyDown.keyCode == kbTab))
 
     def getPasteEvent(self, event) -> bool:
-        """Get next event from paste text buffer."""
+        """
+        Get next event from paste text buffer.
+        """
         if self.pasteText and self.pasteTextIndex < self.pasteTextLength:
             # Get remaining text from current index
             remaining_text = self.pasteText[self.pasteTextIndex:]
@@ -228,7 +243,9 @@ class EventQueue:
         return False
 
     def setPasteText(self, text: str) -> None:
-        """Set text for paste operations."""
+        """
+        Set text for paste operations.
+        """
         self.pasteText = text
         self.pasteTextLength = len(text)
         self.pasteTextIndex = 0
@@ -238,7 +255,9 @@ class EventQueue:
         return Event(evNothing)
 
     def getKeyOrPasteEvent(self, event) -> None:
-        """Get key event or paste event"""
+        """
+        Get key event or paste event
+        """
         if self.getPasteEvent(event):
             return
 

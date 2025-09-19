@@ -10,7 +10,6 @@ class GetChBuf:
     """
     Buffered character reader with unget functionality
     """
-    
     MAX_SIZE = 31
     
     def __init__(self, input_getter: InputGetter):
@@ -18,11 +17,15 @@ class GetChBuf:
         self.keys = []
     
     def get_unbuffered(self) -> int:
-        """Get character directly from input without buffering"""
+        """
+        Get character directly from input without buffering
+        """
         return self.in_getter.get()
 
     def get(self, keep_err: bool = False) -> int:
-        """Get character and buffer it"""
+        """
+        Get character and buffer it
+        """
         if len(self.keys) < self.MAX_SIZE:
             k = self.in_getter.get()
             if keep_err or k != -1:
@@ -31,25 +34,33 @@ class GetChBuf:
         return -1
     
     def last(self, i: int = 0) -> int:
-        """Get previously read character (0 = most recent)"""
+        """
+        Get previously read character (0 = most recent)
+        """
         if i < len(self.keys):
             return self.keys[-(i + 1)]
         return -1
     
     def unget(self) -> None:
-        """Push most recent character back to input stream"""
+        """
+        Push most recent character back to input stream
+        """
         if self.keys:
             k = self.keys.pop()
             if k != -1:
                 self.in_getter.unget(k)
     
     def reject(self) -> None:
-        """Reject all buffered characters by pushing them back"""
+        """
+        Reject all buffered characters by pushing them back
+        """
         while self.keys:
             self.unget()
     
     def get_num(self) -> tuple[bool, int]:
-        """Read a numeric value from input"""
+        """
+        Read a numeric value from input
+        """
         num = 0
         digits = 0
         k = 0
@@ -62,7 +73,9 @@ class GetChBuf:
         return False, 0
     
     def get_int(self) -> tuple[bool, int]:
-        """Read an integer value from input"""
+        """
+        Read an integer value from input
+        """
         num = 0
         digits = 0
         sign = 1
@@ -81,7 +94,9 @@ class GetChBuf:
         return False, 0
     
     def read_str(self, expected: str) -> bool:
-        """Read and match a specific string"""
+        """
+        Read and match a specific string
+        """
         original_size = len(self.keys)
         i = 0
         while i < len(expected) and self.get() == expected[i]:

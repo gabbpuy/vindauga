@@ -27,7 +27,6 @@ class WindowsConsoleInputAdapter(InputAdapter):
     """
     Windows Console input event source
     """
-
     def __init__(self):
         self._input_handle = None
         self._output_handle = None
@@ -49,7 +48,10 @@ class WindowsConsoleInputAdapter(InputAdapter):
         self._setup_console_modes()
 
     def _setup_console_modes(self):
-        """Set up console modes"""
+        """
+
+        Set up console modes
+    """
         try:
             import win32api
             
@@ -114,11 +116,15 @@ class WindowsConsoleInputAdapter(InputAdapter):
             logger.error("Failed to setup Windows console modes: %s", e)
 
     def __del__(self):
-        """Restore console settings on cleanup"""
+        """
+        Restore console settings on cleanup
+        """
         self._restore_console_settings()
 
     def _restore_console_settings(self):
-        """Restore original console settings"""
+        """
+        Restore original console settings
+        """
         try:
             if self._input_handle and self._startup_input_mode is not None:
                 self._input_handle.SetConsoleMode(self._startup_input_mode)

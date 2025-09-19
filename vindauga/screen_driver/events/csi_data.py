@@ -3,7 +3,9 @@ from vindauga.screen_driver.events.get_ch_buf import GetChBuf
 
 
 class CSIData:
-    """CSI escape sequence data"""
+    """
+    CSI escape sequence data
+    """
 
     def __init__(self):
         self.max_length = 6
@@ -12,7 +14,9 @@ class CSIData:
         self.length = 0
 
     def get_value(self, i: int, default_value: int = 1) -> int:
-        """Get value at index i with default"""
+        """
+        Get value at index i with default
+        """
         if i < self.length and self._val[i] != 0xFFFFFFFF:
             return self._val[i]
         return default_value

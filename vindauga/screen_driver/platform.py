@@ -37,7 +37,6 @@ class Singleton:
     to use `__call__` will result in a `TypeError` being raised.
 
     """
-
     def __init__(self, decorated):
         self._instance = None
         self._decorated = decorated
@@ -47,7 +46,6 @@ class Singleton:
         Returns the singleton instance. Upon its first call, it creates a
         new instance of the decorated class and calls its `__init__` method.
         On all subsequent calls, the already created instance is returned.
-
         """
         if not self._instance:
             self._instance = self._decorated()

@@ -20,12 +20,13 @@ class ConsoleWrapper:
     """
     Console wrapper for ANSI ScreenWriter - provides write() method
     """
-
     def __init__(self, console_handle):
         self._console_handle = console_handle
 
     def write(self, data: str):
-        """Write data to Windows console"""
+        """
+        Write data to Windows console
+        """
         if self._console_handle:
             try:
                 self._console_handle.WriteConsole(data)

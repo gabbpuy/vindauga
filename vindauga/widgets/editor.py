@@ -190,7 +190,9 @@ class Editor(View):
         return ''.join(chars)
 
     def bufChars(self, pos: int) -> str:
-        """Get string from buffer starting at pos."""
+        """
+        Get string from buffer starting at pos.
+        """
         if self.encoding == Encoding.encSingleByte:
             return self.bufChar(pos)
 
@@ -203,7 +205,9 @@ class Editor(View):
         return ''.join(chars)
 
     def bufChar(self, pos: int) -> str:
-        """Get character at logical position."""
+        """
+        Get character at logical position.
+        """
         if pos >= self.bufLen:
             return '\0'
         return self.buffer[self.bufPtr(pos)]
@@ -745,7 +749,9 @@ class Editor(View):
         self.curPos.x = self.charPos(self.drawPtr, pos)
 
     def memmove(self, destination: int, source: int, length: int):
-        """Move data within buffer - reconstruct string since strings are immutable."""
+        """
+        Move data within buffer - reconstruct string since strings are immutable.
+        """
         if length <= 0:
             return
 
@@ -980,7 +986,9 @@ class Editor(View):
         return 0
 
     def setBufSize(self, newSize: int):
-        """Resize buffer - reconstruct string with larger gap."""
+        """
+        Resize buffer - reconstruct string with larger gap.
+        """
         if newSize < 0x1000:
             # At least a 4K buffer
             newSize = 0x1000

@@ -14,7 +14,9 @@ strike_on_off = '9', '29'
 
 
 def write_flag(parts: list, attr: TermAttribute, last_attr: TermAttribute, mask: StyleMask, on_off: tuple[str]):
-    """Append flag change directly to the parts list"""
+    """
+    Append flag change directly to the parts list
+    """
     mask_int = int(mask)
     attr_masked = int(attr.style) & mask_int
     last_attr_masked = int(last_attr.style) & mask_int
@@ -28,7 +30,9 @@ def write_flag(parts: list, attr: TermAttribute, last_attr: TermAttribute, mask:
 
 
 def write_colour(parts: list, colour: TermColour, is_fg: bool):
-    """Append color change directly to the parts list"""
+    """
+    Append color change directly to the parts list
+    """
     match colour.type:
         case TermColourTypes.Default:
             if is_fg:
