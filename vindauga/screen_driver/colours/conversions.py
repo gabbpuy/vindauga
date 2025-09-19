@@ -27,11 +27,6 @@ def XTerm16toBIOS(idx: int) -> ColourBIOS:
 
 def BIOS_to_XTerm16(bios_color) -> int:
     """Convert BIOS color to XTerm16 index with proper mapping."""
-    # BIOS to XTerm color mapping table
-    # BIOS: 0=Black, 1=Blue, 2=Green, 3=Cyan, 4=Red, 5=Magenta, 6=Brown, 7=Light Gray
-    #       8=Dark Gray, 9=Light Blue, 10=Light Green, 11=Light Cyan, 12=Light Red, 13=Light Magenta, 14=Yellow, 15=White  
-    # XTerm: 0=Black, 1=Red, 2=Green, 3=Yellow, 4=Blue, 5=Magenta, 6=Cyan, 7=White
-    #        8=Bright Black, 9=Bright Red, 10=Bright Green, 11=Bright Yellow, 12=Bright Blue, 13=Bright Magenta, 14=Bright Cyan, 15=Bright White
     bios_to_xterm = [0, 4, 2, 6, 1, 5, 3, 7, 8, 12, 10, 14, 9, 13, 11, 15]
     
     from .colour_bios import ColourBIOS

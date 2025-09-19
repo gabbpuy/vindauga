@@ -51,12 +51,10 @@ class WindowsConsoleDisplayAdapter(DisplayAdapter):
         try:
             self._console_out_handle = win32console.GetStdHandle(win32console.STD_OUTPUT_HANDLE)
 
-            # Set output mode similar to C++ version
             mode = self._console_out_handle.GetConsoleMode()
             mode &= ~win32console.ENABLE_WRAP_AT_EOL_OUTPUT  # Avoid scrolling when reaching end of line
 
             if use_ansi:
-                # Try enabling VT sequences like C++ version
                 mode |= getattr(win32console, 'DISABLE_NEWLINE_AUTO_RETURN', 0x8)  # Do not do CR on LF
                 mode |= getattr(win32console, 'ENABLE_VIRTUAL_TERMINAL_PROCESSING', 0x4)  # Allow ANSI escape sequences
 
@@ -111,11 +109,9 @@ class WindowsConsoleDisplayAdapter(DisplayAdapter):
                 font_info = self._console_out_handle.GetCurrentConsoleFont(False)
                 if font_info != self._last_font_info:
                     self._last_font_info = font_info
-                    # Character width depends on font - would reset width calculation here
             except Exception:
                 pass
 
-            # Reset state similar to C++ version
             if self._ansi_screen_writer:
                 self._ansi_screen_writer.reset()
             else:
@@ -136,7 +132,6 @@ class WindowsConsoleDisplayAdapter(DisplayAdapter):
             return 16
 
         try:
-            # Check if VT sequences are enabled like C++ version
             console_mode = self._console_out_handle.GetConsoleMode()
             if console_mode & getattr(win32console, 'ENABLE_VIRTUAL_TERMINAL_PROCESSING', 0x4):
                 return 256 * 256 * 256  # True color with VT sequences
@@ -172,13 +167,11 @@ class WindowsConsoleDisplayAdapter(DisplayAdapter):
                 self.flush()  # Flush pending buffer first
                 self._console_out_handle.SetConsoleTextAttribute(bios_attr)
 
-            # Add text to buffer (like C++ version buffers text)
             if isinstance(text, str):
                 self._buffer.extend(text.encode('utf-8', errors='replace'))
             else:
                 self._buffer.extend(text)
 
-            # Update caret position (like C++ version)
             self._caret_pos = Point(pos.x + 1 + (1 if double_width else 0), pos.y)
             self._last_attr = bios_attr
 
@@ -217,7 +210,6 @@ class WindowsConsoleDisplayAdapter(DisplayAdapter):
             return
 
         try:
-            # Fill console with spaces and default attributes (like C++ version)
             coord = win32console.PyCOORDType(0, 0)
             length = self._size.x * self._size.y
             attr = 0x07  # Default white on black
@@ -260,7 +252,6 @@ class WindowsConsoleDisplayAdapter(DisplayAdapter):
             return 0x07  # Default white on black
 
         try:
-            # If attr has a toBIOS method, use it (like C++ version)
             if hasattr(attr, 'to_bios'):
                 return attr.to_bios() & 0xFF
             elif hasattr(attr, 'toBIOS'):

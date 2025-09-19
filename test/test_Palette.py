@@ -6,8 +6,8 @@ from vindauga.types.palette import Palette
 
 class Test_Palette(TestCase):
     """
-    Test Palette
-    """
+Test Palette
+"""
     def test_Constructor(self):
         data = '\x00\x01\x02\x03\x04\x05\x06\x07\x08\x09'
         p = Palette(data)

@@ -190,7 +190,7 @@ class EventQueue:
         hardware_info.interruptEventWait()
 
     def readKeyPress(self, event) -> bool:
-        """Read a single key press from hardware (equivalent to C++ readKeyPress)."""
+        """Read a single key press from hardware"""
         if not hardware_info.getKeyEvent(event):
             event.what = evNothing
         return event.what != evNothing
@@ -238,7 +238,7 @@ class EventQueue:
         return Event(evNothing)
 
     def getKeyOrPasteEvent(self, event) -> None:
-        """Get key event or paste event (equivalent to C++ getKeyOrPasteEvent)."""
+        """Get key event or paste event"""
         if self.getPasteEvent(event):
             return
 

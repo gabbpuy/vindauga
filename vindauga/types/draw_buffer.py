@@ -95,7 +95,7 @@ class DrawBuffer:
 
         i = indent
         j = 0
-        toggle = 1  # Start with normal attribute (like C++ toggle = 1)
+        toggle = 1
         current_attr = low_attr  # Start with low byte attribute
 
         while j < len(text):

@@ -6,8 +6,8 @@ from vindauga.types.collections.collection import Collection
 
 class Test_Collection(TestCase):
     """
-    Test Collection
-    """
+Test Collection
+"""
     def test_collection(self):
         t = Collection()
 

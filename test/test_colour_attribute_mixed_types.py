@@ -1,27 +1,41 @@
 # -*- coding: utf-8 -*-
-"""
-Unit tests for ColourAttribute mixed type handling functionality.
-
-Tests the enhanced from_bios() method that handles AttributePair,
-ColourAttribute, and int inputs for C++ compatibility.
-"""
-
 import unittest
-import sys
-import os
-
-# Add the parent directory to the path so we can import vindauga modules
-sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..'))
+from unittest.mock import Mock
 
 from vindauga.screen_driver.colours.attribute_pair import AttributePair
 from vindauga.screen_driver.colours.colour_attribute import ColourAttribute
 
 
 class TestColourAttributeMixedTypes(unittest.TestCase):
-    """Test suite for ColourAttribute mixed type handling."""
+    """
+Test suite for ColourAttribute mixed type handling.
+"""
+
+    def setUp(self):
+        """
+Set up test fixtures.
+"""
+        # Create a mock screen with 80x25 dimensions for DrawBuffer tests
+        mock_screen = Mock()
+        mock_screen.screenWidth = 80
+        mock_screen.screenHeight = 25
+
+        # Set the global screen instance
+        from vindauga.types.screen import Screen
+        Screen.screen = mock_screen
+
+    def tearDown(self):
+        """
+Clean up test fixtures.
+"""
+        # Reset the global screen instance
+        from vindauga.types.screen import Screen
+        Screen.screen = None
 
     def test_from_bios_with_int(self):
-        """Test from_bios() with integer input (existing functionality)."""
+        """
+Test from_bios() with integer input (existing functionality).
+"""
         color_attr = ColourAttribute.from_bios(0x71)
         
         self.assertIsInstance(color_attr, ColourAttribute)
@@ -30,7 +44,9 @@ class TestColourAttributeMixedTypes(unittest.TestCase):
         self.assertGreater(bios_result, 0)
 
     def test_from_bios_with_colour_attribute(self):
-        """Test from_bios() with ColourAttribute input (passthrough)."""
+        """
+Test from_bios() with ColourAttribute input (passthrough).
+"""
         original = ColourAttribute.from_bios(0x17)
         result = ColourAttribute.from_bios(original)
         
@@ -39,7 +55,9 @@ class TestColourAttributeMixedTypes(unittest.TestCase):
         self.assertEqual(result.as_bios(), original.as_bios())
 
     def test_from_bios_with_attribute_pair(self):
-        """Test from_bios() with AttributePair input."""
+        """
+Test from_bios() with AttributePair input.
+"""
         attr_pair = AttributePair(0x1234)
         result = ColourAttribute.from_bios(attr_pair)
         
@@ -48,7 +66,9 @@ class TestColourAttributeMixedTypes(unittest.TestCase):
         self.assertEqual(result, attr_pair._attrs[0])
 
     def test_from_bios_type_compatibility_matrix(self):
-        """Test all supported input types produce valid ColourAttribute objects."""
+        """
+Test all supported input types produce valid ColourAttribute objects.
+"""
         test_cases = [
             ("int", 0x71, lambda x: x),
             ("AttributePair", 0x71, lambda x: AttributePair(x)),
@@ -68,7 +88,9 @@ class TestColourAttributeMixedTypes(unittest.TestCase):
                 self.assertLessEqual(bios_result, 0xFF)
 
     def test_from_bios_preserves_color_information(self):
-        """Test that from_bios() preserves color information across type conversions."""
+        """
+Test that from_bios() preserves color information across type conversions.
+"""
         original_bios = 0x71  # Blue on white
         
         # Test conversion chain: int -> AttributePair -> ColourAttribute
@@ -84,7 +106,9 @@ class TestColourAttributeMixedTypes(unittest.TestCase):
                             f"Should produce valid BIOS value from 0x{original_bios:02x}")
 
     def test_from_bios_with_various_bios_values(self):
-        """Test from_bios() with various BIOS color values."""
+        """
+Test from_bios() with various BIOS color values.
+"""
         test_values = [
             0x00,  # Black on black
             0x07,  # White on black (normal)
@@ -117,7 +141,9 @@ class TestColourAttributeMixedTypes(unittest.TestCase):
                                f"Inconsistent results for 0x{bios_value:02x}: {result} vs {result2}")
 
     def test_from_bios_error_handling(self):
-        """Test from_bios() error handling with invalid inputs."""
+        """
+Test from_bios() error handling with invalid inputs.
+"""
         # Should handle various input types gracefully
         valid_inputs = [
             0,
@@ -135,7 +161,9 @@ class TestColourAttributeMixedTypes(unittest.TestCase):
                     self.fail(f"from_bios({input_val}) raised unexpected exception: {e}")
 
     def test_circular_conversion_stability(self):
-        """Test that circular conversions are stable."""
+        """
+Test that circular conversions are stable.
+"""
         original_value = 0x74  # Red on white
         
         # Test: int -> ColourAttribute -> AttributePair -> ColourAttribute
@@ -148,7 +176,9 @@ class TestColourAttributeMixedTypes(unittest.TestCase):
                         "Circular conversion should be stable")
 
     def test_integration_with_drawbuffer(self):
-        """Test integration with DrawBuffer type normalization."""
+        """
+Test integration with DrawBuffer type normalization.
+"""
         from vindauga.types.draw_buffer import DrawBuffer
         
         buffer = DrawBuffer()
@@ -169,9 +199,6 @@ class TestColourAttributeMixedTypes(unittest.TestCase):
             self.assertIn(buffer.data[i].char, ['A', 'B', 'C'])
 
     def test_c_plus_plus_compatibility_patterns(self):
-        """Test patterns that match C++ TurboVision usage."""
-        # Simulate common C++ patterns
-        
         # Pattern 1: TColorAttr(bios_value)
         color1 = ColourAttribute.from_bios(0x71)
         self.assertIsInstance(color1, ColourAttribute)
@@ -187,7 +214,9 @@ class TestColourAttributeMixedTypes(unittest.TestCase):
         self.assertIs(color3, color1)
 
     def test_regression_blue_on_white_case(self):
-        """Regression test for the specific blue-on-white case that was failing."""
+        """
+Regression test for the specific blue-on-white case that was failing.
+"""
         # This is the exact case that was causing problems
         bios_value = 0x71  # Blue foreground (1), white background (7)
         

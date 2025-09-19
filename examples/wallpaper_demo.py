@@ -6,13 +6,12 @@ import random
 from PIL import Image, ImageDraw, ImageFont
 
 from vindauga.constants.buttons import bfDefault
-from vindauga.constants.command_codes import hcNoContext, cmOK, cmWallpaperToggleBlocks, cmWallpaperToggleColor, cmCancel
+from vindauga.constants.command_codes import hcNoContext, cmOK, cmCancel, cmQuit
 from vindauga.constants.message_flags import mfError, mfOKButton
-from vindauga.constants.event_codes import evCommand, evBroadcast
-from vindauga.constants.keys import kbAltA, kbAltW, kbAltB, kbAltC, kbAltF, kbAltL
+from vindauga.constants.event_codes import evCommand
+from vindauga.constants.keys import kbAltA, kbAltL, kbAltX
 from vindauga.constants.option_flags import ofCentered
 from vindauga.events.event import Event
-from vindauga.misc.message import message
 
 from vindauga.menus.menu_bar import MenuBar
 from vindauga.menus.menu_item import MenuItem
@@ -48,7 +47,11 @@ class WallpaperDemo(Application):
 
     def initMenuBar(self, bounds: Rect) -> MenuBar:
         bounds.bottomRight.y = bounds.topLeft.y + 1
-        fileMenu = SubMenu('~F~ile', 0, hcNoContext) + MenuItem('~L~oad Image...', cmLoadImage, kbAltL, hcNoContext)
+        fileMenu = (SubMenu('~F~ile', 0, hcNoContext) +
+                    MenuItem('~L~oad Image...', cmLoadImage, kbAltL, hcNoContext) +
+                    MenuItem.newLine() +
+                    MenuItem('E~x~it', cmQuit, kbAltX, hcNoContext))
+
         aboutMenu = SubMenu('~A~bout', 0, hcNoContext) + MenuItem('~A~bout Demo', cmAbout, kbAltA, hcNoContext)
         return MenuBar(bounds, fileMenu + aboutMenu)
 

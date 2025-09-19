@@ -4,7 +4,8 @@ import sys
 
 import win32console
 
-from vindauga.constants.event_codes import evKeyDown, evMouse, evNothing
+from vindauga.constants.command_codes import cmScreenChanged
+from vindauga.constants.event_codes import evKeyDown, evMouse, evNothing, evCommand
 from vindauga.constants.keys import (
     kbShift, kbCtrlShift, kbAltShift, kbScrollState, kbNumState, kbCapsState, kbEnhanced,
     kbEsc, kbTab, kbEnter, kbBackSpace, kbDel, kbIns,
@@ -17,6 +18,7 @@ from vindauga.screen_driver.adapters.input_adapter import InputAdapter
 from vindauga.types.point import Point
 
 from .scan_code_tables import NORMAL_CVT, SHIFT_CVT, CTRL_CVT, ALT_CVT
+from . import windows_keys as VKeys
 
 logger = logging.getLogger(__name__)
 
@@ -47,7 +49,7 @@ class WindowsConsoleInputAdapter(InputAdapter):
         self._setup_console_modes()
 
     def _setup_console_modes(self):
-        """Set up console modes following C++ Win32ConsoleAdapter::create() logic"""
+        """Set up console modes"""
         try:
             import win32api
             
@@ -57,7 +59,6 @@ class WindowsConsoleInputAdapter(InputAdapter):
             self._startup_input_cp = win32console.GetConsoleCP()
             self._startup_output_cp = win32console.GetConsoleOutputCP()
             
-            # Set input mode (matches C++ lines 28-39)
             input_mode = self._startup_input_mode
             input_mode |= win32console.ENABLE_WINDOW_INPUT  # Report changes in buffer size
             input_mode |= win32console.ENABLE_MOUSE_INPUT   # Report mouse events
@@ -70,7 +71,6 @@ class WindowsConsoleInputAdapter(InputAdapter):
             
             self._input_handle.SetConsoleMode(input_mode)
             
-            # Set output mode (matches C++ lines 40-61)
             output_mode = self._startup_output_mode
             output_mode &= ~getattr(win32console, 'ENABLE_WRAP_AT_EOL_OUTPUT', 0x02)  # Avoid scrolling at line end
             
@@ -95,9 +95,6 @@ class WindowsConsoleInputAdapter(InputAdapter):
             
             # Check if VT processing was actually enabled
             actual_output_mode = self._output_handle.GetConsoleMode()
-            # VT processing support is checked but not needed for further logic
-            
-            # Set console codepages to UTF-8 (matches C++ lines 64-68)
             # CP_UTF8 = 65001
             win32console.SetConsoleCP(65001)
             win32console.SetConsoleOutputCP(65001)
@@ -149,7 +146,7 @@ class WindowsConsoleInputAdapter(InputAdapter):
 
     def get_event(self, event):
         """
-        Get single event in Vindauga event format - matches C++ Win32Input::getEvent logic
+        Get single event in Vindauga event format
         """
         if not self._input_handle:
             event.what = evNothing
@@ -157,27 +154,18 @@ class WindowsConsoleInputAdapter(InputAdapter):
         
         try:
             # ReadConsoleInput can sleep the process, so we first check the number
-            # of available input events (matches C++ lines 200-201)
+            # of available input events
             events_available = self._input_handle.GetNumberOfConsoleInputEvents()
             
             while events_available > 0:
-                # getEvent(ir, ev) often returns false due to discarded events. But this
-                # function should not return false if there are pending events, as that
-                # defeats the event queue in THardwareInfo (matches C++ lines 205-206)
                 while events_available > 0:
                     events_available -= 1
-                    
-                    # Read single input record (matches C++ lines 208-212)
                     input_records = self._input_handle.ReadConsoleInput(1)
                     if not input_records:
                         return False
-                        
                     input_record = input_records[0]
-                    
-                    # Process the input record (matches C++ getEvent(ir, ev) method)
                     if self._process_input_record(input_record, event):
                         return True
-                        
                 # Check again for more events after processing
                 events_available = self._input_handle.GetNumberOfConsoleInputEvents()
                 
@@ -189,39 +177,28 @@ class WindowsConsoleInputAdapter(InputAdapter):
 
     def _process_input_record(self, input_record, event):
         """
-        Process single input record - matches C++ Win32Input::getEvent(const INPUT_RECORD &ir, TEvent &ev) logic
+        Process single input record
         """
         event_type = input_record.EventType
         
         if event_type == win32console.KEY_EVENT:
-            # Only handle key down events OR special Alt+paste events (matches C++ lines 224-227)
             key_event = input_record.KeyDown
-            if key_event or (input_record.VirtualKeyCode == 18 and input_record.Char):  # VK_MENU = 18 (ALT)
+            if key_event or (input_record.VirtualKeyCode == VKeys.VK_MENU and input_record.Char):  # VKeys.VK_MENU = 18 (ALT)
                 return self._process_win32_key(input_record, event)
                 
         elif event_type == win32console.MOUSE_EVENT:
-            # Always process mouse events (matches C++ lines 229-231)
             self._process_win32_mouse(input_record, event)
             return True
             
         elif event_type == win32console.WINDOW_BUFFER_SIZE_EVENT:
-            # Handle window buffer size change events (matches C++ lines 232-236)
-            from vindauga.constants.command_codes import cmScreenChanged
-            from vindauga.constants.event_codes import evCommand
-            
             event.what = evCommand
             event.message.command = cmScreenChanged
             event.message.infoPtr = 0
             return True
-            
-        # Discard other event types (matches C++ line 238)
+
         return False
 
     def _process_win32_key(self, input_record, event):
-        """
-        Process Windows key event - simplified to match working ncurses pattern
-        """
-        # Create key event like ncurses version
         key_event = KeyDownEvent()
         event.what = evKeyDown
         
@@ -232,15 +209,9 @@ class WindowsConsoleInputAdapter(InputAdapter):
         scan_code = getattr(input_record, 'VirtualScanCode', 0)
         control_state = input_record.ControlKeyState
         
-        # Follow C++ getWin32Key pattern exactly (lines 448-454):
-        # Set basic key information first
         key_event.charScan.scanCode = scan_code
         key_event.charScan.charCode = chr(char_code) if char_code != 0 else '\x00'
-        
-        # Convert Windows control key state to Vindauga flags (C++ line 451-454)
         key_event.controlKeyState = self._convert_windows_control_state_to_vindauga(control_state)
-        
-        # Now apply C++ conversion logic (lines 491-517):
         # Convert scan codes to key codes using modifier state
         if scan_code < 89:  # Valid range for conversion tables
             key_code = self._convert_scan_code_to_key_code(scan_code, key_event.controlKeyState, char_code)
@@ -255,7 +226,8 @@ class WindowsConsoleInputAdapter(InputAdapter):
                     key_event.keyCode = self._map_virtual_key_to_turbo_vision(virtual_key, key_event.controlKeyState)
         else:
             # Outside conversion range - use character or virtual key
-            key_event.keyCode = char_code if char_code != 0 else self._map_virtual_key_to_turbo_vision(virtual_key, control_state)
+            key_event.keyCode = char_code if char_code != 0 else self._map_virtual_key_to_turbo_vision(virtual_key,
+                                                                                                       control_state)
         
         # Check if we have a valid key
         if key_event.keyCode != 0:
@@ -265,45 +237,36 @@ class WindowsConsoleInputAdapter(InputAdapter):
         return False
     
     def _map_virtual_key_to_turbo_vision(self, virtual_key, control_state):
-        """
-        Map Windows virtual key codes to Turbo Vision key codes
-        Simplified mapping for common keys
-        """
-        
         # Basic mapping table
+
         vk_map = {
-            27: kbEsc,      # VK_ESCAPE
-            9: kbTab,       # VK_TAB  
-            13: kbEnter,    # VK_RETURN
-            8: kbBackSpace, # VK_BACK
-            46: kbDel,      # VK_DELETE
-            45: kbIns,      # VK_INSERT
-            36: kbHome,     # VK_HOME
-            35: kbEnd,      # VK_END
-            33: kbPgUp,     # VK_PRIOR
-            34: kbPgDn,     # VK_NEXT
-            38: kbUp,       # VK_UP
-            40: kbDown,     # VK_DOWN
-            37: kbLeft,     # VK_LEFT
-            39: kbRight,    # VK_RIGHT
-            112: kbF1,      # VK_F1
-            113: kbF2,      # VK_F2
-            114: kbF3,      # VK_F3
-            115: kbF4,      # VK_F4
-            116: kbF5,      # VK_F5
-            117: kbF6,      # VK_F6
-            118: kbF7,      # VK_F7
-            119: kbF8,      # VK_F8
-            120: kbF9,      # VK_F9
-            121: kbF10,     # VK_F10
-            122: kbF11,     # VK_F11
-            123: kbF12,     # VK_F12
+            VKeys.VK_ESCAPE: kbEsc,      # VKeys.VK_ESCAPE
+            VKeys.VK_TAB: kbTab,        # VKeys.VK_TAB
+            VKeys.VK_RETURN: kbEnter,    # VKeys.VK_RETURN
+            VKeys.VK_BACK: kbBackSpace,  # VKeys.VK_BACK
+            VKeys.VK_DELETE: kbDel,      # VKeys.VK_DELETE
+            VKeys.VK_INSERT: kbIns,      # VKeys.VK_INSERT
+            VKeys.VK_HOME: kbHome,     # VKeys.VK_HOME
+            VKeys.VK_END: kbEnd,      # VKeys.VK_END
+            VKeys.VK_PRIOR: kbPgUp,     # VKeys.VK_PRIOR
+            VKeys.VK_NEXT: kbPgDn,     # VKeys.VK_NEXT
+            VKeys.VK_UP: kbUp,       # VKeys.VK_UP
+            VKeys.VK_DOWN: kbDown,     # VKeys.VK_DOWN
+            VKeys.VK_LEFT: kbLeft,     # VKeys.VK_LEFT
+            VKeys.VK_RIGHT: kbRight,    # VKeys.VK_RIGHT
+            VKeys.VK_F1: kbF1,      # VKeys.VK_F1
+            VKeys.VK_F2: kbF2,      # VKeys.VK_F2
+            VKeys.VK_F3: kbF3,      # VKeys.VK_F3
+            VKeys.VK_F4: kbF4,      # VKeys.VK_F4
+            VKeys.VK_F5: kbF5,      # VKeys.VK_F5
+            VKeys.VK_F6: kbF6,      # VKeys.VK_F6
+            VKeys.VK_F7: kbF7,      # VKeys.VK_F7
+            VKeys.VK_F8: kbF8,      # VKeys.VK_F8
+            VKeys.VK_F9: kbF9,      # VKeys.VK_F9
+            VKeys.VK_F10: kbF10,     # VKeys.VK_F10
+            VKeys.VK_F11: kbF11,     # VKeys.VK_F11
+            VKeys.VK_F12: kbF12,     # VKeys.VK_F12
         }
-        
-        # Skip standalone modifier keys
-        if virtual_key in [16, 17, 18, 91, 92]:  # Shift, Ctrl, Alt, Win keys
-            return 0
-            
         return vk_map.get(virtual_key, 0)
     
     def _convert_windows_control_state_to_vindauga(self, windows_control_state):
@@ -346,9 +309,7 @@ class WindowsConsoleInputAdapter(InputAdapter):
     def _convert_scan_code_to_key_code(self, scan_code, control_state, char_code):
         """
         Convert scan codes to Vindauga key codes using modifier state
-        Exact replica of C++ THardwareInfo conversion tables logic (lines 496-504)
         """
-        # Match C++ logic exactly: check modifiers in order and use lookup tables
         if (control_state & kbAltShift) and scan_code in ALT_CVT:
             return ALT_CVT[scan_code]
         elif (control_state & kbCtrlShift) and scan_code in CTRL_CVT:
@@ -362,16 +323,14 @@ class WindowsConsoleInputAdapter(InputAdapter):
         
     def _process_win32_mouse(self, input_record, event):
         """
-        Process Windows mouse event - matches C++ getWin32Mouse function logic
+        Process Windows mouse event
         """
-        # Set basic mouse event info (matches C++ lines 524-532)
         event.what = evMouse
         event.mouse = MouseEvent()
         event.mouse.where = Point(input_record.MousePosition.X, input_record.MousePosition.Y)
         event.mouse.buttons = input_record.ButtonState
         event.mouse.eventFlags = input_record.EventFlags
         
-        # Mask control key state same as key events (matches C++ lines 529-532)
         KB_SHIFT = 0x03
         KB_CTRL_SHIFT = 0x0C  
         KB_ALT_SHIFT = 0x30
@@ -383,7 +342,6 @@ class WindowsConsoleInputAdapter(InputAdapter):
         valid_flags = KB_SHIFT | KB_CTRL_SHIFT | KB_ALT_SHIFT | KB_SCROLL_STATE | KB_NUM_STATE | KB_CAPS_STATE | KB_ENHANCED
         event.mouse.controlKeyState = input_record.ControlKeyState & valid_flags
         
-        # Handle mouse wheel events (matches C++ lines 534-542)
         event.mouse.wheel = 0
         button_state_high = input_record.ButtonState & 0x80000000
         is_positive_rotation = not button_state_high

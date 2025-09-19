@@ -1,16 +1,13 @@
 # -*- coding: utf-8 -*-
-"""
-InputGetter interface - Python implementation of C++ tvision InputGetter
-"""
 from abc import ABC, abstractmethod
 
 
 class InputGetter(ABC):
-    """Abstract base class for input getters - matches C++ InputGetter"""
+    """Abstract base class for input getters"""
     
     @abstractmethod
     def get(self) -> int:
-        """Get next character from input - returns -1 if no input available"""
+        """Get next character from input"""
         pass
     
     @abstractmethod

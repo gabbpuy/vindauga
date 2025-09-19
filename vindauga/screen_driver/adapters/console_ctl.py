@@ -7,16 +7,14 @@ import sys
 from typing import Optional, IO
 
 if sys.platform != 'win32':
+    import fcntl
     import termios
-
-from vindauga.types.point import Point
 
 if sys.platform == 'win32':
     import win32console
     import win32file
-else:
-    import fcntl
 
+from vindauga.types.point import Point
 
 logger = logging.getLogger(__name__)
 
@@ -35,7 +33,7 @@ class ConsoleCtl:
     @classmethod
     def getInstance(cls) -> ConsoleCtl:
         """
-        Get singleton ConsoleCtl instance (tvision-compatible API)
+        Get singleton ConsoleCtl instance
         """
         if cls._instance is None:
             cls._instance = cls()
@@ -75,7 +73,7 @@ class ConsoleCtl:
     if sys.platform == 'win32':
         def _setup_console(self):
             """
-            Set up Windows console handles - mirrors C++ ConsoleCtl constructor for Windows
+            Set up Windows console handles
             """
             # Windows: console handles
             self.cn = [{'handle': None, 'owning': False} for _ in range(3)]  # input, startupOutput, activeOutput
@@ -197,7 +195,7 @@ class ConsoleCtl:
 
         def write(self, data: str) -> None:
             """
-            Write to Windows console - mirrors C++ Windows version
+            Write to Windows console
             """
             try:
                 if data and self.cn[2]['handle']:  # activeOutput
@@ -229,7 +227,7 @@ class ConsoleCtl:
         
         def get_size(self) -> Point:
             """
-            Get console size - mirrors C++ ConsoleCtl::getSize for Windows
+            Get console size
             """
             try:
                 sb_info = win32console.GetConsoleScreenBufferInfo(self.cn[2]['handle'])  # activeOutput
@@ -243,7 +241,7 @@ class ConsoleCtl:
         
         def get_font_size(self) -> Point:
             """
-            Get console font size - mirrors C++ ConsoleCtl::getFontSize for Windows
+            Get console font size
             """
             try:
                 font_info = win32console.GetCurrentConsoleFont(self.cn[2]['handle'], False)  # activeOutput
@@ -257,15 +255,14 @@ class ConsoleCtl:
     else:
         def _setup_console(self):
             """
-            Set up Unix console file descriptors - mirrors C++ ConsoleCtl constructor for Unix
+            Set up Unix console file descriptors
             """
             # Unix: file descriptors
             self.files: list[Optional[IO]] = [None, None]  # [input_file, output_file]
             self.fds: list[int] = [0, 1]  # [input_fd, output_fd]
             self.owns_files = False
 
-            # Try to open /dev/tty if TVISION_USE_STDIO is not set
-            if os.environ.get('TVISION_USE_STDIO') is not None:
+            if os.environ.get('VINDAUGA_USE_STDIO') is not None:
                 try:
                     self.files[0] = open('/dev/tty', 'r')
                     self.files[1] = open('/dev/tty', 'w')
@@ -330,7 +327,7 @@ class ConsoleCtl:
         
         def get_size(self) -> Point:
             """
-            Get console size - mirrors C++ ConsoleCtl::getSize for Unix
+            Get console size
             """
 
             for fd in self.fds:
@@ -338,7 +335,6 @@ class ConsoleCtl:
                     # TIOCGWINSZ ioctl to get window size
                     result = fcntl.ioctl(fd, termios.TIOCGWINSZ, struct.pack('HHHH', 0, 0, 0, 0))
                     rows, cols, xpixel, ypixel = struct.unpack('HHHH', result)
-                    # Check environment variables like C++ version
                     env_col = int(os.environ.get('COLUMNS', '999999'))
                     env_row = int(os.environ.get('LINES', '999999'))
 
@@ -352,11 +348,9 @@ class ConsoleCtl:
         
         def get_font_size(self) -> Point:
             """
-            Get console font size - mirrors C++ ConsoleCtl::getFontSize for Unix
+            Get console font size
             """
-            import struct
-            import termios
-            
+
             # Try KDFONTOP ioctl first (Linux console)
             for fd in self.fds:
                 try:

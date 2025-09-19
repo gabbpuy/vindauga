@@ -5,7 +5,6 @@ import wcwidth
 def utf8_bytes_left(first_byte: int) -> int:
     """
     Calculate how many more bytes are needed for UTF-8 character
-    Based on tvision's Utf8BytesLeft function
     """
     if first_byte < 0:
         return 0

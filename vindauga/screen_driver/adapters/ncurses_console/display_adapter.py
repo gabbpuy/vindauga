@@ -21,7 +21,6 @@ logger = logging.getLogger(__name__)
 class NcursesDisplayAdapter(DisplayAdapter):
     """
     Ncurses-based display adapter providing full terminal control
-    Similar to tvision's NcursesDisplay
     """
     
     _instance: Optional[NcursesDisplayAdapter] = None

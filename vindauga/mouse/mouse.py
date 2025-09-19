@@ -25,7 +25,7 @@ class HW_Mouse:
 
     @staticmethod
     def _getEvent(event: MouseEvent):
-        """Get mouse event - matches C++ THWMouse::getEvent()"""
+        """Get mouse event"""
         event.buttons = 0
         event.wheel = 0
         event.where.x = 0

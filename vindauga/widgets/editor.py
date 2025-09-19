@@ -35,7 +35,6 @@ class Encoding(Enum):
     encSingleByte = auto()
 
 
-# Constants from C++ - match exactly
 maxFindStrLen = 80
 maxReplaceStrLen = 80
 
@@ -131,8 +130,7 @@ class Editor(View):
 
         self.delta = Point(0, 0)
         self.limit = Point(0, 0)
-        self.curPos = Point(0, 0)  # Match C++ curPos exactly
-        self.hScrollBar = hScrollBar
+        self.curPos = Point(0, 0)
         self.vScrollBar = vScrollBar
         self.indicator = indicator
 
@@ -355,7 +353,6 @@ class Editor(View):
         self.drawLines(0, self.size.y, self.drawPtr)
 
     def drawLines(self, y: int, count: int, linePtr: int):
-        """Match C++ drawLines exactly."""
         color = self.getColor(0x0201)
 
         for i in range(count):
@@ -742,7 +739,6 @@ class Editor(View):
 
             self.delCount = 0
             self.insCount = 0
-            # Note: setBufSize in C++ but we don't need it since we manage buffer differently
 
         self.drawLineNum = self.curPos.y
         self.drawPtr = self.lineStart(pos)
@@ -876,7 +872,6 @@ class Editor(View):
         return self.isValid
 
     def lineStart(self, pos: int) -> int:
-        """Match C++ lineStart exactly."""
         while pos > 0:
             pos = self.prevChar(pos)
             if self.bufChar(pos) == '\n':
@@ -884,13 +879,11 @@ class Editor(View):
         return 0
 
     def lineEnd(self, pos: int) -> int:
-        """Match C++ lineEnd exactly."""
         while pos < self.bufLen and self.bufChar(pos) != '\n':
             pos = self.nextChar(pos)
         return pos
 
     def detectEol(self):
-        """Match C++ detectEol exactly."""
         for p in range(self.bufLen):
             ch = self.bufChar(p)
             if ch == '\r':
@@ -906,7 +899,6 @@ class Editor(View):
         self.eolType = 0  # eolCrLf
 
     def formatLine(self, drawBuf: DrawBuffer, linePtr: int, width: int, colors):
-        """Match C++ formatLine exactly."""
         # The attributes for normal text are in the lower half of 'colors'.
         # The attributes for text selection are in the upper half.
         normal_attr, select_attr = colors.attrs
@@ -961,12 +953,10 @@ class Editor(View):
             X += 1
 
     def formatCell(self, cells, width: int, text: str, p: int, color):
-        """Match C++ formatCell exactly."""
         p_ = 0
         w_ = width
         success, w_, p_ = Text.draw_one(cells, w_, text, p_, color)
         if success:
-            # Return updated values (simulating C++ pass by reference)
             return True, w_, p + p_
         return False, width, p
 

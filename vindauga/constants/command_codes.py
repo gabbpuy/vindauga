@@ -67,10 +67,6 @@ cmListItemFocused = 62
 cmGrabDefault = 63
 cmReleaseDefault = 64
 
-# Wallpaper widget commands
-cmWallpaperToggleBlocks = 65
-cmWallpaperToggleColor = 66
-
 # No context specified.
 # @see View::helpCtx
 hcNoContext = 0

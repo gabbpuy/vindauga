@@ -1,7 +1,4 @@
 # -*- coding: utf-8 -*-
-"""
-NCurses Input Adapter - rewritten to match C++ NcursesInput exactly
-"""
 import atexit
 import copy
 import curses
@@ -62,8 +59,6 @@ FROM_NON_PRINTABLE_ASCII = [
     _('^', Keys.kbLeftCtrl, b'^'),  # ^^, Record Separator
     _('_', Keys.kbLeftCtrl, b'_'),  # ^_, Unit Separator
 ]
-
-# Match C++ fromCursesKeyCode table exactly
 
 FROM_CURSES_KEY_CODE = {
     # Basic navigation keys
@@ -257,11 +252,8 @@ class NcursesInputAdapter(InputAdapter):
             # term_io.key_mods_on(self._console_ctl)
             # Enable mouse events if requested
             if self._mouse_enabled:
-                # Let ncurses handle all mouse processing - don't send terminal control sequences
-                # curses.mousemask(curses.ALL_MOUSE_EVENTS)
                 term_io.mouse_on(self._console_ctl)
 
-            # Initialize input getter - match C++ member
             self._input_getter = NcursesInputGetter(self._stdscr)
 
             # Register console restoration on exit
@@ -274,8 +266,6 @@ class NcursesInputAdapter(InputAdapter):
         """Restore console to normal state on exit"""
         if self._stdscr:
             if self._mouse_enabled:
-                # Disable ncurses mouse - don't call term_io.mouse_off() 
-                # curses.mousemask(0)
                 term_io.mouse_off(self._console_ctl)
             # NOTE: Do not call term_io.key_mods_off() since we didn't call key_mods_on()
             term_io.consume_unprocessed_input(self._console_ctl, self._input_getter, self._input_state)

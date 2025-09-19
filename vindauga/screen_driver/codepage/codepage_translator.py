@@ -81,7 +81,7 @@ class CodepageTranslator:
         self.current_to_utf8 = cp850_to_utf8
 
     def init(self):
-        cp = os.environ.get('TVISION_CODE_PAGE', '437')
+        cp = os.environ.get('VINDAUGA_CODE_PAGE', '437')
         tables = [
             CodepageTable('437', cp437_to_utf8),
             CodepageTable('850', cp850_to_utf8),

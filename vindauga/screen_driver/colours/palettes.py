@@ -2,9 +2,6 @@
 from __future__ import annotations
 
 from .colour_rgb import ColourRGB
-from .conversions import RGB_toXTerm16
-from .conversions import RGB_toXTerm256
-
 
 # Standard BIOS/RGBI 16-color palette (CGA/EGA/VGA compatible)
 BIOS_PALETTE = [
@@ -63,22 +60,3 @@ def get_xterm256_rgb(index: int) -> ColourRGB:
         # 24 grayscale colors
         gray_level = 8 + (index - 232) * 10
         return ColourRGB(gray_level, gray_level, gray_level)
-
-
-def find_closest_bios_color(rgb: ColourRGB) -> int:
-    """
-    Find the closest BIOS color index for an RGB color.
-
-    :param rgb: RGB color.
-    """
-
-    return RGB_toXTerm16(rgb.r, rgb.g, rgb.b)
-
-
-def find_closest_xterm256_color(rgb: ColourRGB) -> int:
-    """
-    Find the closest XTerm 256 color index for an RGB color.
-
-    :param rgb: RGB color.
-    """
-    return RGB_toXTerm256(rgb)

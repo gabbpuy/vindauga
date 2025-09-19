@@ -138,7 +138,7 @@ class TermIO:
 
     def parse_escape_seq(self, buf: GetChBuf, event: Event, state: InputState) -> ParseResult:
         """
-        Parse escape sequence - matches C++ TermIO::parseEscapeSeq exactly
+        Parse escape sequence
         Pre: "\x1B" has just been read.
         """
         res = ParseResult.Rejected
@@ -198,7 +198,7 @@ class TermIO:
         return res
 
     def parse_csi_key(self, csi: CSIData, event: Event, state: InputState) -> ParseResult:
-        """Parse CSI key sequence - matches C++ TermIO::parseCSIKey"""
+        """Parse CSI key sequence"""
 
         terminator = csi.terminator
 
@@ -392,7 +392,7 @@ class TermIO:
         console_ctl.write(seq)
 
     def key_mods_on(self, console_ctl: 'ConsoleCtl') -> None:
-        """Enable key modifier reporting - matches C++ TermIO::keyModsOn"""
+        """Enable key modifier reporting"""
         # ANSI escape sequences to enable key modifier reporting
         seq = (
             "\x1B[?1036s"   # Save metaSendsEscape (XTerm).

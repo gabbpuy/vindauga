@@ -1,7 +1,4 @@
 # -*- coding: utf-8 -*-
-import sys
-
-
 class ColourBIOS:
     def __init__(self, bios: int):
         self.bright = (bios >> 3) & 0x1

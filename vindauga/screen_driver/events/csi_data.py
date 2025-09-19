@@ -3,7 +3,7 @@ from vindauga.screen_driver.events.get_ch_buf import GetChBuf
 
 
 class CSIData:
-    """CSI escape sequence data - matches C++ CSIData"""
+    """CSI escape sequence data"""
 
     def __init__(self):
         self.max_length = 6

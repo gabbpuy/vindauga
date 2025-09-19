@@ -5,8 +5,8 @@ from vindauga.types.point import Point
 
 class Test_Point(TestCase):
     """
-    Test Point
-    """
+Test Point
+"""
     def test_constructor(self):
         x = Point()
         y = Point(1, 1)

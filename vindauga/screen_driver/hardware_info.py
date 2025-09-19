@@ -1,7 +1,6 @@
 # -*- coding: utf-8 -*-
 from collections import deque
 import logging
-import os
 import time
 from typing import TYPE_CHECKING
 

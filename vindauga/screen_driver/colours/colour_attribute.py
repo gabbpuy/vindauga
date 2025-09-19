@@ -24,7 +24,6 @@ class ColourAttribute:
 
     @classmethod
     def from_bios(cls, bios: ColourBIOS | int) -> ColourAttribute:
-        # Handle various input types for C++ compatibility
         if isinstance(bios, cls):
             return bios  # Already ColourAttribute
         elif isinstance(bios, AttributePair):

@@ -178,7 +178,6 @@ class Text:
     def draw_char(cells: list[ScreenCell], char: str, attr: ColourAttribute = None):
         """Fill cells with the given character."""
         if attr:
-            # Create one cell and copy it to all positions (like C++)
             template_cell = ScreenCell()
             set_cell(template_cell, char, attr)
             for i in range(len(cells)):
@@ -253,7 +252,6 @@ class Text:
                 prev_cell.char += char
             return True, cell_index, new_text_index  # Don't advance cell_index
 
-        # Set the character using set_cell (like C++)
         if attr:
             set_cell(cells[cell_index], char, attr)
         else:

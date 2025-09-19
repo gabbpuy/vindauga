@@ -1,38 +1,34 @@
 # -*- coding: utf-8 -*-
-"""
-Unit tests for AttributePair implicit conversion functionality.
-
-Tests the new __getattr__ delegation and as_colour_attribute() method
-that allow AttributePair to work seamlessly with DrawBuffer methods.
-"""
-
 import unittest
-import sys
-import os
-
-# Add the parent directory to the path so we can import vindauga modules
-sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..'))
 
 from vindauga.screen_driver.colours.attribute_pair import AttributePair
 from vindauga.screen_driver.colours.colour_attribute import ColourAttribute
 
 
 class TestAttributePairImplicitConversion(unittest.TestCase):
-    """Test suite for AttributePair implicit conversion features."""
+    """
+Test suite for AttributePair implicit conversion features.
+"""
 
     def setUp(self):
-        """Set up test fixtures."""
+        """
+Set up test fixtures.
+"""
         self.attr_pair = AttributePair(0x1234)  # High=0x12, Low=0x34
 
     def test_as_colour_attribute_method(self):
-        """Test as_colour_attribute() returns first attribute."""
+        """
+Test as_colour_attribute() returns first attribute.
+"""
         color_attr = self.attr_pair.as_colour_attribute()
         
         self.assertIsInstance(color_attr, ColourAttribute)
         self.assertEqual(color_attr, self.attr_pair._attrs[0])
 
     def test_getattr_delegation_to_first_attribute(self):
-        """Test __getattr__ delegates ColourAttribute methods to first attribute."""
+        """
+Test __getattr__ delegates ColourAttribute methods to first attribute.
+"""
         # Test delegation of as_bios method
         delegated_bios = self.attr_pair.as_bios()
         direct_bios = self.attr_pair._attrs[0].as_bios() | (self.attr_pair._attrs[1].as_bios() << 8)
@@ -40,21 +36,27 @@ class TestAttributePairImplicitConversion(unittest.TestCase):
         self.assertEqual(delegated_bios, direct_bios)
 
     def test_getattr_delegation_with_invalid_attribute(self):
-        """Test __getattr__ raises AttributeError for invalid attributes."""
+        """
+Test __getattr__ raises AttributeError for invalid attributes.
+"""
         with self.assertRaises(AttributeError) as context:
             _ = self.attr_pair.nonexistent_method()
         
         self.assertIn("has no attribute 'nonexistent_method'", str(context.exception))
 
     def test_getattr_delegation_preserves_existing_methods(self):
-        """Test __getattr__ doesn't interfere with existing AttributePair methods."""
+        """
+Test __getattr__ doesn't interfere with existing AttributePair methods.
+"""
         # Test that existing methods still work
         self.assertEqual(int(self.attr_pair), self.attr_pair.as_bios())
         self.assertEqual(self.attr_pair[0], self.attr_pair._attrs[0])
         self.assertEqual(self.attr_pair[1], self.attr_pair._attrs[1])
 
     def test_implicit_conversion_with_various_bios_values(self):
-        """Test implicit conversion with various BIOS values."""
+        """
+Test implicit conversion with various BIOS values.
+"""
         test_cases = [
             0x07,    # White on black
             0x17,    # White on blue
@@ -80,7 +82,9 @@ class TestAttributePairImplicitConversion(unittest.TestCase):
                                       f"as_bios() should not return 0 for input 0x{bios_value:04x}")
 
     def test_duck_typing_compatibility(self):
-        """Test that AttributePair can be used where ColourAttribute is expected."""
+        """
+Test that AttributePair can be used where ColourAttribute is expected.
+"""
         # Create AttributePair and extract normal attribute
         attr_pair = AttributePair(0x71)  # Blue on white
         normal_attr = attr_pair.as_colour_attribute()
@@ -95,7 +99,9 @@ class TestAttributePairImplicitConversion(unittest.TestCase):
         self.assertGreater(normal_bios, 0)  # Should be valid BIOS value
 
     def test_comparison_operations_still_work(self):
-        """Test that comparison operations work with implicit conversion."""
+        """
+Test that comparison operations work with implicit conversion.
+"""
         attr_pair = AttributePair(0x1234)
         actual_bios = attr_pair.as_bios()
         
@@ -111,7 +117,9 @@ class TestAttributePairImplicitConversion(unittest.TestCase):
         self.assertNotEqual(attr_pair, different_pair)
 
     def test_bitwise_operations_still_work(self):
-        """Test that bitwise operations work with implicit conversion."""
+        """
+Test that bitwise operations work with implicit conversion.
+"""
         attr_pair = AttributePair(0x1234)
         
         # Test AND operation (used in background.py)
@@ -123,7 +131,9 @@ class TestAttributePairImplicitConversion(unittest.TestCase):
         self.assertEqual(high_attr, attr_pair._attrs[1])
 
     def test_integration_with_color_system(self):
-        """Test integration with the overall color system."""
+        """
+Test integration with the overall color system.
+"""
         # Test the exact case from background.py
         attr_pair = AttributePair(0x71)  # Blue on white
         
@@ -135,7 +145,3 @@ class TestAttributePairImplicitConversion(unittest.TestCase):
         bios_value = color_attr.as_bios()
         self.assertGreater(bios_value, 0)
         self.assertLessEqual(bios_value, 0xFF)  # Should be single byte
-
-
-if __name__ == '__main__':
-    unittest.main(verbosity=2)

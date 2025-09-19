@@ -1,6 +1,8 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-"""Unit tests for event loop idle handling"""
+"""
+Unit tests for event loop idle handling
+"""
 
 import unittest
 import sys
@@ -14,16 +16,22 @@ from vindauga.constants.keys import kbEnter
 
 
 class TestEventLoopIdle(unittest.TestCase):
-    """Test that the event loop properly calls idle() method"""
+    """
+Test that the event loop properly calls idle() method
+"""
 
     def setUp(self):
-        """Set up test fixtures"""
+        """
+Set up test fixtures
+"""
         # We can't easily test Program directly due to Screen dependencies
         # But we can test the event processing logic
         self.idle_call_count = 0
         
     def test_idle_called_when_no_events(self):
-        """Test that idle() is called when getEvent returns evNothing"""
+        """
+Test that idle() is called when getEvent returns evNothing
+"""
         
         # Create a mock program that tracks idle calls
         class MockProgram:
@@ -34,7 +42,9 @@ class TestEventLoopIdle(unittest.TestCase):
                 self.idle_calls += 1
                 
             def getEvent_logic(self, event):
-                """Simplified version of Program.getEvent logic"""
+                """
+Simplified version of Program.getEvent logic
+"""
                 # Simulate no pending events
                 event.what = evNothing
                 
@@ -45,8 +55,8 @@ class TestEventLoopIdle(unittest.TestCase):
                         self.idle()  # This should be called
         
         program = MockProgram()
-        event = Event()
-        
+        event = Event(evNothing)
+
         # Simulate multiple getEvent calls with no input
         for _ in range(3):
             program.getEvent_logic(event)
@@ -54,7 +64,9 @@ class TestEventLoopIdle(unittest.TestCase):
         self.assertEqual(program.idle_calls, 3, "idle() should be called when no events are available")
 
     def test_idle_not_called_when_events_available(self):
-        """Test that idle() is not called when events are available"""
+        """
+Test that idle() is not called when events are available
+"""
         
         class MockProgram:
             def __init__(self):
@@ -64,21 +76,25 @@ class TestEventLoopIdle(unittest.TestCase):
                 self.idle_calls += 1
                 
             def getEvent_logic_with_key(self, event):
-                """Simulate getEvent with keyboard input"""
+                """
+Simulate getEvent with keyboard input
+"""
                 # Simulate key event available
                 event.what = evKeyDown
                 event.keyDown.keyCode = kbEnter
                 # idle() should NOT be called when events are available
         
         program = MockProgram()
-        event = Event()
-        
+        event = Event(evNothing)
+
         program.getEvent_logic_with_key(event)
         
         self.assertEqual(program.idle_calls, 0, "idle() should not be called when events are available")
 
     def test_event_processing_order(self):
-        """Test the order of event processing matches Program.getEvent"""
+        """
+Test the order of event processing matches Program.getEvent
+"""
         
         class MockProgram:
             def __init__(self):
@@ -88,7 +104,9 @@ class TestEventLoopIdle(unittest.TestCase):
                 self.processing_order.append("idle")
                 
             def getEvent_simulation(self, event, has_pending=False, has_mouse=False, has_key=False):
-                """Simulate the full getEvent logic"""
+                """
+Simulate the full getEvent logic
+"""
                 
                 if has_pending:
                     event.what = evKeyDown  # Simulate pending event
@@ -112,8 +130,8 @@ class TestEventLoopIdle(unittest.TestCase):
                 self.idle()
         
         program = MockProgram()
-        event = Event()
-        
+        event = Event(evNothing)
+
         # Test no events scenario
         program.getEvent_simulation(event)
         expected = ["waitForEvents", "idle"]

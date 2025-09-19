@@ -6,8 +6,8 @@ from vindauga.types.collections.gen_collection import GenCollection
 
 class Test_GenCollection(TestCase):
     """
-    Test Collection
-    """
+Test Collection
+"""
     def test_gen_collection(self):
         t = GenCollection()
 
@@ -15,7 +15,7 @@ class Test_GenCollection(TestCase):
         t.insert(2, '2')
         t.insert(3, '4')
 
-        assert t == ['1', '2', '3']
+        assert t == ['1', '2', '4']
 
     def test_gen_collection_text_length(self):
         t = GenCollection()

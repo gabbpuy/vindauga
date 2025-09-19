@@ -272,7 +272,6 @@ showMarkers = False
 
 
 def kbMapKey(code, eventType: int, modifiers: int) -> int:
-    """Map raw key code to tvision key code using key mappings"""
     best = keyMappings.get((code, eventType, modifiers))
     
     if best:

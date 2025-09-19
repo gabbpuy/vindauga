@@ -6,8 +6,8 @@ from vindauga.types.command_set import CommandSet
 
 class Test_CommandSet(TestCase):
     """
-    Test Command Set
-    """
+Test Command Set
+"""
     def test_Constructor(self):
         tc = CommandSet()
 

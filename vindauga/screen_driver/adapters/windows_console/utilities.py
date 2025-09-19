@@ -29,7 +29,7 @@ def get_win32_key_text(key_event: KEY_EVENT_RECORD, event: Event, input_state: I
     ch = key_event.uChar
     event.keyDown.textLength = 0
 
-    if 0x20 <= ch and ch != 0x7f:
+    if 0x20 <= ord(ch) and ord(ch) != 0x7f:
         if sys.platform == 'win32':
             import pywin32.kernel32 as kernel32
 
@@ -63,10 +63,10 @@ def get_win32_key(key_event: KEY_EVENT_RECORD, event: Event, input_state: InputS
 
     event.what = evKeyDown
     event.keyDown.charScan.scanCode = key_event.wVirtualScanCode
-    event.keyDown.charScan.charCode = chr(key_event.uChar & 0x7F)
+    event.keyDown.charScan.charCode = chr(ord(key_event.uChar) & 0x7F)
     event.keyDown.controlKeyState = (
-            key_event.dwControlKeyState  & (
-        kbShift, kbCtrlShift, kbAltShift, kbScrollState, kbNumState, kbCapsState, kbEnhanced
+            key_event.dwControlKeyState & (
+        kbShift | kbCtrlShift | kbAltShift | kbScrollState | kbNumState | kbCapsState | kbEnhanced
     ))
 
     if event.keyDown.textLength:
@@ -98,7 +98,7 @@ def get_win32_key(key_event: KEY_EVENT_RECORD, event: Event, input_state: InputS
             key_code = CTRL_CVT[index]
         elif event.keyDown.controlKeyState & kbShift and SHIFT_CVT[index]:
             key_code = SHIFT_CVT[index]
-        elif not (event.keyDown.controlKeyState & (kbShift | kbCtrlShift | kbAltShift)) and NORMAL_CVT[index]:
+        elif not (event.keyDown.controlKeyState & (kbShift | kbCtrlShift | kbAltShift)) and NORMAL_CVT.get(index):
             key_code = NORMAL_CVT[index]
 
         if key_code != 0:
