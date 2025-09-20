@@ -1,18 +1,18 @@
 # -*- coding: utf-8 -*-
-import platform
-
 import logging
-import threading
+import platform
 import sys
+import threading
 
 import wcwidth
 
+from vindauga.misc.singleton import Singleton
 from vindauga.types.display import Display
 from vindauga.types.point import Point
 
 from .adapters.console_adapter import ConsoleAdapter
-from .adapters.display_adapter import DisplayAdapter
 from .adapters.console_ctl import ConsoleCtl
+from .adapters.display_adapter import DisplayAdapter
 from .display_buffer import DisplayBuffer
 from .events.event_waiter import EventWaiter
 from .events.input_state import InputState
@@ -22,41 +22,7 @@ from .screen_cell.screen_cell import ScreenCell
 logger = logging.getLogger(__name__)
 
 
-class Singleton:
-    """
-    A non-thread-safe helper class to ease implementing singletons.
-    This should be used as a decorator -- not a metaclass -- to the
-    class that should be a singleton.
-
-    The decorated class can define one `__init__` function that
-    takes only the `self` argument. Also, the decorated class cannot be
-    inherited from. Other than that, there are no restrictions that apply
-    to the decorated class.
-
-    To get the singleton instance, use the `instance` method. Trying
-    to use `__call__` will result in a `TypeError` being raised.
-
-    """
-    def __init__(self, decorated):
-        self._instance = None
-        self._decorated = decorated
-
-    def instance(self):
-        """
-        Returns the singleton instance. Upon its first call, it creates a
-        new instance of the decorated class and calls its `__init__` method.
-        On all subsequent calls, the already created instance is returned.
-        """
-        if not self._instance:
-            self._instance = self._decorated()
-        return self._instance
-
-    def __call__(self):
-        raise TypeError('Singletons must be accessed through `instance()`.')
-
-
-@Singleton
-class Platform:
+class Platform(metaclass=Singleton):
     def __init__(self):
         self.waiter = EventWaiter()
         self.display_buffer = DisplayBuffer()
@@ -249,7 +215,7 @@ class Platform:
 
     @staticmethod
     def signal_callback(enter: bool):
-        instance: Platform = Platform.instance()
+        instance: Platform = Platform()
         if instance and not instance.console.lock.locked():
             if enter:
                 instance.restore_console()

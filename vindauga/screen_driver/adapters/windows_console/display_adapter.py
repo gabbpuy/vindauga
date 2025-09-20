@@ -1,19 +1,21 @@
 # -*- coding: utf-8 -*-
 from __future__ import annotations
+
 import logging
-from typing import Optional
 import subprocess
+from typing import Optional
 
 import win32console
 
+from vindauga.misc.singleton import Singleton
 from vindauga.screen_driver import ColourAttribute
 from vindauga.screen_driver.adapters.console_ctl import ConsoleCtl
-from vindauga.types.point import Point
 from vindauga.screen_driver.adapters.display_adapter import DisplayAdapter
-from vindauga.screen_driver.ansi.screen_writer import ScreenWriter
-from vindauga.screen_driver.ansi.termcap import TermCap
 from vindauga.screen_driver.ansi.attribute import TermAttribute
 from vindauga.screen_driver.ansi.colour import TermColour
+from vindauga.screen_driver.ansi.screen_writer import ScreenWriter
+from vindauga.screen_driver.ansi.termcap import TermCap
+from vindauga.types.point import Point
 
 logger = logging.getLogger(__name__)
 
@@ -40,17 +42,14 @@ ENABLE_VIRTUAL_TERMINAL_PROCESSING = 0x04
 DISABLE_NEWLINE_AUTO_RETURN = 0x08
 
 
-class WindowsConsoleDisplayAdapter(DisplayAdapter):
+class WindowsConsoleDisplayAdapter(DisplayAdapter, metaclass=Singleton):
     """
     Windows Console Display adapter
     """
-    _instance: Optional[WindowsConsoleDisplayAdapter] = None
 
     @classmethod
     def create(cls, console_ctl: ConsoleCtl) -> WindowsConsoleDisplayAdapter:
-        if cls._instance is None:
-            cls._instance = cls(console_ctl, True)
-        return cls._instance
+        return cls(console_ctl, True)
 
     def __init__(self, console_ctl: ConsoleCtl, use_ansi: bool = False):
         self._console_ctl = console_ctl

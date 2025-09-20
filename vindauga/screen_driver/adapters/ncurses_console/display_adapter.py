@@ -1,10 +1,12 @@
 # -*- coding: utf-8 -*-
 from __future__ import annotations
+
 import atexit
 import curses
 import logging
 from typing import Optional
 
+from vindauga.misc.singleton import Singleton
 from vindauga.screen_driver import ColourAttribute
 from vindauga.screen_driver.adapters.console_ctl import ConsoleCtl
 from vindauga.screen_driver.adapters.display_adapter import DisplayAdapter
@@ -16,23 +18,20 @@ from vindauga.types.point import Point
 logger = logging.getLogger(__name__)
 
 
-class NcursesDisplayAdapter(DisplayAdapter):
+class NcursesDisplayAdapter(DisplayAdapter, metaclass=Singleton):
     """
     Ncurses-based display adapter providing full terminal control
     """
-    _instance: Optional[NcursesDisplayAdapter] = None
-    
+
     def __init__(self, console_ctl: ConsoleCtl):
         self._stdscr = None
         self._initialize_ncurses()
         self._console_ctl = console_ctl
         self.ansi_screen_writer = ScreenWriter(console_ctl, TermCap.get_display_capabilities(console_ctl, self))
 
-    @classmethod 
+    @classmethod
     def create(cls, console_ctl: ConsoleCtl) -> NcursesDisplayAdapter:
-        if cls._instance is None:
-            cls._instance = cls(console_ctl)
-        return cls._instance
+        return cls(console_ctl)
 
     def _initialize_ncurses(self):
         try:

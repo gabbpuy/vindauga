@@ -22,7 +22,7 @@ class HardwareInfo:
 
     def __init__(self):
         self.__insertState: bool = False
-        self.__platform: Platform = Platform.instance()
+        self.__platform: Platform = Platform()
         self.__consoleHandle = []
         self.__consoleMode: int = 0
         self.__pendingEvent: int = 0

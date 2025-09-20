@@ -1,12 +1,14 @@
 # -*- coding: utf-8 -*-
 from __future__ import annotations
-from dataclasses import dataclass
+
 import logging
 import os
 import struct
 import sys
+from dataclasses import dataclass
 from typing import Optional, IO
 
+from vindauga.misc.singleton import Singleton
 from vindauga.types.point import Point
 
 if sys.platform != 'win32':
@@ -25,13 +27,11 @@ if sys.platform == 'win32':
 logger = logging.getLogger(__name__)
 
 
-class ConsoleCtl:
+class ConsoleCtl(metaclass=Singleton):
     """
     Handles terminal type detection and capability management
     """
-    
-    _instance: Optional[ConsoleCtl] = None
-    
+
     def __init__(self):
         self._term_type = None
         self._setup_console()
@@ -41,18 +41,16 @@ class ConsoleCtl:
         """
         Get singleton ConsoleCtl instance
         """
-        if cls._instance is None:
-            cls._instance = cls()
-        return cls._instance
-    
+        return cls()
+
     @classmethod
     def destroyInstance(cls):
         """
         Destroy singleton instance (called during cleanup)
         """
-        if cls._instance:
+        if hasattr(cls, '_instance') and cls._instance:
             cls._instance._cleanup_console()
-        cls._instance = None
+            cls._instance = None
 
     def get_input_fd(self) -> int:
         """
