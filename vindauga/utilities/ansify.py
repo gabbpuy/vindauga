@@ -90,8 +90,8 @@ def wallpaper(filename, bounds: Rect, view: View):
     offset = (width - new_width) // 2
 
     img = img.resize((new_width, new_height))
-    if img.mode != 'RGB':
-        img = img.convert('RGB')
+    if img.mode != 'RGBA':
+        img = img.convert('RGBA')
     pixels = img.load()
     logger.info('Creating wallpaper of (%sx%s)', new_width, new_height)
     lines = []
@@ -112,6 +112,11 @@ def wallpaper(filename, bounds: Rect, view: View):
                 lower_pixel = (0, 0, 0)
             else:
                 lower_pixel = pixels[x, y + 1]
+            # Skip fully transparent pixels...
+            if upper_pixel == lower_pixel and len(upper_pixel) == 4 and not upper_pixel[-1]:
+                continue
+            lower_pixel = lower_pixel[:-1]
+            upper_pixel = upper_pixel[:-1]
             bg = find_256_color_index(*upper_pixel)
             fg = find_256_color_index(*lower_pixel)
             fg = DesiredColour.from_xterm(fg)
