@@ -3,7 +3,7 @@ import logging
 from pathlib import Path
 import random
 
-from PIL import Image, ImageDraw, ImageFont
+from PIL import Image, ImageDraw
 
 from vindauga.constants.buttons import bfDefault
 from vindauga.constants.command_codes import hcNoContext, cmOK, cmCancel, cmQuit
@@ -18,6 +18,7 @@ from vindauga.menus.menu_item import MenuItem
 from vindauga.menus.sub_menu import SubMenu
 
 from vindauga.types.rect import Rect
+from vindauga.utilities.pushd import pushd
 
 from vindauga.widgets.application import Application
 from vindauga.widgets.background import Background
@@ -91,41 +92,45 @@ class WallpaperDemo(Application):
         self.destroy(d)
 
     def _load_image_dialog(self):
-        """Show file dialog to load a new wallpaper image."""
+        """
+        Show file dialog to load a new wallpaper image.
+        """
         # Use single wildcard since FileList.readDirectory doesn't support multiple wildcards
         fileSpec = "*"
+        wallpapers = Path(__file__).parent.parent / 'vindauga_demo' / 'wallpapers'
+        with pushd(wallpapers):
+            d = FileDialog(fileSpec, 'Load Wallpaper Image', '~N~ame', fdOpenButton, 100)
+            if d and self.desktop.execView(d) != cmCancel:
+                filename = d.getFilename()
+                logger.info("Selected file: %s", filename)
 
-        d = FileDialog(fileSpec, 'Load Wallpaper Image', '~N~ame', fdOpenButton, 100)
-        if d and self.desktop.execView(d) != cmCancel:
-            filename = d.getFilename()
-            logger.info("Selected file: %s", filename)
+                # Validate that the selected file is an image
+                if not self._is_image_file(filename):
+                    messageBox("Please select an image file.\n\n"
+                               "Supported formats:\n"
+                               "PNG, JPG, JPEG, GIF, BMP, TIFF",
+                               mfError, (mfOKButton,))
+                    self.destroy(d)
+                    return
 
-            # Validate that the selected file is an image
-            if not self._is_image_file(filename):
-                messageBox("Please select an image file.\n\n"
-                          "Supported formats:\n"
-                          "PNG, JPG, JPEG, GIF, BMP, TIFF",
-                          mfError, (mfOKButton,))
+                # Find the wallpaper background and set the new image
+                # wallpaper_bg = self._find_wallpaper_background()
+                wallpaper_bg = self.desktop._background
+                if isinstance(wallpaper_bg, WallpaperBackground):
+                    try:
+                        wallpaper_bg.set_image(filename)
+                        logger.info("Successfully loaded new wallpaper: %s", filename)
+                    except Exception as e:
+                        logger.error("Failed to load wallpaper image %s: %s", filename, e)
+                        messageBox(f"Failed to load image:\n{filename}\n\n"
+                                   f"Error: {str(e)}",
+                                   mfError, (mfOKButton,))
+                else:
+                    logger.error("Could not find WallpaperBackground to update")
+                    messageBox("Internal error: Could not find wallpaper background to update.",
+                               mfError, (mfOKButton,))
+
                 self.destroy(d)
-                return
-
-            # Find the wallpaper background and set the new image
-            wallpaper_bg = self._find_wallpaper_background()
-            if wallpaper_bg:
-                try:
-                    wallpaper_bg.set_image(filename)
-                    logger.info("Successfully loaded new wallpaper: %s", filename)
-                except Exception as e:
-                    logger.error("Failed to load wallpaper image %s: %s", filename, e)
-                    messageBox(f"Failed to load image:\n{filename}\n\n"
-                              f"Error: {str(e)}",
-                              mfError, (mfOKButton,))
-            else:
-                logger.error("Could not find WallpaperBackground to update")
-                messageBox("Internal error: Could not find wallpaper background to update.",
-                          mfError, (mfOKButton,))
-
-            self.destroy(d)
 
     def _is_image_file(self, filename: str) -> bool:
         """Check if filename has a supported image extension."""
@@ -138,23 +143,6 @@ class WallpaperDemo(Application):
 
         return any(lower_filename.endswith(ext) for ext in image_extensions)
 
-    def _find_wallpaper_background(self):
-        """Find WallpaperBackground in desktop children."""
-        if not self.desktop:
-            return None
-
-        # Walk through desktop children looking for WallpaperBackground
-        current = self.desktop.first
-        while current:
-            logger.info("Checking child: %s", type(current).__name__)
-            if isinstance(current, WallpaperBackground):
-                logger.info("Found WallpaperBackground: %s", current)
-                return current
-            current = current.next
-
-        logger.warning("No WallpaperBackground found in desktop children")
-        return None
-
 
 class WallpaperDesktop(Desktop):
     """
@@ -164,7 +152,7 @@ class WallpaperDesktop(Desktop):
     def initBackground(self, bounds: Rect):
         """Initialize wallpaper background."""
         # Look for a sample image in the examples directory
-        examples_dir = Path(__file__).parent
+        examples_dir = Path(__file__).parent.parent / 'vindauga_demo' / 'wallpapers'
 
         # Try to find any image file in examples directory
         image_extensions = ['.png', '.jpg', '.jpeg', '.gif', '.bmp', '.tiff']

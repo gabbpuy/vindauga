@@ -15,6 +15,7 @@ class AppCommands(IntEnum):
     cmSaveCmd = 110
     cmRestoreCmd = 111
     cmDialogCmd = 112
+    cmLoadWallpaperCmd = 113
 
     cmTest80x25 = auto()
     cmTest80x28 = auto()
