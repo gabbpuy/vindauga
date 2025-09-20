@@ -3,8 +3,8 @@ from __future__ import annotations
 import copy
 from dataclasses import dataclass
 from enum import Enum, auto
-import logging
 from itertools import cycle, islice
+import logging
 from typing import Optional, List, Any
 
 from vindauga.constants.command_codes import cmCancel, hcNoContext, cmReleasedFocus, cmLoseFocus

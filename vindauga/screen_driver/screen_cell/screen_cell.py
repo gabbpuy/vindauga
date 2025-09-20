@@ -9,6 +9,8 @@ from .cell_char import CellChar
 
 
 class ScreenCell:
+    __slots__ = ('_ch', 'attr')
+
     def __init__(self, bios: int | None = None):
         self._ch = CellChar()
         self.attr = ColourAttribute()

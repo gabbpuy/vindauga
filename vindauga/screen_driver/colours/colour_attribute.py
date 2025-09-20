@@ -14,6 +14,8 @@ logger = logging.getLogger(__name__)
 
 
 class ColourAttribute:
+    __slots__ = ('_style', '_fg', '_bg')
+
     def __init__(self, bios: int | None = None):
         self._style: StyleMask = StyleMask.NONE
         self._fg: int = 0

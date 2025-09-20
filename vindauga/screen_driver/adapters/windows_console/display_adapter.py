@@ -245,8 +245,8 @@ class WindowsConsoleDisplayAdapter(DisplayAdapter):
             # If attr has color extraction methods, use them
             if hasattr(attr, 'foreground') and hasattr(attr, 'background'):
                 # Convert to indexed colors (basic 16-color palette)
-                fg_idx = getattr(attr.foreground, 'value', 7) if attr.foreground else 7
-                bg_idx = getattr(attr.background, 'value', 0) if attr.background else 0
+                fg_idx = attr.foreground or 7
+                bg_idx = attr.background or 0
                 fg = TermColour.indexed(fg_idx & 0x0F)
                 bg = TermColour.indexed(bg_idx & 0x0F)
             elif hasattr(attr, 'to_bios') or hasattr(attr, 'toBIOS'):

@@ -3,7 +3,7 @@ from vindauga.events.mouse_event import MouseEvent
 from vindauga.screen_driver.hardware_info import hardware_info
 
 
-class HW_Mouse:
+class HardwareMouse:
     _buttonCount: int = 0
     __handlerInstalled = False
     __noMouse = False
@@ -36,58 +36,58 @@ class HW_Mouse:
 
     @staticmethod
     def _present() -> bool:
-        return HW_Mouse._buttonCount != 0
+        return HardwareMouse._buttonCount != 0
 
     @staticmethod
     def _suspend():
-        HW_Mouse._hide()
-        HW_Mouse._buttonCount = 0
+        HardwareMouse._hide()
+        HardwareMouse._buttonCount = 0
 
     @staticmethod
     def _resume():
-        HW_Mouse._buttonCount = hardware_info.getButtonCount()
-        HW_Mouse._show()
+        HardwareMouse._buttonCount = hardware_info.getButtonCount()
+        HardwareMouse._show()
 
     @staticmethod
     def _inhibit():
-        HW_Mouse.__noMouse = True
+        HardwareMouse.__noMouse = True
 
     @staticmethod
     def registerHandler():
-        if not HW_Mouse._present():
+        if not HardwareMouse._present():
             return
-        HW_Mouse.__handlerInstalled = True
+        HardwareMouse.__handlerInstalled = True
 
     def __del__(self):
-        HW_Mouse._suspend()
+        HardwareMouse._suspend()
 
 
-class Mouse(HW_Mouse):
+class Mouse(HardwareMouse):
 
     @staticmethod
     def show():
-        HW_Mouse._show()
+        HardwareMouse._show()
 
     @staticmethod
     def hide():
-        HW_Mouse._hide()
+        HardwareMouse._hide()
 
     @staticmethod
     def setRange(low: int, high: int):
-        HW_Mouse._setRange(low, high)
+        HardwareMouse._setRange(low, high)
 
     @staticmethod
     def getEvent(event: MouseEvent):
-        HW_Mouse._getEvent(event)
+        HardwareMouse._getEvent(event)
 
     @staticmethod
     def present() -> bool:
-        return HW_Mouse._present()
+        return HardwareMouse._present()
 
     @staticmethod
     def suspend():
-        HW_Mouse._suspend()
+        HardwareMouse._suspend()
 
     @staticmethod
     def resume():
-        HW_Mouse._resume()
+        HardwareMouse._resume()

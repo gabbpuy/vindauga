@@ -7,6 +7,8 @@ if TYPE_CHECKING:
 
 
 class AttributePair:
+    __slots__ = ('_attrs',)
+
     def __init__(self, bios: int | None = None, pair: tuple[ColourAttribute, ColourAttribute] | None = None):
         from .colour_attribute import ColourAttribute
         if bios is not None:

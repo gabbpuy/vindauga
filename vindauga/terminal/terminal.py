@@ -619,11 +619,6 @@ class Terminal:
                 self.bg = defaultBg
 
             self.colors = self._create_colour_attribute(self.fg, self.bg, self.currAttr)
-            # self.colors = self.fg | (self.bg << 4)
-            # if self.currAttr & curses.A_BOLD:
-            #     self.colors |= 8
-            # if self.currAttr & curses.A_BLINK:
-            #     self.colors |= 128
 
     def do_DEC_RM(self):
         """

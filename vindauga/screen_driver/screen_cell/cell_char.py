@@ -11,6 +11,8 @@ class CellFlags(IntFlag):
 
 
 class CellChar:
+    __slots__ = ('_text', '_text_length', '_flags')
+
     def __init__(self):
         self._text: list[str] = []
         self._text_length = 0

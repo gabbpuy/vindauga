@@ -23,26 +23,19 @@ class SigWinchHandler(WakeUpEventSource):
 
     @staticmethod
     def handleSignal(signalNumber: int, _frame=None) -> None:
-        logger.warning("SIGWINCH received, signaling event")
         if instance := SigWinchHandler.instance:
             instance.signal()
-        else:
-            logger.warning("No SigWinchHandler instance to signal!")
 
     @staticmethod
     def emitScreenChangedEvent(event: Event, *_args) -> bool:
-        logger.warning("emitScreenChangedEvent called - creating cmScreenChanged event")
         event.what = evCommand
         event.message.command = cmScreenChanged
-        logger.warning("cmScreenChanged event created: what=%s, command=%s", event.what, event.message.command)
         return True
 
     @staticmethod
     def create() -> SigWinchHandler | None:
-        logger.info('Creating SigWinchHandler')
         if not SigWinchHandler.instance:
             old_handler = signal.signal(signal.SIGWINCH, SigWinchHandler.handleSignal)
-            logger.info('Old SigWinchHandler was %s', old_handler)
             try:
                 if handle := SysManualEvent.create_handle():
                     return SigWinchHandler(handle, old_handler)

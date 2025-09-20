@@ -19,6 +19,7 @@ class Cursor:
     """
     Handles cursor position calculation and visibility.
     """
+
     def __init__(self):
         self.view: View | None = None
         self.x: int = 0
@@ -28,21 +29,20 @@ class Cursor:
         """
         Reset cursor position and visibility for the given view
         """
-        
+
         self.view = view
         self.x = view.cursor.x
         self.y = view.cursor.y
 
         caret_size = self._compute_caret_size()
-        
+
         # Convert view-relative coordinates to screen coordinates
         screen_x, screen_y = self._convert_to_screen_coords()
-        
-        
+
         if caret_size:
             # Set cursor position through hardware info
             hardware_info.setCaretPosition(screen_x, screen_y)
-            
+
         # Set cursor size through hardware info  
         hardware_info.setCaretSize(caret_size)
 
@@ -61,12 +61,10 @@ class Cursor:
         v = self.view
         x, y = self.x, self.y
 
-
         # Walk up the view hierarchy to check if cursor is visible
         while 0 <= y < v.size.y and 0 <= x < v.size.x:
             y += v.origin.y
             x += v.origin.x
-
 
             if v.owner:
                 if v.owner.state & sfVisible:
@@ -123,17 +121,15 @@ class Cursor:
         """
         if not self.view:
             return 0, 0
-            
+
         # Start with view-relative coordinates
         x, y = self.x, self.y
         v = self.view
-        
+
         # Walk up the view hierarchy, accumulating coordinate transformations
         while v:
             y += v.origin.y
             x += v.origin.x
             v = v.owner
-            
+
         return x, y
-
-
