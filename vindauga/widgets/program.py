@@ -215,9 +215,9 @@ class Program(Group):
                 self.statusLine.handleEvent(event)
 
         if event.what == evCommand and event.message.command == cmScreenChanged:
-            logger.warning("Program received cmScreenChanged event - calling setScreenMode(smUpdate)")
+            logger.info("Program received cmScreenChanged event - calling setScreenMode(smUpdate)")
             self.setScreenMode(Display.smUpdate)
-            logger.warning("setScreenMode(smUpdate) completed")
+            logger.info("setScreenMode(smUpdate) completed")
             self.clearEvent(event)
 
     def putEvent(self, event: Event):

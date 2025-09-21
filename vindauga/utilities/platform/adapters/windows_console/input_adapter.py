@@ -111,7 +111,7 @@ class WindowsConsoleInputAdapter(InputAdapter):
                 try:
                     locale.setlocale(locale.LC_ALL, "en_US.UTF-8")
                 except locale.Error:
-                    logger.warning("Could not set UTF-8 locale")
+                    logger.error("Could not set UTF-8 locale")
             
         except Exception as e:
             logger.error("Failed to setup Windows console modes: %s", e)

@@ -389,7 +389,7 @@ class NcursesInputAdapter(InputAdapter):
             text_str = key_event.text.decode('utf-8')
             key_event.charScan.charCode = CodepageTranslator().from_utf8(text_str)
         except UnicodeDecodeError:
-            logger.warning('Failed to decode UTF-8 text: %s', key_event.text)
+            logger.error('Failed to decode UTF-8 text: %s', key_event.text)
 
         if key_event.keyCode <= Keys.kbCtrlZ:
             key_event.keyCode = Keys.kbNoKey
