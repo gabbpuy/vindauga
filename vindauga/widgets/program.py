@@ -280,7 +280,7 @@ class Program(Group):
         return self.appPalette
 
     def setPalette(self, palette: Palette):
-        self.appPalette = palette
+        self.appPalette = Palette(palette)
 
     def idle(self):
         """

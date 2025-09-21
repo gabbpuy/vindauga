@@ -24,7 +24,7 @@ from vindauga.constants.state_flags import (sfVisible, sfCursorVis, sfCursorIns,
 from vindauga.events.event import Event
 from vindauga.misc.message import message
 from vindauga.misc.util import clamp
-from vindauga.screen_driver.colours.colour_attribute import ColourAttribute
+from vindauga.screen_driver.colours.colour_attribute import ColourAttribute, reverse_attribute, get_style, set_style, get_back
 from vindauga.screen_driver.colours.attribute_pair import AttributePair
 from vindauga.screen_driver.hardware_info import hardware_info
 from vindauga.screen_driver.screen_cell.screen_cell import ScreenCell, set_cell, set_attr
@@ -37,6 +37,7 @@ from .point import Point
 from .rect import Rect
 from .screen import Screen
 from .vindauga_object import VindaugaObject
+from ..screen_driver.colours.style_mask import StyleMask
 
 logger = logging.getLogger(__name__)
 
@@ -964,7 +965,7 @@ class View(VindaugaObject):
         if int(color) == 0:
             return ColourAttribute.from_bios(self.errorAttr)
         if self.owner:
-            return self.owner.mapColor(color.to_bios())
+            return self.owner.mapColor(int(color))  # .to_bios())
         return color
 
     def getState(self, state) -> bool:
@@ -1438,7 +1439,11 @@ class View(VindaugaObject):
         src = itertools.islice(self.savedBuffer, start, start + width)
         for offset, d in enumerate(src):
             # Create shadow cell - keep character, set shadow attribute
-            shadow_cell = copy.deepcopy(d)
+            shadow_cell: ScreenCell = copy.deepcopy(d)
+            # special handling for the wallpaper character...
+            if shadow_cell.char == '▄':
+                shadow_cell.char = '▒'
+
             set_attr(shadow_cell, SHADOW_ATTR)
             d = shadow_cell
             if view.owner.buffer is Screen.screen.screenBuffer:

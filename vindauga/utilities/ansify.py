@@ -23,7 +23,6 @@ class BitMap:
 
 
 BLOCK = BitMap(0x0000ffff, 0x2584, '▄')  # lower 1/2
-# BLOCK = BitMap(0x5a5a5a5a, 0x2592, '▒')
 
 # Color steps
 COLOR_STEPS = [0, 0x5f, 0x87, 0xaf, 0xd7, 0xff]
