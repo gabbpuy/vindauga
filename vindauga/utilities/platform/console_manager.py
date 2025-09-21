@@ -22,7 +22,7 @@ from vindauga.utilities.screen.screen_cell import ScreenCell
 logger = logging.getLogger(__name__)
 
 
-class Platform(metaclass=Singleton):
+class ConsoleManager(metaclass=Singleton):
     def __init__(self):
         self.waiter = EventWaiter()
         self.display_buffer = DisplayBuffer()
@@ -215,7 +215,7 @@ class Platform(metaclass=Singleton):
 
     @staticmethod
     def signal_callback(enter: bool):
-        instance: Platform = Platform()
+        instance: ConsoleManager = ConsoleManager()
         if instance and not instance.console.lock.locked():
             if enter:
                 instance.restore_console()

@@ -6,7 +6,7 @@ from vindauga.events.mouse_event import MouseEvent
 import vindauga.constants.event_codes as event_codes
 from vindauga.constants.keys import kbPaste, kbEnter, kbTab
 from vindauga.mouse.mouse import Mouse
-from vindauga.utilities.platform.hardware_info import hardware_info
+from vindauga.utilities.platform.system_interface import systemInterface
 from vindauga.utilities.text.text import Text
 from vindauga.types.screen import Screen
 
@@ -123,7 +123,7 @@ class EventQueue:
         Get mouse state
         """
         event.what = event_codes.evNothing
-        mouse_event = hardware_info.getMouseEvent()
+        mouse_event = systemInterface.getMouseEvent()
         if not mouse_event:
             return False
 
@@ -132,7 +132,7 @@ class EventQueue:
         if self.mouseReverse and self.curMouse.buttons != 0 and self.curMouse.buttons != 3:
             self.curMouse.buttons ^= 3
 
-        event.what = hardware_info.getTickCount()
+        event.what = systemInterface.getTickCount()
         event.mouse.copy(self.curMouse)
         return True
 
@@ -167,7 +167,7 @@ class EventQueue:
         """
         # Only wait if no paste text and no queued key events
         if self.pasteText is None and self.keyEventCount == 0:
-            hardware_info.waitForEvents(timeoutMs)
+            systemInterface.waitForEvents(timeoutMs)
 
     def suspend(self) -> None:
         """
@@ -186,7 +186,6 @@ class EventQueue:
         mouse = Mouse.getEvent(self.curMouse)
         if mouse:
             self.lastMouse.copy(mouse)
-        hardware_info.clearPendingEvent()
         self.mouseEvents = True
         if Screen.screen:
             Mouse.setRange(Screen.screen.screenWidth - 1, Screen.screen.screenHeight - 1)
@@ -195,13 +194,13 @@ class EventQueue:
         """
         Wake up event loop (thread-safe).
         """
-        hardware_info.interruptEventWait()
+        systemInterface.interruptEventWait()
 
     def readKeyPress(self, event) -> bool:
         """
         Read a single key press from hardware
         """
-        if not hardware_info.getKeyEvent(event):
+        if not systemInterface.getKeyEvent(event):
             event.what = event_codes.evNothing
         return event.what != event_codes.evNothing
 

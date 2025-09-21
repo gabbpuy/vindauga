@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 from vindauga.events.mouse_event import MouseEvent
-from vindauga.utilities.platform.hardware_info import hardware_info
+from vindauga.utilities.platform.system_interface import systemInterface
 
 
 class HardwareMouse:
@@ -13,11 +13,11 @@ class HardwareMouse:
 
     @staticmethod
     def _show():
-        hardware_info.cursorOn()
+        systemInterface.cursorOn()
 
     @staticmethod
     def _hide():
-        hardware_info.cursorOff()
+        systemInterface.cursorOff()
 
     @staticmethod
     def _setRange(low: int, high: int):
@@ -45,7 +45,7 @@ class HardwareMouse:
 
     @staticmethod
     def _resume():
-        HardwareMouse._buttonCount = hardware_info.getButtonCount()
+        HardwareMouse._buttonCount = systemInterface.getButtonCount()
         HardwareMouse._show()
 
     @staticmethod

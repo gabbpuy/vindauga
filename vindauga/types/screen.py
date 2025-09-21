@@ -7,7 +7,7 @@ import sys
 import threading
 import traceback
 
-from vindauga.utilities.platform.hardware_info import hardware_info
+from vindauga.utilities.platform.system_interface import systemInterface
 from vindauga.utilities.screen.screen_cell import ScreenCell
 from vindauga.types.display import Display
 from vindauga.mouse.mouse import Mouse
@@ -21,25 +21,25 @@ class _Display:
         self.__updateIntlChars()
 
     def clearScreen(self, w: int, h: int):
-        hardware_info.clearScreen(w, h)
+        systemInterface.clearScreen(w, h)
 
     def setCursorType(self, ct: int):
-        hardware_info.setCaretSize(ct & 0xFF)
+        systemInterface.setCaretSize(ct & 0xFF)
 
     def getCursorType(self) -> int:
-        return hardware_info.getCaretSize()
+        return systemInterface.getCaretSize()
 
     def getRows(self) -> int:
-        return hardware_info.getScreenRows()
+        return systemInterface.getScreenRows()
 
     def getCols(self) -> int:
-        return hardware_info.getScreenCols()
+        return systemInterface.getScreenCols()
 
     def setCrtMode(self, mode: int):
-        hardware_info.setScreenMode(mode)
+        systemInterface.setScreenMode(mode)
 
     def getCrtMode(self) -> int:
-        return hardware_info.getScreenMode()
+        return systemInterface.getScreenMode()
 
     def __updateIntlChars(self):
         pass
@@ -69,11 +69,11 @@ class Screen(_Display):
         self.screenMode: int = 0
         self.clearOnSuspend: bool = False  # Set to False to prevent grey screen during resize
 
-        hardware_info.setupConsole()
+        systemInterface.setupConsole()
         # Expose platform for compatibility checking
         self.startupMode = self.getCrtMode()
         self.startupCursor = self.getCursorType()
-        self.screenBuffer: list[ScreenCell] = hardware_info.allocateScreenBuffer()
+        self.screenBuffer: list[ScreenCell] = systemInterface.allocateScreenBuffer()
         self.setCrtData()
         self.cursorLines: int = 0
 
@@ -82,8 +82,8 @@ class Screen(_Display):
         if mode != Display.smUpdate:
             self.setCrtMode(self.fixCrtMode(mode))
         else:
-            hardware_info.freeScreenBuffer(self.screenBuffer)
-            self.screenBuffer = hardware_info.allocateScreenBuffer()
+            systemInterface.freeScreenBuffer(self.screenBuffer)
+            self.screenBuffer = systemInterface.allocateScreenBuffer()
         self.setCrtData()
         if Mouse.present():
             Mouse.setRange(self.getCols() - 1, self.getRows() - 1)
@@ -92,7 +92,7 @@ class Screen(_Display):
         super().clearScreen(self.screenWidth, self.screenHeight)
 
     def flushScreen(self):
-        hardware_info.flushScreen()
+        systemInterface.flushScreen()
 
     def setCrtData(self):
         raw_mode = self.getCrtMode()
@@ -114,7 +114,7 @@ class Screen(_Display):
         return mode
 
     def setScreenSize(self, width, height):
-        hardware_info.resize(width, height)
+        systemInterface.resize(width, height)
         self.setVideoMode(Display.smUpdate)
 
     def suspend(self):
@@ -123,7 +123,7 @@ class Screen(_Display):
         if self.clearOnSuspend:
             self.clearScreen()
         self.setCursorType(self.startupCursor)
-        hardware_info.restoreConsole()
+        systemInterface.restoreConsole()
 
     def refresh(self):
         """

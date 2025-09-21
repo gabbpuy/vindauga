@@ -6,8 +6,8 @@ import logging
 from vindauga.constants.state_flags import sfVisible, sfCursorVis, sfFocused, sfCursorIns
 
 from vindauga.types.screen import Screen
-from vindauga.utilities.platform.hardware_info import hardware_info
-from vindauga.utilities.platform.platform import Platform
+from vindauga.utilities.platform.system_interface import systemInterface
+from vindauga.utilities.platform.console_manager import ConsoleManager
 
 logger = logging.getLogger(__name__)
 
@@ -41,10 +41,10 @@ class Cursor:
 
         if caret_size:
             # Set cursor position through hardware info
-            hardware_info.setCaretPosition(screen_x, screen_y)
+            systemInterface.setCaretPosition(screen_x, screen_y)
 
         # Set cursor size through hardware info  
-        hardware_info.setCaretSize(caret_size)
+        systemInterface.setCaretSize(caret_size)
 
     def _compute_caret_size(self) -> int:
         """

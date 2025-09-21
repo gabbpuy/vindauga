@@ -4,7 +4,7 @@ import unittest
 from unittest.mock import Mock, patch
 import logging
 
-from vindauga.utilities.platform.hardware_info import HardwareInfo
+from vindauga.utilities.platform.system_interface import SystemInterface
 from vindauga.events.event import Event
 from vindauga.constants.event_codes import evNothing, evKeyDown, evMouse
 
@@ -17,7 +17,7 @@ class TestHardwareInfoEvents(unittest.TestCase):
         """
 Set up test fixtures
 """
-        self.hardware_info = HardwareInfo()
+        self.hardware_info = SystemInterface()
 
     def test_hardware_info_creation(self):
         """

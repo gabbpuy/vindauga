@@ -17,7 +17,7 @@ from vindauga.menus.menu_bar import MenuBar
 from vindauga.utilities.input.character_codes import getAltChar
 from vindauga.utilities.message import message
 from vindauga.mouse.mouse import Mouse
-from vindauga.utilities.platform.hardware_info import hardware_info
+from vindauga.utilities.platform.system_interface import systemInterface
 from vindauga.types.display import Display
 from vindauga.types.group import Group
 from vindauga.types.palette import Palette
@@ -94,8 +94,8 @@ class Program(Group):
     eventTimeoutMs = 20
 
     def __init__(self):
-        w = hardware_info.getScreenCols()
-        h = hardware_info.getScreenRows()
+        w = systemInterface.getScreenCols()
+        h = systemInterface.getScreenRows()
         super().__init__(Rect(0, 0, w, h))
         color = Palette(self.cpAppColor)
         blackWhite = Palette(self.cpAppBlackWhite)

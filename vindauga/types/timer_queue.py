@@ -7,11 +7,11 @@ from typing import Callable
 
 from dataclasses import dataclass
 
-from vindauga.utilities.platform.hardware_info import hardware_info
+from vindauga.utilities.platform.system_interface import systemInterface
 
 
 def systemTimeMs():
-    return hardware_info.getTickCount() * 55000
+    return systemInterface.getTickCount() * 55000
 
 
 @dataclass

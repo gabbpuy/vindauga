@@ -26,7 +26,7 @@ from vindauga.utilities.message import message
 from vindauga.utilities.math_utils import clamp
 from vindauga.utilities.colours.colour_attribute import ColourAttribute, reverse_attribute, get_style, set_style, get_back
 from vindauga.utilities.colours.attribute_pair import AttributePair
-from vindauga.utilities.platform.hardware_info import hardware_info
+from vindauga.utilities.platform.system_interface import systemInterface
 from vindauga.utilities.screen.screen_cell import ScreenCell, set_cell, set_attr
 
 from .command_set import CommandSet
@@ -1424,7 +1424,7 @@ class View(VindaugaObject):
         soff = left - offset
         if pOwner.buffer is Screen.screen.screenBuffer:
             # Write something to the screen.
-            hardware_info.screenWrite(left, context.y, self.savedBuffer[soff: soff + width], width)
+            systemInterface.screenWrite(left, context.y, self.savedBuffer[soff: soff + width], width)
 
         poff = pOwner.size.x * context.y + left
         # Use individual assignments instead of slice assignment to avoid buffer size corruption
@@ -1447,7 +1447,7 @@ class View(VindaugaObject):
             set_attr(shadow_cell, SHADOW_ATTR)
             d = shadow_cell
             if view.owner.buffer is Screen.screen.screenBuffer:
-                hardware_info.screenWrite(offset + left, context.y, [d], 1)
+                systemInterface.screenWrite(offset + left, context.y, [d], 1)
             view.owner.buffer[dst1 + offset] = d
 
     def __handleMouseDownDrag(self, event: Event, mode: int, limits: Rect, minSize: Point, maxSize: Point):
