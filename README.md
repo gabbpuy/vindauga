@@ -11,13 +11,10 @@ both. I had previously built a version of this by transliteration which was quit
 The benefits of this version;
 
 * No dependencies other than curses (See Windows below to have it work in a cmd/powershell window)
-  * Will try in Windows Terminal when it arrives (it should work fine)
-    * It does not work fine. Rendering has issues. Mouse doesn't work.
 * A lot of refactoring to make the code-base somewhat consistent.
 * It uses unicode by default, (so no CP437)
   * See [UTF-Demo](UTF-8-demo.txt) and [Cyrillic Test](examples/cyrillic-test.py)
   * The file viewer works with UTF-8 encoded files, see [UTF-Demo](UTF-8-demo.txt).
-  * Unicode data entry however, is a different story, that's still an issue.
   * `gettext` is enabled so you can use the `_()` built-in, there's no extraction now though.
 * Curses mouse works in DOS windows and Cygwin, putty etc.
 * Some stuff is Pythonic. 
@@ -40,12 +37,7 @@ whatever size you want, but if you want them pre-allocated it's 1K.
 ![demo](docs/screen-show.gif)
 
 ### Windows
-If you want to use it from a command window, using native Python, you'll need to `pip install windows-curses` and it 
-will work fine.
-
 You'll also need to install the `pywin32` libraries. 
-
-`Terminal` has a buffering problem with stdin echoing from cmd prompts. 
 
 Running it in Cygwin doesn't require anything, just use the cygwin python in a mintty window.
 
