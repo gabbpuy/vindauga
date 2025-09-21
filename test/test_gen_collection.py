@@ -6,8 +6,8 @@ from vindauga.types.collections.gen_collection import GenCollection
 
 class Test_GenCollection(TestCase):
     """
-Test Collection
-"""
+    Test Collection
+    """
     def test_gen_collection(self):
         t = GenCollection()
 

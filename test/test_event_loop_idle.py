@@ -1,16 +1,7 @@
-#!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-"""
-Unit tests for event loop idle handling
-"""
-
 import unittest
-import sys
-import os
-sys.path.insert(0, os.path.dirname(os.path.dirname(__file__)))
 
 from vindauga.events.event import Event
-from vindauga.widgets.program import Program
 from vindauga.constants.event_codes import evNothing, evKeyDown
 from vindauga.constants.keys import kbEnter
 
@@ -22,16 +13,16 @@ Test that the event loop properly calls idle() method
 
     def setUp(self):
         """
-Set up test fixtures
-"""
+        Set up test fixtures
+        """
         # We can't easily test Program directly due to Screen dependencies
         # But we can test the event processing logic
         self.idle_call_count = 0
         
     def test_idle_called_when_no_events(self):
         """
-Test that idle() is called when getEvent returns evNothing
-"""
+        Test that idle() is called when getEvent returns evNothing
+        """
         
         # Create a mock program that tracks idle calls
         class MockProgram:
@@ -43,8 +34,8 @@ Test that idle() is called when getEvent returns evNothing
                 
             def getEvent_logic(self, event):
                 """
-Simplified version of Program.getEvent logic
-"""
+                Simplified version of Program.getEvent logic
+                """
                 # Simulate no pending events
                 event.what = evNothing
                 
@@ -65,8 +56,8 @@ Simplified version of Program.getEvent logic
 
     def test_idle_not_called_when_events_available(self):
         """
-Test that idle() is not called when events are available
-"""
+        Test that idle() is not called when events are available
+        """
         
         class MockProgram:
             def __init__(self):
@@ -77,8 +68,8 @@ Test that idle() is not called when events are available
                 
             def getEvent_logic_with_key(self, event):
                 """
-Simulate getEvent with keyboard input
-"""
+                Simulate getEvent with keyboard input
+                """
                 # Simulate key event available
                 event.what = evKeyDown
                 event.keyDown.keyCode = kbEnter
@@ -93,8 +84,8 @@ Simulate getEvent with keyboard input
 
     def test_event_processing_order(self):
         """
-Test the order of event processing matches Program.getEvent
-"""
+        Test the order of event processing matches Program.getEvent
+        """
         
         class MockProgram:
             def __init__(self):
@@ -105,8 +96,8 @@ Test the order of event processing matches Program.getEvent
                 
             def getEvent_simulation(self, event, has_pending=False, has_mouse=False, has_key=False):
                 """
-Simulate the full getEvent logic
-"""
+                Simulate the full getEvent logic
+                """
                 
                 if has_pending:
                     event.what = evKeyDown  # Simulate pending event
@@ -142,7 +133,3 @@ Simulate the full getEvent logic
         program.getEvent_simulation(event, has_key=True)
         expected = ["waitForEvents", "key"]
         self.assertEqual(program.processing_order, expected)
-
-
-if __name__ == '__main__':
-    unittest.main()

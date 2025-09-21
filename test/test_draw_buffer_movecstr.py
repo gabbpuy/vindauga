@@ -3,6 +3,8 @@ import unittest
 from unittest.mock import Mock
 
 from vindauga.types.draw_buffer import DrawBuffer
+from vindauga.types.rect import Rect
+from vindauga.types.view import View
 from vindauga.utilities.colours.attribute_pair import AttributePair
 from vindauga.utilities.colours.colour_attribute import ColourAttribute
 from vindauga.types.screen import Screen
@@ -10,13 +12,13 @@ from vindauga.types.screen import Screen
 
 class TestDrawBufferMoveCStr(unittest.TestCase):
     """
-Test DrawBuffer.moveCStr method for hotkey text formatting
-"""
+    Test DrawBuffer.moveCStr method for hotkey text formatting
+    """
 
     def setUp(self):
         """
-Set up test fixtures
-"""
+        Set up test fixtures
+        """
         # Create a mock screen with 80x25 dimensions
         mock_screen = Mock()
         mock_screen.screenWidth = 80
@@ -32,15 +34,15 @@ Set up test fixtures
 
     def tearDown(self):
         """
-Clean up test fixtures
-"""
+        Clean up test fixtures
+        """
         # Reset the global screen instance
         Screen.screen = None
 
     def test_simple_text_no_tildes(self):
         """
-Test moveCStr with plain text (no ~ characters)
-"""
+        Test moveCStr with plain text (no ~ characters)
+        """
         text = "Hello World"
         count = self.buffer.moveCStr(0, text, self.attrs)
         
@@ -50,8 +52,8 @@ Test moveCStr with plain text (no ~ characters)
 
     def test_single_tilde_toggle(self):
         """
-Test moveCStr with single ~ to toggle highlighting
-"""
+        Test moveCStr with single ~ to toggle highlighting
+        """
         text = "~Alt+X~ Exit"
         count = self.buffer.moveCStr(0, text, self.attrs)
         
@@ -62,8 +64,8 @@ Test moveCStr with single ~ to toggle highlighting
 
     def test_multiple_tilde_toggles(self):
         """
-Test moveCStr with multiple ~ toggles
-"""
+        Test moveCStr with multiple ~ toggles
+        """
         text = "~F1~ Help ~F2~ Save ~F3~ Exit"
         count = self.buffer.moveCStr(0, text, self.attrs)
         
@@ -73,8 +75,8 @@ Test moveCStr with multiple ~ toggles
 
     def test_alt_x_exit_statusbar_item(self):
         """
-Test the specific Alt-X Exit text that was garbling
-"""
+        Test the specific Alt-X Exit text that was garbling
+        """
         text = "~Alt+X~ Exit"
         count = self.buffer.moveCStr(0, text, self.attrs)
         
@@ -85,8 +87,8 @@ Test the specific Alt-X Exit text that was garbling
 
     def test_f11_help_statusbar_item(self):
         """
-Test F11 Help statusbar text
-"""
+        Test F11 Help statusbar text
+        """
         text = "~F11~ Help"
         count = self.buffer.moveCStr(0, text, self.attrs)
         
@@ -96,8 +98,8 @@ Test F11 Help statusbar text
 
     def test_attribute_toggling(self):
         """
-Test that attributes properly toggle between normal and highlight
-"""
+        Test that attributes properly toggle between normal and highlight
+        """
         text = "~Alt+X~ Exit"
         count = self.buffer.moveCStr(0, text, self.attrs)
         
@@ -111,15 +113,15 @@ Test that attributes properly toggle between normal and highlight
 
     def test_empty_text(self):
         """
-Test moveCStr with empty text
-"""
+        Test moveCStr with empty text
+        """
         count = self.buffer.moveCStr(0, "", self.attrs)
         self.assertEqual(count, 0)
 
     def test_only_tildes(self):
         """
-Test moveCStr with only tilde characters
-"""
+        Test moveCStr with only tilde characters
+        """
         text = "~~~~"
         count = self.buffer.moveCStr(0, text, self.attrs)
         
@@ -128,8 +130,8 @@ Test moveCStr with only tilde characters
 
     def test_indent_parameter(self):
         """
-Test moveCStr with non-zero indent
-"""
+        Test moveCStr with non-zero indent
+        """
         text = "~F1~ Help"
         indent = 5
         count = self.buffer.moveCStr(indent, text, self.attrs)
@@ -140,8 +142,8 @@ Test moveCStr with non-zero indent
 
     def test_attribute_pair_extraction(self):
         """
-Test that AttributePair attributes are properly extracted
-"""
+        Test that AttributePair attributes are properly extracted
+        """
         text = "Test"
         count = self.buffer.moveCStr(0, text, self.attrs)
         
@@ -153,24 +155,22 @@ Test that AttributePair attributes are properly extracted
 
     def _get_buffer_text(self, count):
         """
-Helper to extract text from buffer
-"""
+        Helper to extract text from buffer
+        """
         return ''.join(cell.char or '' for cell in self.buffer.data[:count])
 
     def _get_buffer_text_from_position(self, start, count):
         """
-Helper to extract text from buffer starting at position
-"""
+        Helper to extract text from buffer starting at position
+        """
         return ''.join(cell.char or '' for cell in self.buffer.data[start:start+count])
 
     def test_statusline_scenario_getcolor_result(self):
         """
-Test moveCStr with AttributePair from getColor() like StatusLine uses
-"""
+        Test moveCStr with AttributePair from getColor() like StatusLine uses
+        """
         # Simulate what StatusLine does: getColor(0x0301) returns AttributePair
-        from vindauga.types.view import View
-        from vindauga.types.rect import Rect
-        
+
         # Create a mock view to test getColor
         view = View(Rect(0, 0, 10, 1))
         attrs = view.getColor(0x0301)  # This returns AttributePair

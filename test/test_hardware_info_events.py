@@ -15,20 +15,20 @@ class TestHardwareInfoEvents(unittest.TestCase):
 
     def setUp(self):
         """
-Set up test fixtures
-"""
+        Set up test fixtures
+        """
         self.hardware_info = SystemInterface()
 
     def test_hardware_info_creation(self):
         """
-Test that HardwareInfo can be created
-"""
+        Test that HardwareInfo can be created
+        """
         self.assertIsNotNone(self.hardware_info)
 
     def test_basic_properties(self):
         """
-Test basic HardwareInfo properties
-"""
+        Test basic HardwareInfo properties
+        """
         # Test button count
         self.assertEqual(self.hardware_info.getButtonCount(), 2)
 
@@ -37,8 +37,8 @@ Test basic HardwareInfo properties
 
     def test_screen_methods_exist(self):
         """
-Test that screen-related methods exist and are callable
-"""
+        Test that screen-related methods exist and are callable
+        """
         # These should not crash when called
         try:
             self.hardware_info.getScreenRows()
@@ -50,8 +50,8 @@ Test that screen-related methods exist and are callable
 
     def test_console_methods_exist(self):
         """
-Test that console setup/restore methods exist
-"""
+        Test that console setup/restore methods exist
+        """
         # These should not crash when called
         try:
             self.hardware_info.setupConsole()
@@ -62,8 +62,8 @@ Test that console setup/restore methods exist
 
     def test_cursor_methods_exist(self):
         """
-Test that cursor methods exist and are callable
-"""
+        Test that cursor methods exist and are callable
+        """
         # These should not crash when called
         try:
             self.hardware_info.cursorOn()
@@ -78,8 +78,8 @@ Test that cursor methods exist and are callable
 
     def test_getKeyEvent_with_no_events(self):
         """
-Test getKeyEvent when no events are available
-"""
+        Test getKeyEvent when no events are available
+        """
         event = Event(evNothing)
 
         # Mock the platform to return no events
@@ -92,8 +92,8 @@ Test getKeyEvent when no events are available
 
     def test_getMouseEvent_with_no_events(self):
         """
-Test getMouseEvent when no events are available
-"""
+        Test getMouseEvent when no events are available
+        """
         # Mock the platform to return no events
         with patch.object(self.hardware_info, '_HardwareInfo__platform') as mock_platform:
             mock_platform.get_event.return_value = False
@@ -103,24 +103,24 @@ Test getMouseEvent when no events are available
 
     def test_wait_for_events(self):
         """
-Test waitForEvents method
-"""
+        Test waitForEvents method
+        """
         with patch.object(self.hardware_info, '_HardwareInfo__platform') as mock_platform:
             self.hardware_info.waitForEvents(100)
             mock_platform.wait_for_events.assert_called_once_with(100)
 
     def test_interrupt_event_wait(self):
         """
-Test interruptEventWait method
-"""
+        Test interruptEventWait method
+        """
         with patch.object(self.hardware_info, '_HardwareInfo__platform') as mock_platform:
             self.hardware_info.interruptEventWait()
             mock_platform.interrupt_event_wait.assert_called_once()
 
     def test_clipboard_methods(self):
         """
-Test clipboard methods
-"""
+        Test clipboard methods
+        """
         with patch.object(self.hardware_info, '_HardwareInfo__platform') as mock_platform:
             self.hardware_info.setClipboardText("test")
             mock_platform.set_clipboard_text.assert_called_once_with("test")
@@ -130,13 +130,8 @@ Test clipboard methods
 
     def test_get_tick_count(self):
         """
-Test getTickCount returns a number
-"""
+        Test getTickCount returns a number
+        """
         tick_count = self.hardware_info.getTickCount()
         self.assertIsInstance(tick_count, (int, float))
         self.assertGreater(tick_count, 0)
-
-
-if __name__ == '__main__':
-    logging.basicConfig(level=logging.DEBUG)
-    unittest.main()

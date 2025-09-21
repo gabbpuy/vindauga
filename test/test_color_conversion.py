@@ -14,13 +14,13 @@ from vindauga.utilities.colours.desired_colour import DesiredColour
 
 class TestColorConversion(unittest.TestCase):
     """
-Test suite for color conversion utilities.
-"""
+    Test suite for color conversion utilities.
+    """
 
     def test_attribute_pair_constructor_with_bios(self):
         """
-Test AttributePair constructor with BIOS value.
-"""
+        Test AttributePair constructor with BIOS value.
+        """
         # Test case: colorPair=0x71 (113) from getColor logs
         # Expected: fg=0x71, bg=0x00 (since 113 >> 8 = 0)
         attr_pair = AttributePair(113)  # 0x71
@@ -36,8 +36,8 @@ Test AttributePair constructor with BIOS value.
 
     def test_attribute_pair_bios_roundtrip(self):
         """
-Test that BIOS values can be converted and back.
-"""
+        Test that BIOS values can be converted and back.
+        """
         test_values = [0x07, 0x17, 0x71, 0x1f, 0x74]
         
         for original_bios in test_values:
@@ -48,8 +48,8 @@ Test that BIOS values can be converted and back.
 
     def test_colour_attribute_constructor(self):
         """
-Test ColourAttribute constructor behavior.
-"""
+        Test ColourAttribute constructor behavior.
+        """
         # Test with the value that AttributePair passes to ColourAttribute
         color_attr = ColourAttribute(113)  # What AttributePair(113) passes to ColourAttribute
 
@@ -60,8 +60,8 @@ Test ColourAttribute constructor behavior.
 
     def test_colour_attribute_from_bios(self):
         """
-Test ColourAttribute.from_bios() constructor.
-"""
+        Test ColourAttribute.from_bios() constructor.
+        """
         # Test the proper constructor for BIOS values
         color_attr = ColourAttribute.from_bios(113)  # 0x71
 
@@ -72,8 +72,8 @@ Test ColourAttribute.from_bios() constructor.
 
     def test_tvision_expected_behavior(self):
         """
-Test expected TVision color behavior.
-"""
+        Test expected TVision color behavior.
+        """
         # In TVision BIOS format:
         # - Low 4 bits: foreground color (0-15)  
         # - High 4 bits: background color (0-15)
@@ -108,8 +108,8 @@ Test expected TVision color behavior.
 
     def test_palette_value_113_analysis(self):
         """
-Deep dive analysis of the failing value 113.
-"""
+        Deep dive analysis of the failing value 113.
+        """
         # Test the exact failing case
         attr_pair = AttributePair(113)
         bios_value = attr_pair.as_bios()
@@ -119,8 +119,8 @@ Deep dive analysis of the failing value 113.
 
     def test_desired_colour_behavior(self):
         """
-Test DesiredColour behavior which AttributePair uses.
-"""
+        Test DesiredColour behavior which AttributePair uses.
+        """
         # Test creating DesiredColour with different values
         test_values = [0, 1, 7, 15, 113]
 
@@ -135,8 +135,3 @@ Test DesiredColour behavior which AttributePair uses.
             if hasattr(desired, 'as_bios'):
                 bios_val = desired.as_bios()
                 self.assertIsNotNone(bios_val)
-
-
-if __name__ == '__main__':
-    # Run tests with verbose output
-    unittest.main(verbosity=2)

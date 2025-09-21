@@ -16,8 +16,8 @@ from vindauga.utilities.platform.events.input_getter import InputGetter
 
 class StrInputGetter(InputGetter):
     """
-String-based input getter for testing
-"""
+    String-based input getter for testing
+    """
     
     def __init__(self, input_str: str):
         self.str = input_str
@@ -25,8 +25,8 @@ String-based input getter for testing
     
     def get(self) -> int:
         """
-Get next character or -1 if at end
-"""
+        Get next character or -1 if at end
+        """
         if self.i < len(self.str):
             result = ord(self.str[self.i])
             self.i += 1
@@ -35,22 +35,22 @@ Get next character or -1 if at end
     
     def unget(self, char: int) -> None:
         """
-Put character back
-"""
+        Put character back
+        """
         if self.i > 0:
             self.i -= 1
     
     def bytes_left(self) -> int:
         """
-Get number of bytes left to read
-"""
+        Get number of bytes left to read
+        """
         return len(self.str) - self.i
 
 
 def key_down_ev(key_code: int, control_key_state: int, text: str = "") -> Event:
     """
-Create a key down event
-"""
+    Create a key down event
+    """
     event = Event(evKeyDown)
     
     key_event = KeyDownEvent()
@@ -67,8 +67,8 @@ Create a key down event
 
 def mouse_ev(where: Point, event_flags: int, control_key_state: int, buttons: int, wheel: int) -> Event:
     """
-Create a mouse event - matches C++ mouseEv
-"""
+    Create a mouse event - matches C++ mouseEv
+    """
     event = Event(evMouse)
     
     mouse_event = MouseEvent()
@@ -84,8 +84,8 @@ Create a mouse event - matches C++ mouseEv
 
 class TestCase:
     """
-Test case container - matches C++ TestCase template
-"""
+    Test case container - matches C++ TestCase template
+    """
     
     def __init__(self, input_data, expected):
         self.input = input_data
@@ -94,8 +94,8 @@ Test case container - matches C++ TestCase template
 
 def events_equal(a: Event, b: Event) -> bool:
     """
-Compare two events for equality - matches C++ operator==
-"""
+    Compare two events for equality - matches C++ operator==
+    """
     if a.what != b.what:
         return False
     
@@ -138,19 +138,19 @@ Compare two events for equality - matches C++ operator==
 
 class TestTermIO(unittest.TestCase):
     """
-Test cases for TermIO functionality
-"""
+    Test cases for TermIO functionality
+    """
     
     def setUp(self):
         """
-Set up test fixtures
-"""
+        Set up test fixtures
+        """
         self.term_io = TermIO()
     
     def test_should_normalize_keys(self):
         """
-Test key normalization
-"""
+        Test key normalization
+        """
         test_cases = [
             # Normal 'a' key should remain unchanged
             TestCase(
@@ -198,8 +198,8 @@ Test key normalization
     
     def test_should_read_win32_input_mode_keys(self):
         """
-Test Win32 input mode key parsing
-"""
+        Test Win32 input mode key parsing
+        """
         # Note: This is a simplified version since our Python implementation
         # doesn't fully support Win32 input mode yet. We test basic functionality.
         
@@ -237,8 +237,8 @@ Test Win32 input mode key parsing
     
     def test_parse_escape_sequences(self):
         """
-Test parsing of common escape sequences
-"""
+        Test parsing of common escape sequences
+        """
         test_cases = [
             # ESC by itself should be rejected if no more input
             TestCase("\x1B", ParseResult.Rejected),
@@ -261,8 +261,8 @@ Test parsing of common escape sequences
     
     def test_csi_data_reading(self):
         """
-Test CSI data structure functionality
-"""
+        Test CSI data structure functionality
+        """
         from vindauga.utilities.platform.events.csi_data import CSIData
 
         # Test CSI parameter reading
@@ -281,8 +281,8 @@ Test CSI data structure functionality
     
     def test_key_mapping_functionality(self):
         """
-Test key mapping from letters
-"""
+        Test key mapping from letters
+        """
         # Test letter to key mapping
         key_down = KeyDownEvent()
         result = self.term_io.key_from_letter(ord('A'), 1, key_down)
@@ -296,13 +296,13 @@ Test key mapping from letters
 
 class TestTermIOIntegration(unittest.TestCase):
     """
-Integration tests for TermIO with input adapters
-"""
+    Integration tests for TermIO with input adapters
+    """
     
     def test_global_term_io_instance(self):
         """
-Test that global term_io instance works correctly
-"""
+        Test that global term_io instance works correctly
+        """
         # Test that we can access the global instance
         self.assertIsInstance(term_io, TermIO)
         
@@ -320,8 +320,8 @@ Test that global term_io instance works correctly
     
     def test_parse_event_basic_functionality(self):
         """
-Test basic parse_event functionality
-"""
+        Test basic parse_event functionality
+        """
         # Test with simple character
         input_getter = StrInputGetter("a")
         buf = GetChBuf(input_getter)

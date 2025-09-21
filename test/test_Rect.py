@@ -7,8 +7,8 @@ from vindauga.types.rect import Rect
 
 class Test_Rect(TestCase):
     """
-Test Rect
-"""
+    Test Rect
+    """
     def test_constructor(self):
         r = Rect(1, 1, 2, 2)
 

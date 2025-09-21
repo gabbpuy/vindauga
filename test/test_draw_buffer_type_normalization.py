@@ -2,10 +2,10 @@
 """
 Unit tests for DrawBuffer type normalization functionality.
 
-Tests the new _normalize_attribute() method and enhanced type handling
+Tests the  _normalize_attribute() method and enhanced type handling
 in moveChar(), moveStr(), and other DrawBuffer methods.
 """
-
+import time
 import unittest
 from unittest.mock import Mock
 
@@ -17,13 +17,13 @@ from vindauga.types.screen import Screen
 
 class TestDrawBufferTypeNormalization(unittest.TestCase):
     """
-Test suite for DrawBuffer type normalization features.
-"""
+    Test suite for DrawBuffer type normalization features.
+    """
 
     def setUp(self):
         """
-Set up test fixtures.
-"""
+        Set up test fixtures.
+        """
         # Create a mock screen with 80x25 dimensions
         mock_screen = Mock()
         mock_screen.screenWidth = 80
@@ -39,15 +39,15 @@ Set up test fixtures.
 
     def tearDown(self):
         """
-Clean up test fixtures.
-"""
+        Clean up test fixtures.
+        """
         # Reset the global screen instance
         Screen.screen = None
 
     def test_normalize_attribute_with_attribute_pair(self):
         """
-Test _normalize_attribute() converts AttributePair to ColourAttribute.
-"""
+        Test _normalize_attribute() converts AttributePair to ColourAttribute.
+        """
         normalized = self.buffer._normalize_attribute(self.attr_pair)
         
         self.assertIsInstance(normalized, ColourAttribute)
@@ -55,8 +55,8 @@ Test _normalize_attribute() converts AttributePair to ColourAttribute.
 
     def test_normalize_attribute_with_colour_attribute(self):
         """
-Test _normalize_attribute() passes through ColourAttribute unchanged.
-"""
+        Test _normalize_attribute() passes through ColourAttribute unchanged.
+        """
         normalized = self.buffer._normalize_attribute(self.color_attr)
         
         self.assertIsInstance(normalized, ColourAttribute)
@@ -64,8 +64,8 @@ Test _normalize_attribute() passes through ColourAttribute unchanged.
 
     def test_normalize_attribute_with_int(self):
         """
-Test _normalize_attribute() converts int to ColourAttribute.
-"""
+        Test _normalize_attribute() converts int to ColourAttribute.
+        """
         normalized = self.buffer._normalize_attribute(self.int_attr)
         
         self.assertIsInstance(normalized, ColourAttribute)
@@ -75,16 +75,16 @@ Test _normalize_attribute() converts int to ColourAttribute.
 
     def test_normalize_attribute_with_none(self):
         """
-Test _normalize_attribute() handles None correctly.
-"""
+        Test _normalize_attribute() handles None correctly.
+        """
         normalized = self.buffer._normalize_attribute(None)
         
         self.assertIsNone(normalized)
 
     def test_movechar_with_attribute_pair(self):
         """
-Test moveChar() accepts AttributePair and converts correctly.
-"""
+        Test moveChar() accepts AttributePair and converts correctly.
+        """
         count = self.buffer.moveChar(0, 'X', self.attr_pair, 5)
         
         self.assertEqual(count, 5)
@@ -96,8 +96,8 @@ Test moveChar() accepts AttributePair and converts correctly.
 
     def test_movechar_with_int(self):
         """
-Test moveChar() accepts int attribute and converts correctly.
-"""
+        Test moveChar() accepts int attribute and converts correctly.
+        """
         count = self.buffer.moveChar(0, 'Y', self.int_attr, 3)
         
         self.assertEqual(count, 3)
@@ -108,8 +108,8 @@ Test moveChar() accepts int attribute and converts correctly.
 
     def test_movechar_with_colour_attribute(self):
         """
-Test moveChar() works with ColourAttribute (existing functionality).
-"""
+        Test moveChar() works with ColourAttribute (existing functionality).
+        """
         count = self.buffer.moveChar(0, 'Z', self.color_attr, 4)
         
         self.assertEqual(count, 4)
@@ -120,8 +120,8 @@ Test moveChar() works with ColourAttribute (existing functionality).
 
     def test_movestr_with_attribute_pair(self):
         """
-Test moveStr() accepts AttributePair and converts correctly.
-"""
+        Test moveStr() accepts AttributePair and converts correctly.
+        """
         count = self.buffer.moveStr(0, "Hello", self.attr_pair)
         
         self.assertGreater(count, 0)
@@ -129,8 +129,8 @@ Test moveStr() accepts AttributePair and converts correctly.
 
     def test_movestr_with_int(self):
         """
-Test moveStr() accepts int attribute and converts correctly.
-"""
+        Test moveStr() accepts int attribute and converts correctly.
+        """
         count = self.buffer.moveStr(5, "World", self.int_attr)
         
         self.assertGreater(count, 0)
@@ -138,24 +138,24 @@ Test moveStr() accepts int attribute and converts correctly.
 
     def test_movestr_with_colour_attribute(self):
         """
-Test moveStr() works with ColourAttribute (existing functionality).
-"""
+        Test moveStr() works with ColourAttribute (existing functionality).
+        """
         count = self.buffer.moveStr(10, "Test", self.color_attr)
         
         self.assertGreater(count, 0)
 
     def test_movestr_with_none_attribute(self):
         """
-Test moveStr() handles None attribute correctly.
-"""
+        Test moveStr() handles None attribute correctly.
+        """
         count = self.buffer.moveStr(0, "NoAttr", None)
         
         self.assertGreater(count, 0)
 
     def test_type_conversion_chain_integration(self):
         """
-Test the complete type conversion chain.
-"""
+        Test the complete type conversion chain.
+        """
         # Simulate the background.py use case:
         # 1. getColor() returns AttributePair
         # 2. Extract using & 0xFF (should return ColourAttribute)
@@ -174,8 +174,8 @@ Test the complete type conversion chain.
 
     def test_widget_integration_simulation(self):
         """
-Test simulating widget color usage patterns.
-"""
+        Test simulating widget color usage patterns.
+        """
         # Simulate button.py usage
         cButton = AttributePair(0x0501)  # Normal button colors
         cShadow = AttributePair(0x0808)  # Shadow colors
@@ -189,8 +189,8 @@ Test simulating widget color usage patterns.
 
     def test_backward_compatibility(self):
         """
-Test that existing code still works with the changes.
-"""
+        Test that existing code still works with the changes.
+        """
         # Original DrawBuffer usage should still work
         color = ColourAttribute.from_bios(0x07)
         
@@ -206,8 +206,8 @@ Test that existing code still works with the changes.
 
     def test_edge_cases(self):
         """
-Test edge cases and error conditions.
-"""
+        Test edge cases and error conditions.
+        """
         # Test with zero count
         count = self.buffer.moveChar(0, 'X', self.int_attr, 0)
         self.assertEqual(count, 0)
@@ -223,10 +223,8 @@ Test edge cases and error conditions.
 
     def test_performance_impact(self):
         """
-Test that type conversion doesn't significantly impact performance.
-"""
-        import time
-        
+        Test that type conversion doesn't significantly impact performance.
+        """
         # Test with large operations
         start_time = time.time()
         for i in range(100):
@@ -243,9 +241,5 @@ Test that type conversion doesn't significantly impact performance.
         direct_time = time.time() - start_time
         
         # Type conversion should not be more than 2x slower
-        self.assertLess(conversion_time, direct_time * 2.0, 
-                       f"Type conversion too slow: {conversion_time:.4f}s vs {direct_time:.4f}s")
-
-
-if __name__ == '__main__':
-    unittest.main(verbosity=2)
+        self.assertLess(conversion_time, direct_time * 2.0,
+                        f"Type conversion too slow: {conversion_time:.4f}s vs {direct_time:.4f}s")
