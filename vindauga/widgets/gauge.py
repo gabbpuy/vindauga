@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 from vindauga.constants.option_flags import ofFramed
-from vindauga.misc.util import clamp
+from vindauga.utilities.math_utils import clamp
 from vindauga.types.rect import Rect
 
 from .param_text import ParamText

@@ -34,11 +34,12 @@ class Indicator(View):
         b.moveChar(0, frame, color, self.size.x)
 
         if self._modified:
-            b.putChar(0, '☼')
+            b.putChar(0, '☼', color)
 
         s = f' {self._location.y + 1:3d}:{self._location.x + 1:3d} '
 
-        b.moveCStr(8 - s.find(':'), s, color)
+        attr_pair = color
+        b.moveCStr(8 - s.find(':'), s, attr_pair)
         self.writeBuf(0, 0, self.size.x, 1, b)
 
     def getPalette(self) -> Palette:

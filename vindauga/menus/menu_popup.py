@@ -3,7 +3,7 @@ import logging
 
 from vindauga.constants.event_codes import evKeyDown, evCommand
 from vindauga.events.event import Event
-from vindauga.misc.character_codes import getCtrlChar, getAltChar
+from vindauga.utilities.input.character_codes import getCtrlChar, getAltChar
 from vindauga.types.rect import Rect
 from .menu_box import MenuBox
 

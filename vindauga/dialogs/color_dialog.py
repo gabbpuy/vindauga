@@ -54,16 +54,12 @@ class ColorDialog(Dialog):
 
     def __init__(self, palette: Optional[Palette], groups: ColorGroup):
         super().__init__(Rect(0, 0, 79, 18), self.colors)
+        self.pal = palette or Palette()
         self.groupIndex = None
         self.colorIndexes = None
         self._colorIndex = 0
 
         self.options |= ofCentered
-        if palette:
-            self.pal = Palette(palette)
-        else:
-            self.pal = None
-
         sb = ScrollBar(Rect(27, 3, 28, 14))
         self.insert(sb)
 
@@ -100,10 +96,6 @@ class ColorDialog(Dialog):
         self._monoLabel = Label(Rect(62, 2, 69, 3), self.colorText, self._monoSel)
         self._monoLabel.hide()
         self.insert(self._monoLabel)
-
-        if groups and groups.items and self.pal:
-            self._display.setColor(self.pal[groups.index])
-
         self.insert(Button(Rect(51, 15, 61, 17), self.okText, cmOK, bfDefault))
         self.insert(Button(Rect(63, 15, 73, 17), self.cancelText, cmCancel, bfNormal))
         self.selectNext(False)

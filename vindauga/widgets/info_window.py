@@ -7,7 +7,7 @@ from vindauga.constants.command_codes import wnNoNumber
 from vindauga.constants.option_flags import ofCentered, ofBuffered
 from vindauga.constants.event_codes import evBroadcast
 from vindauga.events.event import Event
-from vindauga.misc.message import message
+from vindauga.utilities.message import message
 from vindauga.types.palette import Palette
 from vindauga.types.rect import Rect
 from vindauga.types.view import View

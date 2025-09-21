@@ -1,107 +1,267 @@
 # -*- coding: utf-8 -*-
-import array
+from __future__ import annotations
 import logging
-from functools import partial
 
-# The underlying datatype - 'L' gives 16 bits for Unicode plus 8 for attributes / colours
-BufferArray = partial(array.array, 'L')
+from vindauga.utilities.colours.attribute_pair import AttributePair
+from vindauga.utilities.colours.colour_attribute import ColourAttribute
+from vindauga.utilities.screen.screen_cell import ScreenCell, set_cell, set_attr, set_char
+from vindauga.utilities.text.text import Text
+
+from .screen import Screen
 
 logger = logging.getLogger(__name__)
 
-# Max width of a line. This is a 1K line, that seems a reasonable width...
 LINE_WIDTH = 1024
 
 
 class DrawBuffer:
-    """
-    A buffer into which the widgets draw themselves.
 
-    Uses `array` objects to represent the buffer with the colors and attributes set.
-    """
-    __slots__ = ('_data',)
-
-    CHAR_WIDTH = 16
-    ATTRIBUTE_MASK = 0xFF0000
-    CHAR_MASK = 0xFFFF
-
-    def __init__(self, filled: bool = False):
-        if not filled:
-            self._data = BufferArray()
-        else:
-            self._data = BufferArray([ord('\x00')] * LINE_WIDTH)
-
-    def moveBuf(self, indent: int, source, attr: int, count: int):
-        if not attr:
-            attrs = (c & self.ATTRIBUTE_MASK for c in self._data[indent:indent + count])
-            self._data[indent:indent + count] = BufferArray(ord(c) | a for c, a in zip(source[:count], attrs))
-        else:
-            attr = (attr & 0xFF) << self.CHAR_WIDTH
-            self._data[indent: indent + count] = BufferArray((ord(c) | attr for c in source[:count]))
-
-    def moveChar(self, indent: int, c, attr: int, count: int):
-        if attr and c:
-            attr = (attr & 0xFF) << self.CHAR_WIDTH
-            self._data[indent: indent + count] = BufferArray([ord(c) | attr] * count)
-        elif attr:
-            attr = (attr & 0xFF) << self.CHAR_WIDTH
-            for i in range(indent, indent + count):
-                self._data[i] = (self._data[i] & self.CHAR_MASK) | attr
-        else:
-            self._data[indent: indent + count] = BufferArray([ord(c)] * count)
-
-    def moveStr(self, indent: int, text: str, attr: int):
-        if isinstance(attr, str):
-            attr = ord(attr)
-        attr = ((attr or 0) & 0xFF) << self.CHAR_WIDTH
-        self._data[indent: indent + len(text)] = BufferArray(ord(c) | attr for c in text)
-
-    def moveCStr(self, indent: int, text: str, attrs: int):
+    def __init__(self):
         """
-        Move a string with colors
-        TODO: change attrs to a tuple
-
-        :param indent: offset into the buffer
-        :param text: string to move
-        :param attrs: 8 bit colors as a 16 bit number (on and off)
+        Initialize with specified width.
         """
-        # "~" highlights chunks. so break into chunks
-        parts = text.split('~')
-        i = int(indent)
-        attributes = [attrs & 0xFF, (attrs & 0xFFFF00) >> 8]
-        for b, part in enumerate(parts):
-            if not part:
-                continue
-            attr = (attributes[b % 2]) << self.CHAR_WIDTH
-            pLen = len(part)
-            self._data[i: i + pLen] = BufferArray((ord(c) | attr for c in part))
-            i += pLen
+        self.width = 8 + max(Screen.screen.screenWidth, Screen.screen.screenHeight, 80)
+        self.data = [ScreenCell() for _ in range(self.width)]
 
-    def putAttribute(self, indent: int, attr: int):
-        self._data[indent] &= self.CHAR_MASK
-        self._data[indent] |= (attr << self.CHAR_WIDTH)
+    def _normalize_attribute(self, attr):
+        """
+        Convert int/AttributePair to ColourAttribute
+        """
+        if isinstance(attr, AttributePair):
+            return attr.attrs[0]  # Use first (normal) attribute
+        elif isinstance(attr, int):
+            return ColourAttribute.from_bios(attr)
+        elif attr is None:
+            return None
+        return attr
 
-    def putChar(self, indent: int, c: str):
-        self._data[indent] &= self.ATTRIBUTE_MASK
-        self._data[indent] |= ord(c)
+    def moveChar(self, indent: int, char: str, attr: ColourAttribute | AttributePair, count: int) -> int:
+        """
+        Fill buffer cells with a character.
+        """
+        actual_count = min(count, max(self.width - indent, 0))
+        attr = self._normalize_attribute(attr)
 
-    def putCharOnly(self, indent: int, c: str):
-        self._data[indent] = ord(c)
+        if attr:
+            if char:
+                for i in range(actual_count):
+                    cell = ScreenCell()
+                    set_cell(cell, char, attr)
+                    self.data[indent + i] = cell
+            else:
+                # Only attr - set attributes only
+                for i in range(actual_count):
+                    set_attr(self.data[indent + i], attr)
+        else:
+            # Only char - set characters only
+            for i in range(actual_count):
+                set_char(self.data[indent + i], char)
 
-    def putString(self, indent: int, source, count: int):
-        self._data[indent: indent + count] = BufferArray(source[:count])
+        return actual_count
 
-    def __getitem__(self, *args):
-        return self._data.__getitem__(*args)
+    def moveStr(self, indent: int, text: str, attr: ColourAttribute | AttributePair | None = None,
+                maxWidth: int | None = None, strOffset: int | None = None) -> int:
+        """
+        Write text to buffer with attribute.
 
-    def __setitem__(self, *args):
-        try:
-            return self._data.__setitem__(*args)
-        except OverflowError:
-            logger.exception('Set Item Failed')
-            raise
+        :param indent: Indent level.
+        :param text: Text to write.
+        :param attr: Colour attribute.
+        :param maxWidth: Maximum amount of data to be moved
+        :param strOffset: Position in text where to start moving from (in text width, not bytes)
 
-    def __delitem__(self, *args):
-        return self._data.__delitem__(*args)
+        :return: Number of cells moved
+        """
+        attr = self._normalize_attribute(attr)
+        if maxWidth is not None:
+            return Text.draw_str(self.data[:indent + maxWidth], text, indent, strOffset, attr=attr)
+        else:
+            return Text.draw_str(self.data, text, indent, strOffset or 0, attr=attr)
 
-    def __len__(self) -> int:
-        return len(self._data)
+    def moveCStr(self, indent: int, text: str, attrs: AttributePair) -> int:
+        """
+        Write text to buffer handling C-style formatting with hotkeys.
+        Handles special characters like ~ for hotkey highlighting.
+
+        :param indent: Indent level.
+        :param text: Text to write (may contain ~ formatting).
+        :param attrs: AttributePair containing normal and highlight attributes.
+        """
+        if isinstance(attrs, AttributePair):
+            low_attr, high_attr = attrs.attrs
+        else:
+            # Fallback - extract from BIOS value
+            bios_value = attrs.as_bios()
+            low_attr = ColourAttribute.from_bios(bios_value & 0xFF)
+            high_attr = ColourAttribute.from_bios((bios_value >> 8) & 0xFF)
+
+        i = indent
+        j = 0
+        toggle = 1
+        current_attr = low_attr  # Start with low byte attribute
+
+        while j < len(text):
+            if text[j] == '~':
+                # Toggle between normal and highlight attributes
+                current_attr = high_attr if toggle else low_attr
+                toggle = 1 - toggle
+                j += 1
+            else:
+                # Use Text.draw_one equivalent to TText::drawOne
+                success, new_i, new_j = Text.draw_one(self.data, i, text, j, current_attr)
+                if not success:
+                    break
+                i = new_i
+                j = new_j
+
+        return i - indent
+
+    def putAttribute(self, indent: int, attr: ColourAttribute | AttributePair, count: int = 1) -> int:
+        """
+        Set attribute for specified number of cells.
+        """
+        actual_count = min(count, max(len(self.data) - indent, 0))
+        for i in range(actual_count):
+            if indent + i < len(self.data):
+                self.data[indent + i].attr = attr
+        return actual_count
+
+    def moveBuf(self, indent: int, source: str, attr: ColourAttribute | AttributePair, count: int) -> int:
+        """
+        Copy cells from source buffer.
+
+        :param indent: Indent level.
+        :param source: Source buffer.
+        :param count: Number of copies.
+        :param attr: Colour attribute.
+        """
+        return self.moveStr(indent, source[:count], attr)
+
+    def putChar(self, indent: int, char: str, attr: ColourAttribute | AttributePair) -> int:
+        """
+        Put a single character with attribute.
+
+        :param indent: Indent level.
+        :param char: Character to put.
+        :param attr: Colour attribute.
+        """
+        if indent < 0 or indent >= self.width:
+            return 0
+
+        self.data[indent].char = char
+        self.data[indent].attr = attr
+        return 1
+
+    def putAttributes(self, indent: int, attr: ColourAttribute, count: int = 1) -> int:
+        """
+        Set attribute for specified number of cells.
+
+        :param indent: Indent level.
+        :param attr: Colour attribute.
+        :param count: Number of cells.
+        """
+        if indent < 0 or indent >= self.width or count <= 0:
+            return 0
+
+        actual_count = min(count, self.width - indent)
+
+        for i in range(actual_count):
+            if indent + i < len(self.data):
+                self.data[indent + i].attr = attr
+
+        return actual_count
+
+    def clear(self, attr: ColourAttribute = None):
+        """
+        Clear the buffer, optionally setting all cells to specified attribute.
+
+        :param attr: Colour attribute.
+        """
+        for i in range(len(self.data)):
+            self.data[i] = ScreenCell()
+            if attr:
+                self.data[i].attr = attr
+
+    def fillChar(self, char: str, attr: ColourAttribute = None):
+        """
+        Fill entire buffer with specified character.
+
+        :param char: Character to fill.
+        :param attr: Colour attribute.
+        """
+        for i in range(len(self.data)):
+            self.data[i].char = char
+            if attr:
+                self.data[i].attr = attr
+
+    def toCells(self, max_width: int = None) -> list[ScreenCell]:
+        """
+        Return cells as a list, optionally limited to max_width.
+
+        :param max_width: Max width.
+        """
+        if max_width is None:
+            return self.data[:]
+        return self.data[: min(max_width, len(self.data))]
+
+    def toString(self, max_width: int = None) -> str:
+        """
+        Convert buffer to string representation.
+
+        :param max_width: Max width.
+        """
+        end_pos = min(max_width or self.width, len(self.data))
+        return ''.join(cell.char for cell in self.data[:end_pos])
+
+    def getWidth(self, max_chars: int = None) -> int:
+        """
+        Get display width of buffer content.
+
+        :param max_chars: Max width.
+        """
+        end_pos = min(max_chars or len(self.data), len(self.data))
+        text = ''.join(cell.char for cell in self.data[:end_pos])
+        return Text.width(text)
+
+    def __getitem__(self, key):
+        """
+        Support for subscripting and slicing the buffer
+        """
+        if isinstance(key, slice):
+            return self.data[key]
+        elif isinstance(key, int):
+            return self.data[key]
+        else:
+            raise TypeError("Key must be int or slice")
+
+    def __len__(self):
+        """
+        Return the width of the buffer
+        """
+        return self.width
+
+    def __setitem__(self, key, value):
+        """
+        Support for setting buffer contents via subscripting
+        """
+        if isinstance(key, slice):
+            self.data[key] = value
+        elif isinstance(key, int):
+            self.data[key] = value
+        else:
+            raise TypeError("Key must be int or slice")
+
+    def resize(self, new_width: int):
+        """
+        Resize the buffer, preserving existing content.
+
+        :param new_width: New width.
+        """
+        if new_width > len(self.data):
+            # Expand buffer
+            self.data.extend(ScreenCell() for _ in range(new_width - len(self.data)))
+        elif new_width < len(self.data):
+            # Shrink buffer
+            self.data = self.data[:new_width]
+
+        self.width = new_width

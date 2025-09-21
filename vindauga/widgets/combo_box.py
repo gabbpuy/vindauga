@@ -5,7 +5,7 @@ from vindauga.constants.keys import kbDown
 from vindauga.constants.option_flags import ofPostProcess
 from vindauga.constants.state_flags import sfFocused, sfDisabled
 from vindauga.events.event import Event
-from vindauga.misc.util import ctrlToArrow
+from vindauga.utilities.input.key_utils import ctrlToArrow
 from vindauga.types.collections.collection import Collection
 from vindauga.types.draw_buffer import DrawBuffer
 from vindauga.types.palette import Palette

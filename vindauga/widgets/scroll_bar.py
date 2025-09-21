@@ -5,13 +5,14 @@ from vindauga.constants.command_codes import (cmScrollBarClicked, cmScrollBarCha
 from vindauga.constants.scrollbar_codes import (sbLeftArrow, sbRightArrow, sbPageLeft, sbPageRight, sbUpArrow,
                                                 sbDownArrow, sbPageUp, sbPageDown, sbIndicator)
 from vindauga.constants.grow_flags import gfGrowLoX, gfGrowLoY, gfGrowHiX, gfGrowHiY
-from vindauga.constants.event_codes import evMouseDown, evBroadcast, evMouseAuto, evMouseMove, evKeyDown
+from vindauga.constants.event_codes import evMouseDown, evBroadcast, evMouseAuto, evMouseMove, evKeyDown, evMouseWheel, \
+    mwUp, mwDown, mwLeft, mwRight
 from vindauga.constants.keys import (kbLeft, kbUp, kbRight, kbDown, kbCtrlLeft, kbCtrlRight, kbHome, kbEnd, kbPgUp,
                                      kbPgDn, kbCtrlPgUp, kbCtrlPgDn)
 from vindauga.constants.state_flags import sfVisible
 from vindauga.events.event import Event
-from vindauga.misc.message import message
-from vindauga.misc.util import ctrlToArrow
+from vindauga.utilities.message import message
+from vindauga.utilities.input.key_utils import ctrlToArrow
 from vindauga.types.draw_buffer import DrawBuffer
 from vindauga.types.palette import Palette
 from vindauga.types.rect import Rect
@@ -67,8 +68,24 @@ class ScrollBar(View):
         i = 0
         super().handleEvent(event)
         what = event.what
-
-        if what == evMouseDown:
+        if what == evMouseWheel:
+            step = 0
+            if self.state & sfVisible:
+                if self.size.x == 1:
+                    if event.mouse.wheel == mwUp:
+                        step = -self.arrowStep
+                    if event.mouse.wheel == mwDown:
+                        step = self.arrowStep
+                else:
+                    if event.mouse.wheel == mwLeft:
+                        step = -self.arrowStep
+                    if event.mouse.wheel == mwRight:
+                        step = self.arrowStep
+                if step:
+                    message(self.owner, evBroadcast, cmScrollBarClicked, self)
+                    self.setValue(self.value + 3 * step)
+                    self.clearEvent(event)
+        elif what == evMouseDown:
             message(self.owner, evBroadcast, cmScrollBarClicked, self)
             self.mouse = self.makeLocal(event.mouse.where)
             self.extent = self.getExtent()

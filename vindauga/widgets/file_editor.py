@@ -7,10 +7,10 @@ from typing import Optional, Union, IO
 from vindauga.constants.command_codes import *
 from vindauga.constants.edit_command_codes import *
 from vindauga.constants.event_codes import *
-from vindauga.types.draw_buffer import BufferArray
+# BufferArray no longer needed - using strings for buffers now
 from vindauga.types.rect import Rect
-from vindauga.misc.message import message
-from vindauga.misc.util import fexpand
+from vindauga.utilities.message import message
+from vindauga.utilities.filesystem.path_utils import fexpand
 
 from .editor import Editor
 from .indicator import Indicator
@@ -62,7 +62,9 @@ class FileEditor(Editor):
             self.setBufLen(0)
             return True
 
-        self.buffer = BufferArray(ord(c) for c in f.read())
+        # Read file content as string - matches new Editor string buffer
+        content = f.read()
+        self.buffer = content
         self.setBufLen(len(self.buffer))
         return True
 
@@ -84,13 +86,6 @@ class FileEditor(Editor):
                 self.fileName = ''
         return res
 
-    @staticmethod
-    def writeBlock(f: IO, buf: BufferArray, numBytes: int):
-        str_buffer = ''.join(chr(c) for c in buf[:numBytes])
-        while numBytes:
-            written = f.write(str_buffer)
-            numBytes -= written
-            str_buffer = str_buffer[written:]
 
     def saveFile(self):
         try:
@@ -104,9 +99,14 @@ class FileEditor(Editor):
 
         try:
             with open(self.fileName, 'wt', encoding='utf-8') as f:
-                self.writeBlock(f, self.buffer, self.curPtr)
-                self.writeBlock(f, self.buffer[self.curPtr + self.gapLen:],
-                                self.bufLen - self.curPtr)
+                # Write content before gap
+                before_gap = self.buffer[:self.curPtr]
+                f.write(before_gap)
+
+                # Write content after gap
+                after_gap_start = self.curPtr + self.gapLen
+                after_gap = self.buffer[after_gap_start:after_gap_start + (self.bufLen - self.curPtr)]
+                f.write(after_gap)
         except Exception as e:
             logger.exception('saveFile')
             Editor.editorDialog(edCreateError, self.fileName)

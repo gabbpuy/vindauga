@@ -6,8 +6,8 @@ from vindauga.constants.event_codes import evBroadcast, evMouseDown, evKeyDown
 from vindauga.constants.option_flags import ofSelectable, ofPreProcess, ofPostProcess
 from vindauga.constants.state_flags import sfFocused
 from vindauga.events.event import Event
-from vindauga.misc.character_codes import SPECIAL_CHARS, getAltCode
-from vindauga.misc.util import hotKey
+from vindauga.utilities.input.character_codes import SPECIAL_CHARS, getAltCode
+from vindauga.utilities.text.string_utils import hotKey
 from vindauga.types.draw_buffer import DrawBuffer
 from vindauga.types.group import Phases
 from vindauga.types.palette import Palette
@@ -41,10 +41,11 @@ class Label(StaticText):
 
         b.moveChar(0, ' ', color, self.size.x)
         if self._text:
-            b.moveCStr(1, self._text, color)
+            attr_pair = color
+            b.moveCStr(1, self._text, attr_pair)
 
         if self.showMarkers:
-            b.putChar(0, SPECIAL_CHARS[scOff])
+            b.putChar(0, SPECIAL_CHARS[scOff], color)
 
         self.writeLine(0, 0, self.size.x, 1, b)
 

@@ -7,8 +7,9 @@ from vindauga.constants.event_codes import evBroadcast, evMouseDown, evKeyDown, 
 from vindauga.constants.keys import kbLeft, kbRight, kbDown, kbUp
 from vindauga.constants.option_flags import ofSelectable, ofFirstClick, ofFramed
 from vindauga.events.event import Event
-from vindauga.misc.message import message
-from vindauga.misc.util import ctrlToArrow
+from vindauga.utilities.message import message
+from vindauga.utilities.input.key_utils import ctrlToArrow
+from vindauga.utilities.colours.colour_attribute import ColourAttribute
 from vindauga.types.draw_buffer import DrawBuffer
 from vindauga.types.rect import Rect
 from vindauga.types.view import View
@@ -51,9 +52,9 @@ class ColorSelector(View):
                     c = y * 4 + x
                     b.moveChar(x * 3, self.icon, c, 3)
                     if c == self._color:
-                        b.putChar(x * 3 + 1, self.icon_reversed)
+                        b.putChar(x * 3 + 1, self.icon_reversed, ColourAttribute.from_bios(c))
                         if c == 0:
-                            b.putAttribute(x * 3 + 1, 0x70)
+                            b.putAttribute(x * 3 + 1, ColourAttribute.from_bios(0x70))
 
             self.writeLine(0, y, self.size.x, 1, b)
 
@@ -98,9 +99,9 @@ class ColorSelector(View):
     def __handleBroadcastEvent(self, event: Event):
         if event.message.command == cmColorSet:
             if self._selectorType == ColorSel.csBackground:
-                self._color = event.message.infoPtr >> 4
+                self._color = int(event.message.infoPtr) >> 4
             else:
-                self._color = event.message.infoPtr & 0x0f
+                self._color = int(event.message.infoPtr) & 0x0f
             self.drawView()
 
     def __handleKeyDownEvent(self, key: int, maxCol: int, width: int) -> bool:

@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 from __future__ import annotations
+from enum import Enum, auto
 import logging
 import string
 from typing import List, Optional, Union, Tuple
@@ -14,16 +15,28 @@ from vindauga.constants.keys import *
 from vindauga.constants.option_flags import ofSelectable
 from vindauga.constants.state_flags import sfVisible, sfCursorIns, sfActive, sfExposed
 from vindauga.events.event import Event
+from vindauga.utilities.screen.screen_cell import set_cell
+from vindauga.utilities.colours.colour_attribute import ColourAttribute
+from vindauga.utilities.text.text import Text
 from vindauga.types.command_set import CommandSet
 from vindauga.types.palette import Palette
 from vindauga.types.point import Point
-from vindauga.types.draw_buffer import BufferArray, DrawBuffer
+from vindauga.types.draw_buffer import DrawBuffer
 from vindauga.types.rect import Rect
 from vindauga.types.view import View
 from vindauga.widgets.indicator import Indicator
 from vindauga.widgets.scroll_bar import ScrollBar
 
 logger = logging.getLogger(__name__)
+
+
+class Encoding(Enum):
+    encDefault = auto()
+    encSingleByte = auto()
+
+
+maxFindStrLen = 80
+maxReplaceStrLen = 80
 
 firstKeys = {
     kbCtrlA: cmWordLeft,
@@ -117,8 +130,7 @@ class Editor(View):
 
         self.delta = Point(0, 0)
         self.limit = Point(0, 0)
-        self._currentPosition = Point(0, 0)
-        self.hScrollBar = hScrollBar
+        self.curPos = Point(0, 0)
         self.vScrollBar = vScrollBar
         self.indicator = indicator
 
@@ -137,7 +149,7 @@ class Editor(View):
         self.insCount = 0
         self.updateFlags = 0
         self.drawPtr = 0
-        self.drawLine = 0
+        self.drawLineNum = 0
         self.lockCount = 0
         self.keyState = 0
         self.editorFlags = efBackupFiles | efPromptOnReplace
@@ -155,6 +167,7 @@ class Editor(View):
         self.showCursor()
         self.initBuffer(bufSize)
         self.isValid = True
+        self.encoding = Encoding.encDefault
         self.setBufLen(0)
 
     @staticmethod
@@ -162,16 +175,45 @@ class Editor(View):
         logger.info('Unreplaced editorDialog')
         return cmCancel
 
+    def prevBufChars(self, pos: int) -> str:
+        if self.encoding == Encoding.encSingleByte:
+            return self.bufChar(pos - 1)
+
+        # For string buffer, get characters before position
+        length = min(pos, 4)  # Max UTF-8 char length
+        chars = []
+
+        for i in range(length):
+            if pos - length + i >= 0:
+                chars.append(self.bufChar(pos - length + i))
+
+        return ''.join(chars)
+
+    def bufChars(self, pos: int) -> str:
+        """
+        Get string from buffer starting at pos.
+        """
+        if self.encoding == Encoding.encSingleByte:
+            return self.bufChar(pos)
+
+        # Get remaining buffer length from position
+        remaining = min(self.bufLen - pos, 32)  # Reasonable chunk for Text methods
+        chars = []
+        for i in range(remaining):
+            if pos + i < self.bufLen:
+                chars.append(self.bufChar(pos + i))
+        return ''.join(chars)
+
     def bufChar(self, pos: int) -> str:
-        o = 0
-        if pos > self.curPtr:
-            o = self.gapLen
-        return chr(self.buffer[pos + o])
+        """
+        Get character at logical position.
+        """
+        if pos >= self.bufLen:
+            return '\0'
+        return self.buffer[self.bufPtr(pos)]
 
     def bufPtr(self, pos: int) -> int:
-        if pos >= self.curPtr:
-            return pos + self.gapLen
-        return pos
+        return pos if pos < self.curPtr else pos + self.gapLen
 
     def shutdown(self):
         self.doneBuffer()
@@ -243,7 +285,7 @@ class Editor(View):
                     event.message.command = key
 
     def isCursorVisible(self) -> bool:
-        return self.delta.y <= self._currentPosition.y < (self.delta.y + self.size.y)
+        return self.delta.y <= self.curPos.y < (self.delta.y + self.size.y)
 
     def deleteRange(self, startPtr: int, endPtr: int, delSelect: bool):
         if self.hasSelection() and delSelect:
@@ -271,7 +313,7 @@ class Editor(View):
                 i = cmYes
 
                 if self.editorFlags & efPromptOnReplace:
-                    c = self.makeGlobal(self._currentPosition)
+                    c = self.makeGlobal(self.curPos)
                     i = Editor.editorDialog(edReplacePrompt, c)
                 if i == cmYes:
                     self.lock()
@@ -284,11 +326,11 @@ class Editor(View):
 
     def doUpdate(self):
         if self.updateFlags:
-            self.setCursor(self._currentPosition.x - self.delta.x, self._currentPosition.y - self.delta.y)
+            self.setCursor(self.curPos.x - self.delta.x, self.curPos.y - self.delta.y)
             if self.updateFlags & ufView:
                 self.drawView()
             elif self.updateFlags & ufLine:
-                self.drawLines(self._currentPosition.y - self.delta.y, 1, self.lineStart(self.curPtr))
+                self.drawLines(self.curPos.y - self.delta.y, 1, self.lineStart(self.curPtr))
 
             if self.hScrollBar:
                 self.hScrollBar.setParams(self.delta.x, 0,
@@ -301,27 +343,28 @@ class Editor(View):
                                           self.size.y - 1, 1)
 
             if self.indicator:
-                self.indicator.setValue(self._currentPosition, self.modified)
+                self.indicator.setValue(self.curPos, self.modified)
 
             if self.state & sfActive:
                 self.updateCommands()
             self.updateFlags = 0
 
     def draw(self):
-        if self.drawLine != self.delta.y:
-            self.drawPtr = self.lineMove(self.drawPtr, self.delta.y - self.drawLine)
-            self.drawLine = self.delta.y
+        if self.drawLineNum != self.delta.y:
+            self.drawPtr = self.lineMove(self.drawPtr, self.delta.y - self.drawLineNum)
+            self.drawLineNum = self.delta.y
 
         self.drawLines(0, self.size.y, self.drawPtr)
 
     def drawLines(self, y: int, count: int, linePtr: int):
         color = self.getColor(0x0201)
 
-        for line in range(y, y + count):
-            b = DrawBuffer(True)
-            self.formatLine(b, linePtr, self.delta.x + self.size.x, color)
-            self.writeBuf(0, line, self.size.x, 1, b[self.delta.x:])
-            linePtr = self.nextLine(linePtr)
+        for i in range(count):
+            if y + i < self.size.y:
+                b = DrawBuffer()
+                self.formatLine(b, linePtr, self.size.x, color)
+                self.writeBuf(0, y + i, self.size.x, 1, b.data)
+                linePtr = self.nextLine(linePtr)
 
     def find(self):
         result, data = Editor.editorDialog(edFind, (self.editorFlags, self.findStr))
@@ -337,7 +380,7 @@ class Editor(View):
         mouse.y = max(0, min(mouse.y, self.size.y - 1))
 
         return self.charPtr(self.lineMove(self.drawPtr,
-                                          mouse.y + self.delta.y - self.drawLine),
+                                          mouse.y + self.delta.y - self.drawLineNum),
                             mouse.x + self.delta.x)
 
     def getPalette(self) -> Palette:
@@ -380,10 +423,10 @@ class Editor(View):
             elif c == cmSearchAgain:
                 self.doSearchReplace()
             elif c in {
-                    cmCut, cmCopy, cmPaste, cmUndo, cmClear, cmCharLeft, cmCharRight, cmWordLeft, cmWordRight,
-                    cmLineStart, cmLineEnd, cmLineUp, cmLineDown, cmPageUp, cmPageDown, cmTextStart, cmTextEnd,
-                    cmNewLine, cmBackSpace, cmDelChar, cmDelWord, cmDelStart, cmDelEnd, cmDelLine, cmInsMode,
-                    cmStartSelect, cmHideSelect, cmIndentMode}:
+                cmCut, cmCopy, cmPaste, cmUndo, cmClear, cmCharLeft, cmCharRight, cmWordLeft, cmWordRight,
+                cmLineStart, cmLineEnd, cmLineUp, cmLineDown, cmPageUp, cmPageDown, cmTextStart, cmTextEnd,
+                cmNewLine, cmBackSpace, cmDelChar, cmDelWord, cmDelStart, cmDelEnd, cmDelLine, cmInsMode,
+                cmStartSelect, cmHideSelect, cmIndentMode, cmEncoding, cmSelectAll}:
                 self._handleEditorCommand(c, centerCursor, selectMode)
             else:
                 return
@@ -408,26 +451,30 @@ class Editor(View):
         self.setSelect(self.curPtr, self.curPtr, False)
 
     def initBuffer(self, bufSize: int):
-        self.buffer = BufferArray([0] * bufSize)
+        try:
+            # Use string buffer - simple and works
+            self.buffer = '\x00' * bufSize
+        except MemoryError:
+            self.buffer = None
 
     def countLines(self, start: int, count: int) -> int:
-        return self.buffer[start:start + count].count(ord('\n'))
+        return self.buffer[start:start + count].count('\n')
 
     @staticmethod
-    def scan(buffer: BufferArray, size: int, pattern: str) -> int:
-        result = ''.join(chr(c) for c in buffer[:size]).find(pattern)
+    def scan(buffer: str, size: int, pattern: str) -> int:
+        result = buffer.find(pattern, 0, size)
         if result < 0:
             return sfSearchFailed
         return result
 
     @staticmethod
-    def iScan(buffer: BufferArray, size: int, pattern: str) -> int:
-        result = ''.join(chr(c) for c in buffer[:size]).lower().find(pattern.lower())
+    def iScan(buffer: str, size: int, pattern: str) -> int:
+        result = buffer.lower().find(pattern.lower(), 0, size)
         if result < 0:
             return sfSearchFailed
         return result
 
-    def insertBuffer(self, p: List[int], offset: int, length: int, allowUndo: bool, selectText: bool) -> bool:
+    def insertBuffer(self, p: str, offset: int, length: int, allowUndo: bool, selectText: bool) -> bool:
         self.selecting = False
         selLen = self.selEnd - self.selStart
 
@@ -456,23 +503,37 @@ class Editor(View):
                 self.insCount -= selLen - delLen
 
             self.curPtr = self.selStart
-            self._currentPosition.y -= selLines
+            self.curPos.y -= selLines
 
-        if self.delta.y > self._currentPosition.y:
+        if self.delta.y > self.curPos.y:
             self.delta.y -= selLines
-            if self.delta.y < self._currentPosition.y:
-                self.delta.y = self._currentPosition.y
+            if self.delta.y < self.curPos.y:
+                self.delta.y = self.curPos.y
 
         if length > 0:
-            self.buffer[self.curPtr:self.curPtr + length] = BufferArray(p[offset:offset + length])
+            # Simple insertion: just overwrite part of gap with new text
+            text_to_insert = p[offset:offset + length]
+
+            # Insert text by reconstructing string (simple approach)
+            before = self.buffer[:self.curPtr]
+            gap_end = self.curPtr + self.gapLen
+            after = self.buffer[gap_end:]
+
+            new_gap_len = self.gapLen - length
+            remaining_gap = '\x00' * new_gap_len if new_gap_len > 0 else ''
+
+            self.buffer = before + text_to_insert + remaining_gap + after
+
+            self.gapLen -= length
+            self.bufLen += length
 
         lines = self.countLines(self.curPtr, length)
         self.curPtr += length
-        self._currentPosition.y += lines
+        self.curPos.y += lines
 
-        self.drawLine = self._currentPosition.y
+        self.drawLineNum = self.curPos.y
         self.drawPtr = self.lineStart(self.curPtr)
-        self._currentPosition.x = self.charPos(self.drawPtr, self.curPtr)
+        self.curPos.x = self.charPos(self.drawPtr, self.curPtr)
 
         if not selectText:
             self.selStart = self.curPtr
@@ -508,7 +569,7 @@ class Editor(View):
                                  self.canUndo, self.isClipboard())
 
     def insertText(self, text: str, length: int, selectText: bool) -> bool:
-        return self.insertBuffer([ord(c) for c in text], 0, length, self.canUndo, selectText)
+        return self.insertBuffer(text, 0, length, self.canUndo, selectText)
 
     def isClipboard(self) -> bool:
         return Editor.clipboard is self
@@ -617,6 +678,7 @@ class Editor(View):
         return False
 
     def setBufLen(self, length: int):
+
         self.bufLen = length
         self.gapLen = self.bufSize - length
         self.selStart = 0
@@ -624,15 +686,16 @@ class Editor(View):
         self.curPtr = 0
         self.delta.x = 0
         self.delta.y = 0
-        self._currentPosition.x = 0
-        self._currentPosition.y = 0
+        self.curPos.x = 0
+        self.curPos.y = 0
         self.limit.x = maxLineLength
         self.limit.y = self.countLines(self.gapLen, self.bufLen) + 1
-        self.drawLine = 0
+        self.drawLineNum = 0
         self.drawPtr = 0
         self.delCount = 0
         self.insCount = 0
         self.modified = False
+        self.detectEol()  # Detect line endings when buffer is set
         self.update(ufView)
 
     def setCmdState(self, command: int, enable: bool):
@@ -663,9 +726,51 @@ class Editor(View):
                 anchor = self.prevLine(self.nextLine(anchor))
             self.setSelect(anchor, pos, False)
 
+        # Move gap to new cursor position (critical for gap buffer!)
+        if pos != self.curPtr:
+            if pos > self.curPtr:
+                # Moving forward - move text from after gap to before gap
+                l = pos - self.curPtr
+                self.memmove(self.curPtr, self.curPtr + self.gapLen, l)
+                self.curPos.y += self.countLines(self.curPtr, l)
+                self.curPtr = pos
+            else:
+                # Moving backward - move text from before gap to after gap
+                l = self.curPtr - pos
+                self.curPtr = pos
+                self.curPos.y -= self.countLines(self.curPtr, l)
+                self.memmove(self.curPtr + self.gapLen, self.curPtr, l)
+
+            self.delCount = 0
+            self.insCount = 0
+
+        self.drawLineNum = self.curPos.y
+        self.drawPtr = self.lineStart(pos)
+        self.curPos.x = self.charPos(self.drawPtr, pos)
+
     def memmove(self, destination: int, source: int, length: int):
+        """
+        Move data within buffer - reconstruct string since strings are immutable.
+        """
+        if length <= 0:
+            return
+
+        # Get the data to move
         blob = self.buffer[source: source + length]
-        self.buffer[destination: destination + length] = blob
+
+        # Reconstruct the buffer with the moved data
+        if destination < source:
+            # Moving backwards
+            self.buffer = (self.buffer[:destination] +
+                          blob +
+                          self.buffer[destination:source] +
+                          self.buffer[source + length:])
+        else:
+            # Moving forwards
+            self.buffer = (self.buffer[:source] +
+                          self.buffer[source + length:destination + length] +
+                          blob +
+                          self.buffer[destination + length:])
 
     def setSelect(self, newStart: int, newEnd: int, curStart: bool):
         if curStart:
@@ -683,17 +788,17 @@ class Editor(View):
             if pos > self.curPtr:
                 length = pos - self.curPtr
                 self.memmove(self.curPtr, self.curPtr + self.gapLen, length)
-                self._currentPosition.y += self.countLines(self.curPtr, length)
+                self.curPos.y += self.countLines(self.curPtr, length)
                 self.curPtr = pos
             else:
                 length = self.curPtr - pos
                 self.curPtr = pos
-                self._currentPosition.y -= self.countLines(self.curPtr, length)
+                self.curPos.y -= self.countLines(self.curPtr, length)
                 self.memmove(self.curPtr + self.gapLen, self.curPtr, length)
 
-            self.drawLine = self._currentPosition.y
+            self.drawLineNum = self.curPos.y
             self.drawPtr = self.lineStart(pos)
-            self._currentPosition.x = self.charPos(self.drawPtr, pos)
+            self.curPos.x = self.charPos(self.drawPtr, pos)
             self.delCount = 0
             self.insCount = 0
             self.setBufSize(self.bufLen)
@@ -715,6 +820,8 @@ class Editor(View):
         elif state == sfExposed:
             if enable:
                 self.unlock()
+                # Force full redraw when exposed (e.g., after window resize)
+                self.update(ufView)
 
     def startSelect(self):
         self.hideSelect()
@@ -726,11 +833,11 @@ class Editor(View):
 
     def trackCursor(self, center: bool):
         if center:
-            self.scrollTo(self._currentPosition.x - self.size.x + 1,
-                          self._currentPosition.y - self.size.y // 2)
+            self.scrollTo(self.curPos.x - self.size.x + 1,
+                          self.curPos.y - self.size.y // 2)
         else:
-            self.scrollTo(max(self._currentPosition.x - self.size.x + 1, min(self.delta.x, self._currentPosition.x)),
-                          max(self._currentPosition.y - self.size.y + 1, min(self.delta.y, self._currentPosition.y)))
+            self.scrollTo(max(self.curPos.x - self.size.x + 1, min(self.delta.x, self.curPos.x)),
+                          max(self.curPos.y - self.size.y + 1, min(self.delta.y, self.curPos.y)))
 
     def undo(self):
         if self.delCount or self.insCount:
@@ -771,67 +878,117 @@ class Editor(View):
         return self.isValid
 
     def lineStart(self, pos: int) -> int:
-        while pos > self.curPtr:
-            pos -= 1
-            if self.buffer[pos + self.gapLen] == ord('\n'):
-                return pos + 1
-        if self.curPtr == 0:
-            return 0
-
         while pos > 0:
-            pos -= 1
-            if self.buffer[pos] == ord('\n'):
-                return pos + 1
+            pos = self.prevChar(pos)
+            if self.bufChar(pos) == '\n':
+                return self.nextChar(pos)
         return 0
 
     def lineEnd(self, pos: int) -> int:
-        if pos < self.curPtr:
-            while pos < self.curPtr:
-                if self.buffer[pos] == ord('\n'):
-                    return pos
-                pos += 1
-            if self.curPtr == self.bufLen:
-                return self.bufLen
-        elif pos == self.bufLen:
-            return self.bufLen
-
-        while pos + self.gapLen < self.bufSize:
-            if self.buffer[pos + self.gapLen] == ord('\n'):
-                return pos
-            pos += 1
+        while pos < self.bufLen and self.bufChar(pos) != '\n':
+            pos = self.nextChar(pos)
         return pos
 
-    def formatLine(self, drawBuf: DrawBuffer, linePtr: int, width: int, color: int):
-        i = 0
-        pos = linePtr  # Buffer
+    def detectEol(self):
+        for p in range(self.bufLen):
+            ch = self.bufChar(p)
+            if ch == '\r':
+                if p + 1 < self.bufLen and self.bufChar(p + 1) == '\n':
+                    self.eolType = 0  # eolCrLf
+                else:
+                    self.eolType = 2  # eolCr
+                return
+            elif ch == '\n':
+                self.eolType = 1  # eolLf
+                return
+        # Default to CRLF
+        self.eolType = 0  # eolCrLf
 
-        while pos < self.curPtr and self.buffer[pos] != ord('\n') and i <= width:
-            i, pos = self.__highlight(color, drawBuf, i, pos, width)
+    def formatLine(self, drawBuf: DrawBuffer, linePtr: int, width: int, colors):
+        # The attributes for normal text are in the lower half of 'colors'.
+        # The attributes for text selection are in the upper half.
+        normal_attr, select_attr = colors.attrs
+        ranges = [
+            (normal_attr, self.selStart),
+            (select_attr, self.selEnd),
+            (normal_attr, self.bufLen)
+        ]
 
-        if pos >= self.curPtr:
-            pos += self.gapLen
-            while (pos < self.bufSize) and self.buffer[pos] != ord('\n') and i <= width:
-                i, pos = self.__highlight(color, drawBuf, i, pos, width)
+        P = linePtr
+        X = 0
+        last_color = normal_attr  # Track the actual color being used
 
-        for j in range(i, width):
-            if self.selStart <= pos < self.selEnd:
-                curColor = ((color & 0xFF00) >> 8) << DrawBuffer.CHAR_WIDTH
-            else:
-                curColor = (color & 0xFF) << DrawBuffer.CHAR_WIDTH
-            drawBuf[j] = 0x20 | curColor
+        # Use flag to implement goto fill behavior
+        should_fill = False
+
+        for current_color, end_pos in ranges:
+            if should_fill:
+                break
+
+            while P < end_pos:
+                last_color = current_color  # Track the color we're actually using
+                chars = self.bufChars(P)
+                char = chars[0]
+                if char == '\r' or char == '\n':
+                    # This is the goto fill - break out of everything
+                    should_fill = True
+                    break
+
+                if char == '\t':
+                    if X < width:
+                        # Fill to next tab stop (8-character intervals)
+                        while X % 8 != 0 and X < width:
+                            set_cell(drawBuf.data[X], ' ', current_color)
+                            X += 1
+                        if X < width:
+                            set_cell(drawBuf.data[X], ' ', current_color)
+                            X += 1
+                        P += 1
+                    else:
+                        break
+                else:
+                    result, new_X, new_P = self.formatCell(drawBuf.data, X, chars, P, current_color)
+                    if not result:
+                        break
+                    X = new_X
+                    P = new_P
+
+        # Fill remaining width with spaces using the last color we were actually using
+        while X < width:
+            set_cell(drawBuf.data[X], ' ', last_color)
+            X += 1
+
+    def formatCell(self, cells, width: int, text: str, p: int, color):
+        p_ = 0
+        w_ = width
+        success, w_, p_ = Text.draw_one(cells, w_, text, p_, color)
+        if success:
+            return True, w_, p + p_
+        return False, width, p
 
     def nextChar(self, pos: int) -> int:
-        if pos == self.bufLen:
-            return pos
-        return pos + 1
+        if pos + 1 < self.bufLen:
+            if self.bufChar(pos) == '\r' and self.bufChar(pos + 1) == '\n':
+                return pos + 2
+            if self.encoding == Encoding.encSingleByte:
+                return pos + 1
+            return pos + Text.next_char(self.bufChars(pos))
+        return self.bufLen
 
-    @staticmethod
-    def prevChar(pos: int):
-        if not pos:
-            return pos
-        return pos - 1
+    def prevChar(self, pos: int):
+        if pos > 1:
+            if self.bufChar(pos - 2) == '\r' and self.bufChar(pos - 1) == '\n':
+                return pos - 2
+            if self.encoding == Encoding.encSingleByte:
+                return pos - 1
+            t = self.prevBufChars(pos)
+            return pos - Text.prev_char(t, len(t))
+        return 0
 
     def setBufSize(self, newSize: int):
+        """
+        Resize buffer - reconstruct string with larger gap.
+        """
         if newSize < 0x1000:
             # At least a 4K buffer
             newSize = 0x1000
@@ -840,13 +997,20 @@ class Editor(View):
             newSize = self.bufSize + 128
 
         if newSize > self.bufSize:
-            temp = self.buffer
-            nn = min(newSize, self.bufSize)
-            self.buffer = BufferArray(temp[:nn])
-            self.buffer.extend([0] * (newSize - nn))
-            n = self.bufLen - self.curPtr + self.delCount
-            self.buffer[newSize - n: newSize] = temp[self.bufSize - n: self.bufSize]
-            self.gapLen = self.bufSize - self.bufLen
+            # For string-based gap buffer, reconstruct with larger gap
+            # Get text before gap and after gap
+            before_gap = self.buffer[:self.curPtr]
+            after_gap_start = self.curPtr + self.gapLen
+            after_gap = self.buffer[after_gap_start:] if after_gap_start < len(self.buffer) else ''
+
+            # Calculate new gap size
+            new_gap_len = newSize - self.bufLen
+            gap_chars = '\x00' * new_gap_len  # Use null chars for gap
+
+            # Reconstruct buffer with larger gap
+            self.buffer = before_gap + gap_chars + after_gap
+            self.gapLen = new_gap_len
+
         return True
 
     @property
@@ -913,6 +1077,10 @@ class Editor(View):
                 self.hideSelect()
             elif command == cmIndentMode:
                 self.autoIndent = not self.autoIndent
+            elif command == cmEncoding:
+                self.toggleEncoding()
+            elif command == cmSelectAll:
+                self.setSelect(0, self.bufLen, False)
             self.trackCursor(centerCursor)
         finally:
             self.unlock()
@@ -958,22 +1126,3 @@ class Editor(View):
                 self.unlock()
 
             done = (not self.mouseEvent(event, evMouseMove + evMouseAuto))
-
-    def __highlight(self, color: int, drawBuf: DrawBuffer, i: int, pos: int, width: int) -> Tuple[int, int]:
-        if self.selStart <= pos < self.selEnd:
-            curColor = ((color & 0xFF00) >> 8) << DrawBuffer.CHAR_WIDTH
-        else:
-            curColor = (color & 0xFF) << DrawBuffer.CHAR_WIDTH
-        if self.buffer[pos] == ord('\t'):
-            _, r = divmod(i, self.tabSize)
-            for j in range(r):
-                drawBuf[i + j] = 0x20 | curColor
-                i += 1
-                if i + j > width:
-                    break
-            pos += 1
-        else:
-            drawBuf[i] = curColor | self.buffer[pos]
-            pos += 1
-            i += 1
-        return i, pos

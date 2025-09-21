@@ -6,7 +6,7 @@ from vindauga.constants.option_flags import ofPostProcess
 from vindauga.constants.state_flags import sfFocused
 from vindauga.events.event import Event
 from vindauga.history_support.history_utils import *
-from vindauga.misc.util import ctrlToArrow
+from vindauga.utilities.input.key_utils import ctrlToArrow
 from vindauga.types.draw_buffer import DrawBuffer
 from vindauga.types.rect import Rect
 from vindauga.types.palette import Palette
@@ -35,8 +35,8 @@ class History(View):
 
     def draw(self):
         b = DrawBuffer()
-
-        b.moveCStr(0, self.icon, self.getColor(0x0102))
+        attr_pair = self.getColor(0x0102)
+        b.moveCStr(0, self.icon, attr_pair)
         self.writeLine(0, 0, self.size.x, self.size.y, b)
 
     def getPalette(self) -> Palette:
@@ -47,7 +47,7 @@ class History(View):
         super().handleEvent(event)
 
         if (event.what == evMouseDown or (event.what == evKeyDown and ctrlToArrow(event.keyDown.keyCode) == kbDown and
-                                          (self._linkedWidget.state & sfFocused) != 0)):
+                                          (self._linkedWidget.state & sfFocused))):
 
             if not self._linkedWidget.focus():
                 self.clearEvent(event)

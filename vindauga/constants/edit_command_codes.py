@@ -37,6 +37,9 @@ cmStartSelect = 520
 cmHideSelect = 521
 cmIndentMode = 522
 cmUpdateTitle = 523
+cmSelectAll = 524
+cmDelWordLeft = 525
+cmEncoding = 526
 
 # @see Editor::doSearchReplace
 edOutOfMemory = 0

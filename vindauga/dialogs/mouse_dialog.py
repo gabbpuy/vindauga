@@ -6,7 +6,7 @@ from vindauga.constants.command_codes import cmOK, cmCancel, cmScrollBarChanged
 from vindauga.constants.event_codes import evMouseDown, meDoubleClick, evBroadcast, evCommand
 from vindauga.constants.option_flags import ofSelectable, ofCentered
 from vindauga.events.event import Event
-from vindauga.events.event_queue import EventQueue
+from vindauga.events.event_queue import event_queue
 from vindauga.types.draw_buffer import DrawBuffer
 from vindauga.types.palette import Palette
 from vindauga.types.rect import Rect
@@ -53,7 +53,7 @@ class MouseDialog(Dialog):
         self.mouseScrollBar = ScrollBar(r)
         self.mouseScrollBar.setParams(1, 1, 20, 20, 1)
         self.mouseScrollBar.options |= ofSelectable
-        self.mouseScrollBar.setValue(EventQueue.doubleDelay)
+        self.mouseScrollBar.setValue(event_queue.doubleDelay)
         self.insert(self.mouseScrollBar)
 
         r = Rect(2, 2, 21, 3)
@@ -64,7 +64,7 @@ class MouseDialog(Dialog):
 
         r = Rect(3, 6, 30, 7)
         self.insert(CheckBoxes(r, (_('~R~everse mouse buttons'),)))
-        self.oldDelay = EventQueue.doubleDelay
+        self.oldDelay = event_queue.doubleDelay
 
         r = Rect(9, 9, 19, 11)
         self.insert(Button(r, _('O~K~'), cmOK, bfDefault))
@@ -78,8 +78,8 @@ class MouseDialog(Dialog):
         super().handleEvent(event)
         if event.what == evCommand:
             if event.message.command == cmCancel:
-                EventQueue.doubleDelay = self.oldDelay
+                event_queue.doubleDelay = self.oldDelay
         elif event.what == evBroadcast:
             if event.message.command == cmScrollBarChanged:
-                EventQueue.doubleDelay = self.mouseScrollBar.value
+                event_queue.doubleDelay = self.mouseScrollBar.value
                 self.clearEvent(event)

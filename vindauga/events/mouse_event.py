@@ -12,9 +12,11 @@ class MouseEvent:
     eventFlags: int = 0
     controlKeyState: int = 0
     buttons: int = 0
+    wheel: int = 0
 
     def copy(self, other: MouseEvent):
         self.where = copy(other.where)
         self.eventFlags = other.eventFlags
         self.controlKeyState = other.controlKeyState
         self.buttons = other.buttons
+        self.wheel = other.wheel
