@@ -8,8 +8,9 @@ from vindauga.constants.keys import kbUp, kbDown, kbLeft, kbRight
 from vindauga.constants.option_flags import ofSelectable, ofFirstClick, ofPreProcess, ofPostProcess
 from vindauga.constants.state_flags import sfSelected, sfFocused
 from vindauga.events.event import Event
-from vindauga.misc.character_codes import SPECIAL_CHARS, getAltCode
-from vindauga.misc.util import ctrlToArrow, nameLength, hotKey
+from vindauga.utilities.input.character_codes import SPECIAL_CHARS, getAltCode
+from vindauga.utilities.input.key_utils import ctrlToArrow
+from vindauga.utilities.text.string_utils import nameLength, hotKey
 from vindauga.types.draw_buffer import DrawBuffer
 from vindauga.types.group import Phases
 from vindauga.types.palette import Palette

@@ -6,7 +6,7 @@ from vindauga.constants.option_flags import ofPostProcess
 from vindauga.constants.state_flags import sfFocused
 from vindauga.events.event import Event
 from vindauga.history_support.history_utils import *
-from vindauga.misc.util import ctrlToArrow
+from vindauga.utilities.input.key_utils import ctrlToArrow
 from vindauga.types.draw_buffer import DrawBuffer
 from vindauga.types.rect import Rect
 from vindauga.types.palette import Palette

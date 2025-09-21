@@ -18,7 +18,7 @@ from vindauga.menus.menu_item import MenuItem
 from vindauga.menus.sub_menu import SubMenu
 
 from vindauga.types.rect import Rect
-from vindauga.utilities.pushd import pushd
+from vindauga.utilities.filesystem.pushd import pushd
 
 from vindauga.widgets.application import Application
 from vindauga.widgets.background import Background

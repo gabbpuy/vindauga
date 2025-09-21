@@ -7,12 +7,12 @@ import os
 import wcwidth
 
 from vindauga.constants.command_codes import cmPaste
-from vindauga.screen_driver.text.text import Text
+from vindauga.utilities.text.text import Text
 from vindauga.constants.event_codes import evMouseUp, evKeyDown, evMouseDown, evCommand, evMouseWheel
 from vindauga.constants.option_flags import ofSelectable
 from vindauga.constants.keys import *
 from vindauga.events.event import Event
-from vindauga.misc.clipboard import Clipboard
+from vindauga.utilities.clipboard.clipboard import Clipboard
 from vindauga.types.collections.collection import Collection
 from vindauga.types.draw_buffer import DrawBuffer
 from vindauga.types.point import Point

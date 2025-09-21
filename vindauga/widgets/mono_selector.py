@@ -2,7 +2,7 @@
 from vindauga.constants.colors import cmColorSet, cmColorForegroundChanged, cmColorBackgroundChanged
 from vindauga.constants.event_codes import evBroadcast
 from vindauga.events.event import Event
-from vindauga.misc.message import message
+from vindauga.utilities.message import message
 from vindauga.types.rect import Rect
 
 from .cluster import Cluster

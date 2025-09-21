@@ -15,10 +15,10 @@ from signal import *
 import struct
 from typing import Tuple, Union
 
-from vindauga.screen_driver.text.text import Text
-from vindauga.screen_driver.screen_cell.screen_cell import ScreenCell
-from vindauga.screen_driver.colours.colour_attribute import ColourAttribute
-from vindauga.screen_driver.events.utf8_handler import UTF8CharacterAssembler
+from vindauga.utilities.text.text import Text
+from vindauga.utilities.screen.screen_cell import ScreenCell
+from vindauga.utilities.colours.colour_attribute import ColourAttribute
+from vindauga.utilities.platform.events.utf8_handler import UTF8CharacterAssembler
 
 
 TERMINAL_KEY_TRANSLATION = {

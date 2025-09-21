@@ -14,10 +14,10 @@ import vindauga.constants.key_mappings as key_mappings
 from vindauga.events.event import Event
 from vindauga.events.event_queue import event_queue
 from vindauga.menus.menu_bar import MenuBar
-from vindauga.misc.character_codes import getAltChar
-from vindauga.misc.message import message
+from vindauga.utilities.input.character_codes import getAltChar
+from vindauga.utilities.message import message
 from vindauga.mouse.mouse import Mouse
-from vindauga.screen_driver.hardware_info import hardware_info
+from vindauga.utilities.platform.hardware_info import hardware_info
 from vindauga.types.display import Display
 from vindauga.types.group import Group
 from vindauga.types.palette import Palette

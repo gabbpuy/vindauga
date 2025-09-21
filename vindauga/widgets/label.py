@@ -6,8 +6,8 @@ from vindauga.constants.event_codes import evBroadcast, evMouseDown, evKeyDown
 from vindauga.constants.option_flags import ofSelectable, ofPreProcess, ofPostProcess
 from vindauga.constants.state_flags import sfFocused
 from vindauga.events.event import Event
-from vindauga.misc.character_codes import SPECIAL_CHARS, getAltCode
-from vindauga.misc.util import hotKey
+from vindauga.utilities.input.character_codes import SPECIAL_CHARS, getAltCode
+from vindauga.utilities.text.string_utils import hotKey
 from vindauga.types.draw_buffer import DrawBuffer
 from vindauga.types.group import Phases
 from vindauga.types.palette import Palette

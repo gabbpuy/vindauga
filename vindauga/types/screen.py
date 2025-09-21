@@ -7,8 +7,8 @@ import sys
 import threading
 import traceback
 
-from vindauga.screen_driver.hardware_info import hardware_info
-from vindauga.screen_driver import ScreenCell
+from vindauga.utilities.platform.hardware_info import hardware_info
+from vindauga.utilities.screen.screen_cell import ScreenCell
 from vindauga.types.display import Display
 from vindauga.mouse.mouse import Mouse
 

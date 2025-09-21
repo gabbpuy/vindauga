@@ -6,8 +6,8 @@ import wcwidth
 from vindauga.constants.colors import cmColorBackgroundChanged, cmColorForegroundChanged, cmColorSet, cmSetColorIndex
 from vindauga.constants.event_codes import evBroadcast
 from vindauga.events.event import Event
-from vindauga.misc.message import message
-from vindauga.screen_driver import ColourAttribute
+from vindauga.utilities.message import message
+from vindauga.utilities.colours.colour_attribute import ColourAttribute
 from vindauga.types.draw_buffer import DrawBuffer
 from vindauga.types.rect import Rect
 from vindauga.types.view import View

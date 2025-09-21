@@ -12,9 +12,9 @@ from vindauga.constants.state_flags import sfSelected, sfActive
 from vindauga.constants.option_flags import ofFirstClick, ofSelectable
 from vindauga.events.event import Event
 
-from vindauga.misc.character_codes import SPECIAL_CHARS
-from vindauga.misc.message import message
-from vindauga.misc.util import ctrlToArrow
+from vindauga.utilities.input.character_codes import SPECIAL_CHARS
+from vindauga.utilities.message import message
+from vindauga.utilities.input.key_utils import ctrlToArrow
 from vindauga.types.draw_buffer import DrawBuffer
 from vindauga.types.palette import Palette
 from vindauga.types.rect import Rect

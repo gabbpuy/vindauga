@@ -8,8 +8,8 @@ from vindauga.constants.command_codes import cmMenu, hcNoContext, cmCommandSetCh
 import vindauga.constants.event_codes as event_codes
 import vindauga.constants.keys as keys
 from vindauga.events.event import Event
-from vindauga.misc.character_codes import getAltChar
-from vindauga.misc.util import ctrlToArrow
+from vindauga.utilities.input.character_codes import getAltChar
+from vindauga.utilities.input.key_utils import ctrlToArrow
 from vindauga.types.palette import Palette
 from vindauga.types.point import Point
 from vindauga.types.rect import Rect

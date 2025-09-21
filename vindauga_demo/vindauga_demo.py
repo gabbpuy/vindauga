@@ -28,7 +28,7 @@ from vindauga.gadgets.puzzle import PuzzleWindow
 from vindauga.menus.menu_bar import MenuBar
 from vindauga.menus.menu_item import MenuItem
 from vindauga.menus.sub_menu import SubMenu
-from vindauga.misc.message import message
+from vindauga.utilities.message import message
 from vindauga.terminal.terminal_view import TerminalView
 from vindauga.terminal.terminal_window import TerminalWindow
 from vindauga.types.color_group import ColorGroup
@@ -38,7 +38,7 @@ from vindauga.types.screen import Screen
 from vindauga.types.status_def import StatusDef
 from vindauga.types.status_item import StatusItem
 from vindauga.types.view import View
-from vindauga.utilities.pushd import pushd
+from vindauga.utilities.filesystem.pushd import pushd
 from vindauga.widgets.application import Application
 from vindauga.widgets.background import Background
 from vindauga.widgets.button import Button

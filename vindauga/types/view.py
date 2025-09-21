@@ -22,12 +22,12 @@ from vindauga.constants.option_flags import ofSelectable, ofTopSelect, ofFirstCl
 from vindauga.constants.state_flags import (sfVisible, sfCursorVis, sfCursorIns, sfShadow, sfSelected,
                                             sfFocused, sfDragging, sfDisabled, sfModal, sfExposed)
 from vindauga.events.event import Event
-from vindauga.misc.message import message
-from vindauga.misc.util import clamp
-from vindauga.screen_driver.colours.colour_attribute import ColourAttribute, reverse_attribute, get_style, set_style, get_back
-from vindauga.screen_driver.colours.attribute_pair import AttributePair
-from vindauga.screen_driver.hardware_info import hardware_info
-from vindauga.screen_driver.screen_cell.screen_cell import ScreenCell, set_cell, set_attr
+from vindauga.utilities.message import message
+from vindauga.utilities.math_utils import clamp
+from vindauga.utilities.colours.colour_attribute import ColourAttribute, reverse_attribute, get_style, set_style, get_back
+from vindauga.utilities.colours.attribute_pair import AttributePair
+from vindauga.utilities.platform.hardware_info import hardware_info
+from vindauga.utilities.screen.screen_cell import ScreenCell, set_cell, set_attr
 
 from .command_set import CommandSet
 from .cursor import Cursor
@@ -37,7 +37,7 @@ from .point import Point
 from .rect import Rect
 from .screen import Screen
 from .vindauga_object import VindaugaObject
-from ..screen_driver.colours.style_mask import StyleMask
+from vindauga.utilities.colours.style_mask import StyleMask
 
 logger = logging.getLogger(__name__)
 

@@ -7,9 +7,9 @@ TVision palette indices through to BIOS format for ncurses display.
 """
 import unittest
 
-from vindauga.screen_driver.colours.attribute_pair import AttributePair
-from vindauga.screen_driver.colours.colour_attribute import ColourAttribute
-from vindauga.screen_driver.colours.desired_colour import DesiredColour
+from vindauga.utilities.colours.attribute_pair import AttributePair
+from vindauga.utilities.colours.colour_attribute import ColourAttribute
+from vindauga.utilities.colours.desired_colour import DesiredColour
 
 
 class TestColorConversion(unittest.TestCase):

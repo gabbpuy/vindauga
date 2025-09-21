@@ -6,8 +6,8 @@ import logging
 from vindauga.constants.state_flags import sfVisible, sfCursorVis, sfFocused, sfCursorIns
 
 from vindauga.types.screen import Screen
-from vindauga.screen_driver.hardware_info import hardware_info
-from vindauga.screen_driver.platform import Platform
+from vindauga.utilities.platform.hardware_info import hardware_info
+from vindauga.utilities.platform.platform import Platform
 
 logger = logging.getLogger(__name__)
 

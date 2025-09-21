@@ -6,7 +6,7 @@ from vindauga.constants.scrollbar_codes import sbHorizontal, sbVertical, sbHandl
 from vindauga.constants.drag_flags import dmLimitAll
 from vindauga.constants.event_codes import evBroadcast
 from vindauga.events.event import Event
-from vindauga.misc.message import message
+from vindauga.utilities.message import message
 from vindauga.types.palette import Palette
 from vindauga.types.rect import Rect
 

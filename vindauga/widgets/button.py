@@ -7,11 +7,11 @@ from vindauga.constants.event_codes import evBroadcast, evMouseDown, evKeyDown, 
 from vindauga.constants.option_flags import ofSelectable, ofFirstClick, ofPreProcess, ofPostProcess
 from vindauga.constants.state_flags import sfActive, sfSelected, sfFocused, sfDisabled
 from vindauga.events.event import Event
-from vindauga.misc.character_codes import SPECIAL_CHARS, getAltCode
-from vindauga.misc.message import message
-from vindauga.misc.util import hotKey
-from vindauga.misc.util import nameLength
-from vindauga.screen_driver.colours.attribute_pair import AttributePair
+from vindauga.utilities.input.character_codes import SPECIAL_CHARS, getAltCode
+from vindauga.utilities.message import message
+from vindauga.utilities.text.string_utils import hotKey
+from vindauga.utilities.text.string_utils import nameLength
+from vindauga.utilities.colours.attribute_pair import AttributePair
 from vindauga.types.draw_buffer import DrawBuffer
 from vindauga.types.group import Phases
 from vindauga.types.palette import Palette

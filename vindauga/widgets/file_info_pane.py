@@ -4,12 +4,12 @@ import os
 from vindauga.constants.event_codes import evBroadcast
 from vindauga.constants.std_dialog_commands import cmFileFocused
 from vindauga.events.event import Event
-from vindauga.misc.util import fexpand
+from vindauga.utilities.filesystem.path_utils import fexpand
 from vindauga.types.draw_buffer import DrawBuffer
 from vindauga.types.palette import Palette
 from vindauga.types.rect import Rect
 from vindauga.types.view import View
-from vindauga.misc.prefix.prefix import closestPrefix
+from vindauga.utilities.prefix.prefix import closestPrefix
 
 
 class FileInfoPane(View):

@@ -7,7 +7,7 @@ from typing import Callable
 
 from dataclasses import dataclass
 
-from vindauga.screen_driver.hardware_info import hardware_info
+from vindauga.utilities.platform.hardware_info import hardware_info
 
 
 def systemTimeMs():

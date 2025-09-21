@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 from vindauga.events.mouse_event import MouseEvent
-from vindauga.screen_driver.hardware_info import hardware_info
+from vindauga.utilities.platform.hardware_info import hardware_info
 
 
 class HardwareMouse:

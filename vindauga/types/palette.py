@@ -40,7 +40,7 @@
 from __future__ import annotations
 from typing import List, Union
 
-from vindauga.screen_driver import ColourAttribute
+from vindauga.utilities.colours.colour_attribute import ColourAttribute
 
 
 class Palette:

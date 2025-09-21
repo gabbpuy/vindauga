@@ -2,10 +2,10 @@
 from __future__ import annotations
 import logging
 
-from vindauga.screen_driver.colours.attribute_pair import AttributePair
-from vindauga.screen_driver.colours.colour_attribute import ColourAttribute
-from vindauga.screen_driver.screen_cell.screen_cell import ScreenCell, set_cell, set_attr, set_char
-from vindauga.screen_driver.text import Text
+from vindauga.utilities.colours.attribute_pair import AttributePair
+from vindauga.utilities.colours.colour_attribute import ColourAttribute
+from vindauga.utilities.screen.screen_cell import ScreenCell, set_cell, set_attr, set_char
+from vindauga.utilities.text.text import Text
 
 from .screen import Screen
 

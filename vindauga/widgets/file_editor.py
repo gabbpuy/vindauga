@@ -9,8 +9,8 @@ from vindauga.constants.edit_command_codes import *
 from vindauga.constants.event_codes import *
 # BufferArray no longer needed - using strings for buffers now
 from vindauga.types.rect import Rect
-from vindauga.misc.message import message
-from vindauga.misc.util import fexpand
+from vindauga.utilities.message import message
+from vindauga.utilities.filesystem.path_utils import fexpand
 
 from .editor import Editor
 from .indicator import Indicator

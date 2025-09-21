@@ -1,8 +1,8 @@
 # -*- coding: utf-8 -*-
 import unittest
 
-from vindauga.screen_driver.colours.attribute_pair import AttributePair
-from vindauga.screen_driver.colours.colour_attribute import ColourAttribute
+from vindauga.utilities.colours.attribute_pair import AttributePair
+from vindauga.utilities.colours.colour_attribute import ColourAttribute
 
 
 class TestAttributePairImplicitConversion(unittest.TestCase):

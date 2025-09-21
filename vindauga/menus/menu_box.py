@@ -6,9 +6,9 @@ import wcwidth
 
 from vindauga.constants.option_flags import ofPreProcess
 from vindauga.constants.state_flags import sfShadow
-from vindauga.misc.util import nameLength
-from vindauga.screen_driver.colours.attribute_pair import AttributePair
-from vindauga.screen_driver.colours.colour_attribute import ColourAttribute
+from vindauga.utilities.text.string_utils import nameLength
+from vindauga.utilities.colours.attribute_pair import AttributePair
+from vindauga.utilities.colours.colour_attribute import ColourAttribute
 from vindauga.types.draw_buffer import DrawBuffer
 from vindauga.types.rect import Rect
 

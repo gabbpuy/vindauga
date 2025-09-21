@@ -7,11 +7,11 @@ from vindauga.events.mouse_event import MouseEvent
 from vindauga.types.point import Point
 from vindauga.constants.event_codes import evKeyDown, evMouse, evNothing
 import vindauga.constants.keys as Keys
-from vindauga.screen_driver.events.termio import term_io, TermIO
-from vindauga.screen_driver.events.get_ch_buf import GetChBuf
-from vindauga.screen_driver.events.input_state import InputState
-from vindauga.screen_driver.events.parse_result import ParseResult
-from vindauga.screen_driver.events.input_getter import InputGetter
+from vindauga.utilities.platform.events.termio import term_io, TermIO
+from vindauga.utilities.platform.events.get_ch_buf import GetChBuf
+from vindauga.utilities.platform.events.input_state import InputState
+from vindauga.utilities.platform.events.parse_result import ParseResult
+from vindauga.utilities.platform.events.input_getter import InputGetter
 
 
 class StrInputGetter(InputGetter):
@@ -263,7 +263,7 @@ Test parsing of common escape sequences
         """
 Test CSI data structure functionality
 """
-        from vindauga.screen_driver.events.csi_data import CSIData
+        from vindauga.utilities.platform.events.csi_data import CSIData
 
         # Test CSI parameter reading
         input_getter = StrInputGetter("1;2;3~")

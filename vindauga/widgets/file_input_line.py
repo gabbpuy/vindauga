@@ -7,7 +7,7 @@ from vindauga.constants.event_codes import evBroadcast
 from vindauga.constants.state_flags import sfSelected
 from vindauga.constants.std_dialog_commands import cmFileFocused
 from vindauga.events.event import Event
-from vindauga.misc.util import fexpand
+from vindauga.utilities.filesystem.path_utils import fexpand
 from vindauga.types.rect import Rect
 
 from .input_line import InputLine

@@ -7,9 +7,9 @@ from vindauga.constants.event_codes import evBroadcast, evMouseDown, evKeyDown, 
 from vindauga.constants.keys import kbLeft, kbRight, kbDown, kbUp
 from vindauga.constants.option_flags import ofSelectable, ofFirstClick, ofFramed
 from vindauga.events.event import Event
-from vindauga.misc.message import message
-from vindauga.misc.util import ctrlToArrow
-from vindauga.screen_driver.colours.colour_attribute import ColourAttribute
+from vindauga.utilities.message import message
+from vindauga.utilities.input.key_utils import ctrlToArrow
+from vindauga.utilities.colours.colour_attribute import ColourAttribute
 from vindauga.types.draw_buffer import DrawBuffer
 from vindauga.types.rect import Rect
 from vindauga.types.view import View

@@ -10,8 +10,8 @@ from vindauga.types.collections.file_collection import FileCollection
 from vindauga.constants.event_codes import evBroadcast
 from vindauga.constants.keys import kbShift
 from vindauga.constants.std_dialog_commands import cmFileFocused, cmFileDoubleClicked
-from vindauga.misc.message import message
-from vindauga.misc.util import isWild, fexpand, splitPath
+from vindauga.utilities.message import message
+from vindauga.utilities.filesystem.path_utils import isWild, fexpand, splitPath
 from vindauga.types.records.directory_search_record import DirectorySearchRecord
 from vindauga.types.records.search_record import FA_DIREC, SearchRecord
 from vindauga.types.rect import Rect

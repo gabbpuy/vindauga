@@ -5,7 +5,7 @@ from typing import List
 from vindauga.constants.colors import cmSaveColorIndex, cmNewColorIndex, cmNewColorItem
 from vindauga.constants.event_codes import evBroadcast
 from vindauga.events.event import Event
-from vindauga.misc.message import message
+from vindauga.utilities.message import message
 from vindauga.types.color_item import ColorItem
 from vindauga.types.rect import Rect
 

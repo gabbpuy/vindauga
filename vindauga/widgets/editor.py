@@ -15,9 +15,9 @@ from vindauga.constants.keys import *
 from vindauga.constants.option_flags import ofSelectable
 from vindauga.constants.state_flags import sfVisible, sfCursorIns, sfActive, sfExposed
 from vindauga.events.event import Event
-from vindauga.screen_driver.screen_cell.screen_cell import set_cell
-from vindauga.screen_driver.colours.colour_attribute import ColourAttribute
-from vindauga.screen_driver.text.text import Text
+from vindauga.utilities.screen.screen_cell import set_cell
+from vindauga.utilities.colours.colour_attribute import ColourAttribute
+from vindauga.utilities.text.text import Text
 from vindauga.types.command_set import CommandSet
 from vindauga.types.palette import Palette
 from vindauga.types.point import Point

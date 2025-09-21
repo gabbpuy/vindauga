@@ -9,8 +9,8 @@ in moveChar(), moveStr(), and other DrawBuffer methods.
 import unittest
 from unittest.mock import Mock
 
-from vindauga.screen_driver.colours.attribute_pair import AttributePair
-from vindauga.screen_driver.colours.colour_attribute import ColourAttribute
+from vindauga.utilities.colours.attribute_pair import AttributePair
+from vindauga.utilities.colours.colour_attribute import ColourAttribute
 from vindauga.types.draw_buffer import DrawBuffer
 from vindauga.types.screen import Screen
 

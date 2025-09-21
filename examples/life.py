@@ -34,8 +34,8 @@ from vindauga.events.event import Event
 from vindauga.menus.menu_bar import MenuBar
 from vindauga.menus.menu_item import MenuItem
 from vindauga.menus.sub_menu import SubMenu
-from vindauga.misc.message import message
-from vindauga.screen_driver import ScreenCell
+from vindauga.utilities.message import message
+from vindauga.utilities.screen.screen_cell import ScreenCell
 from vindauga.types.command_set import CommandSet
 from vindauga.types.point import Point
 from vindauga.types.rect import Rect

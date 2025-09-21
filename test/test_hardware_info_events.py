@@ -4,7 +4,7 @@ import unittest
 from unittest.mock import Mock, patch
 import logging
 
-from vindauga.screen_driver.hardware_info import HardwareInfo
+from vindauga.utilities.platform.hardware_info import HardwareInfo
 from vindauga.events.event import Event
 from vindauga.constants.event_codes import evNothing, evKeyDown, evMouse
 

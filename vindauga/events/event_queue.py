@@ -6,8 +6,8 @@ from vindauga.events.mouse_event import MouseEvent
 import vindauga.constants.event_codes as event_codes
 from vindauga.constants.keys import kbPaste, kbEnter, kbTab
 from vindauga.mouse.mouse import Mouse
-from vindauga.screen_driver.hardware_info import hardware_info
-from vindauga.screen_driver.text.text import Text
+from vindauga.utilities.platform.hardware_info import hardware_info
+from vindauga.utilities.text.text import Text
 from vindauga.types.screen import Screen
 
 logger = logging.getLogger(__name__)
