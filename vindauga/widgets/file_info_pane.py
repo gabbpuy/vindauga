@@ -9,7 +9,7 @@ from vindauga.types.draw_buffer import DrawBuffer
 from vindauga.types.palette import Palette
 from vindauga.types.rect import Rect
 from vindauga.types.view import View
-from vindauga.utilities.prefix.prefix import closestPrefix
+from vindauga.utilities.support.prefix.prefix import closestPrefix
 
 
 class FileInfoPane(View):

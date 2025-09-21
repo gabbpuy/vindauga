@@ -6,7 +6,7 @@ from typing import Optional, List
 
 from vindauga.types.rect import Rect
 from vindauga.widgets.background import Background
-from vindauga.utilities.ansify import wallpaper
+from vindauga.utilities.support.ansify import wallpaper
 from vindauga.widgets.desktop import Desktop
 
 logger = logging.getLogger(__name__)

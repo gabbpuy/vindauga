@@ -12,7 +12,7 @@ from vindauga.constants.event_codes import evMouseUp, evKeyDown, evMouseDown, ev
 from vindauga.constants.option_flags import ofSelectable
 from vindauga.constants.keys import *
 from vindauga.events.event import Event
-from vindauga.utilities.clipboard.clipboard import Clipboard
+from vindauga.utilities.support.clipboard.clipboard import Clipboard
 from vindauga.types.collections.collection import Collection
 from vindauga.types.draw_buffer import DrawBuffer
 from vindauga.types.point import Point
