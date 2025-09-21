@@ -96,7 +96,7 @@ arrives.
 ## Contributing
 
 ### Python Version
-I'm targetting python 3.7+ (It should work with 3.6 with the `dataclasses` backport)
+I'm targetting python 3.10+
 
 ### Class and Variable Names
 * It doesn't use PEP-8 naming, for various reasons.
