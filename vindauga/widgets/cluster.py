@@ -8,8 +8,9 @@ from vindauga.constants.keys import kbUp, kbDown, kbLeft, kbRight
 from vindauga.constants.option_flags import ofSelectable, ofFirstClick, ofPreProcess, ofPostProcess
 from vindauga.constants.state_flags import sfSelected, sfFocused
 from vindauga.events.event import Event
-from vindauga.misc.character_codes import SPECIAL_CHARS, getAltCode
-from vindauga.misc.util import ctrlToArrow, nameLength, hotKey
+from vindauga.utilities.input.character_codes import SPECIAL_CHARS, getAltCode
+from vindauga.utilities.input.key_utils import ctrlToArrow
+from vindauga.utilities.text.string_utils import nameLength, hotKey
 from vindauga.types.draw_buffer import DrawBuffer
 from vindauga.types.group import Phases
 from vindauga.types.palette import Palette
@@ -63,14 +64,15 @@ class Cluster(View):
                         else:
                             color = cNorm
                         b.moveChar(col, ' ', color, self.size.x - col)
-                        b.moveCStr(col, icon, color)
-                        b.putChar(col + 2, marker[self.multiMark(cur)])
-                        b.moveCStr(col + 5, self._strings[cur], color)
+                        attr_pair = color
+                        b.moveCStr(col, icon, attr_pair)
+                        b.putChar(col + 2, marker[self.multiMark(cur)], color)
+                        b.moveCStr(col + 5, self._strings[cur], attr_pair)
 
                         if (self.showMarkers and ((self.state & sfSelected) != 0 and
                                                   cur == self._sel)):
-                            b.putChar(col, SPECIAL_CHARS[0])
-                            b.putChar(self.__column(cur + self.size.y) - 1, SPECIAL_CHARS[1])
+                            b.putChar(col, SPECIAL_CHARS[0], color)
+                            b.putChar(self.__column(cur + self.size.y) - 1, SPECIAL_CHARS[1], color)
 
             self.writeBuf(0, i, self.size.x, 1, b)
         self.setCursor(self.__column(self._sel) + 2, self.__row(self._sel))
@@ -94,7 +96,7 @@ class Cluster(View):
         super().handleEvent(event)
 
         if not self.options & ofSelectable:
-            return event
+            return
 
         if event.what == evMouseDown:
             mouse = self.makeLocal(event.mouse.where)

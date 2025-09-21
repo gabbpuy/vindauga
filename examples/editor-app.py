@@ -1,4 +1,6 @@
 # -*- coding: utf-8 -*-
+import os
+
 import logging
 
 from vindauga.constants.buttons import bfDefault, bfNormal

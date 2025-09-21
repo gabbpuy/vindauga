@@ -28,7 +28,9 @@ class Background(View):
 
     def draw(self):
         b = DrawBuffer()
-        b.moveChar(0, self._pattern, self.getColor(0x01), self.size.x)
+        color_pair = self.getColor(0x01)
+        color_attr = color_pair & 0xFF
+        b.moveChar(0, self._pattern, color_attr, self.size.x)
         self.writeLine(0, 0, self.size.x, self.size.y, b)
 
     def getPalette(self) -> Palette:

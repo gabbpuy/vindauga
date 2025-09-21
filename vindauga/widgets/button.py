@@ -7,10 +7,11 @@ from vindauga.constants.event_codes import evBroadcast, evMouseDown, evKeyDown, 
 from vindauga.constants.option_flags import ofSelectable, ofFirstClick, ofPreProcess, ofPostProcess
 from vindauga.constants.state_flags import sfActive, sfSelected, sfFocused, sfDisabled
 from vindauga.events.event import Event
-from vindauga.misc.character_codes import SPECIAL_CHARS, getAltCode
-from vindauga.misc.message import message
-from vindauga.misc.util import hotKey
-from vindauga.misc.util import nameLength
+from vindauga.utilities.input.character_codes import SPECIAL_CHARS, getAltCode
+from vindauga.utilities.message import message
+from vindauga.utilities.text.string_utils import hotKey
+from vindauga.utilities.text.string_utils import nameLength
+from vindauga.utilities.colours.attribute_pair import AttributePair
 from vindauga.types.draw_buffer import DrawBuffer
 from vindauga.types.group import Phases
 from vindauga.types.palette import Palette
@@ -36,9 +37,7 @@ class Button(View):
         self._command = commands
         self._flags = flags
         self._amDefault = ((flags & bfDefault) != 0)
-
         self.options |= (ofSelectable | ofFirstClick | ofPreProcess | ofPostProcess)
-
         self.eventMask |= evBroadcast
 
         if not self.commandEnabled(commands):
@@ -78,9 +77,9 @@ class Button(View):
                     ch = ' '
                 else:
                     if y == 0:
-                        b.putChar(s, self.shadows[0])
+                        b.putChar(s, self.shadows[0], cShadow)
                     else:
-                        b.putChar(s, self.shadows[1])
+                        b.putChar(s, self.shadows[1], cShadow)
 
                     ch = self.shadows[2]
                 i = 1
@@ -89,8 +88,8 @@ class Button(View):
                 self.__drawTitle(b, s, i, cButton, down)
 
             if self.showMarkers and down:
-                b.putChar(1, self.markers[0])
-                b.putChar(s - 1, self.markers[1])
+                b.putChar(1, self.markers[0], cButton)
+                b.putChar(s - 1, self.markers[1], cButton)
 
             self.writeLine(0, y, self.size.x, 1, b)
 
@@ -188,7 +187,7 @@ class Button(View):
             e.message.infoPtr = self
             self.putEvent(e)
 
-    def __drawTitle(self, b: DrawBuffer, s: int, i: int, cButton: int, down: bool):
+    def __drawTitle(self, b: DrawBuffer, s: int, i: int, cButton: AttributePair, down: bool):
         if self._flags & bfLeftJust:
             titlePosition = 0
         else:
@@ -207,5 +206,5 @@ class Button(View):
             else:
                 scOff = 4
 
-            b.putChar(0, SPECIAL_CHARS[scOff])
-            b.putChar(s, SPECIAL_CHARS[scOff + 1])
+            b.putChar(0, SPECIAL_CHARS[scOff], cButton)
+            b.putChar(s, SPECIAL_CHARS[scOff + 1], cButton)

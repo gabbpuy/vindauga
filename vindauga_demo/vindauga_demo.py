@@ -1,17 +1,18 @@
 # -*- coding: utf-8 -*-
+from __future__ import annotations
+
 import logging
+from pathlib import Path
+import random
 import os
 import sys
-
-from demo.app_commands import AppCommands
-from demo.ascii_table import AsciiChart
-from demo.help_contexts import HelpContexts
 
 from vindauga.constants.buttons import bfDefault, bfNormal
 from vindauga.constants.command_codes import cmMenu, cmQuit, cmClose, hcNoContext, cmNext, cmZoom, cmHelp, cmResize, \
     cmCancel, cmOK, cmCascade, cmTile
 from vindauga.constants.event_codes import evCommand
 from vindauga.constants.keys import kbF10, kbAltX, kbF6, kbF3, kbNoKey, kbF11, kbF5, kbCtrlF5, kbCtrlW
+from vindauga.constants.message_flags import mfError, mfOKButton
 from vindauga.constants.option_flags import ofCentered
 from vindauga.constants.option_flags import ofTileable
 from vindauga.dialogs.calculator_dialog import CalculatorDialog
@@ -19,14 +20,15 @@ from vindauga.dialogs.calendar import CalendarWindow
 from vindauga.dialogs.change_dir_dialog import ChangeDirDialog, cmChangeDir
 from vindauga.dialogs.color_dialog import ColorDialog
 from vindauga.dialogs.file_dialog import FileDialog, fdOpenButton
+from vindauga.dialogs.message_box import messageBox
 from vindauga.dialogs.mouse_dialog import MouseDialog
 from vindauga.events.event import Event
-from vindauga.events.event_queue import EventQueue
+from vindauga.events.event_queue import event_queue
 from vindauga.gadgets.puzzle import PuzzleWindow
 from vindauga.menus.menu_bar import MenuBar
 from vindauga.menus.menu_item import MenuItem
 from vindauga.menus.sub_menu import SubMenu
-from vindauga.misc.message import message
+from vindauga.utilities.message import message
 from vindauga.terminal.terminal_view import TerminalView
 from vindauga.terminal.terminal_window import TerminalWindow
 from vindauga.types.color_group import ColorGroup
@@ -36,10 +38,13 @@ from vindauga.types.screen import Screen
 from vindauga.types.status_def import StatusDef
 from vindauga.types.status_item import StatusItem
 from vindauga.types.view import View
+from vindauga.utilities.filesystem.pushd import pushd
 from vindauga.widgets.application import Application
+from vindauga.widgets.background import Background
 from vindauga.widgets.button import Button
 from vindauga.widgets.check_boxes import CheckBoxes
 from vindauga.widgets.clock import ClockView
+from vindauga.widgets.desktop import Desktop
 from vindauga.widgets.dialog import Dialog
 from vindauga.widgets.file_window import FileWindow
 from vindauga.widgets.input_line import InputLine
@@ -48,8 +53,12 @@ from vindauga.widgets.radio_buttons import RadioButtons
 from vindauga.widgets.static_text import StaticText
 from vindauga.widgets.status_line import StatusLine
 
-logger = logging.getLogger('vindauga.vindauga_demo')
+from demo.app_commands import AppCommands
+from demo.ascii_table import AsciiChart
+from demo.help_contexts import HelpContexts
+from vindauga.widgets.wallpaper_background import WallpaperBackground
 
+logger = logging.getLogger('vindauga.vindauga_demo')
 
 checkBoxData = 0
 radioButtonData = 0
@@ -58,19 +67,64 @@ inputLineData = ''
 demoDialogData = list(reversed([checkBoxData, radioButtonData, inputLineData]))
 
 
-def setupLogging():
-    logger = logging.getLogger('vindauga')
+def setupLogging(logger_name: str):
+    logger = logging.getLogger(logger_name)
     logger.propagate = False
-    format = '%(name)s\t %(message)s'
+    format = '%(asctime)s.%(msecs)03d\t%(name)s\t%(levelname)s\t%(message)s'
     logger.setLevel(logging.DEBUG)
-    handler = logging.StreamHandler(open('vindauga.log', 'wt'))
-    handler.setFormatter(logging.Formatter(format))
+    handler = logging.StreamHandler(open(f'{logger_name}.log', 'wt'))
+    handler.setFormatter(logging.Formatter(format, datefmt='%H:%M:%S'))
     logger.addHandler(handler)
+
+
+class WallpaperDesktop(Desktop):
+    """
+    Desktop with wallpaper background.
+    """
+
+    def initBackground(self, bounds: Rect):
+        """
+        Initialize wallpaper background.
+        """
+        # Look for a sample image in the examples directory
+        wallpapers = Path(__file__).parent / 'wallpapers'
+
+        # Try to find any image file in examples directory
+        image_extensions = ['.png', '.jpg', '.jpeg', '.gif']
+        sample_image = None
+
+        random.shuffle(image_extensions)
+
+        for ext in image_extensions:
+            try:
+                sample_image = random.choice(list(wallpapers.glob('*' + ext)))
+            except IndexError:
+                continue
+            if sample_image:
+                break
+
+        # If no image found, create a simple test pattern
+        if not sample_image:
+            logger.warning("No sample image found in examples directory")
+            return Background(bounds, '▒')
+
+        try:
+            wallpaper_bg = WallpaperBackground(
+                bounds,
+                sample_image,
+            )
+            logger.info("Created wallpaper background with image: %s", sample_image)
+            return wallpaper_bg
+        except Exception as e:
+            logger.exception("Failed to create wallpaper background: %s", e)
+            # Fallback to regular background
+            return Background(bounds, '▒')
 
 
 class VindaugaDemo(Application):
     def __init__(self):
         super().__init__()
+        self.wallpaper_desktop = None
         self.helpInUse = False
 
         r = self.getExtent()
@@ -97,6 +151,12 @@ class VindaugaDemo(Application):
     @staticmethod
     def closeView(view: View, params):
         message(view, evCommand, cmClose, params)
+
+    def initDesktop(self, bounds: Rect) -> Desktop:
+        bounds.topLeft.y += 1
+        bounds.bottomRight.y -= 1
+        self.wallpaper_desktop = WallpaperDesktop(bounds)
+        return self.wallpaper_desktop
 
     def initStatusLine(self, bounds: Rect) -> StatusLine:
         bounds.topLeft.y = bounds.bottomRight.y - 1
@@ -144,7 +204,8 @@ class VindaugaDemo(Application):
 
         subMenu4 = (SubMenu('~O~ptions', 0, HelpContexts.hcOptions) +
                     MenuItem('~M~ouse...', AppCommands.cmMouseCmd, kbNoKey, HelpContexts.hcOMouse) +
-                    MenuItem('~C~olors...', AppCommands.cmColorCmd, kbNoKey, HelpContexts.hcOColors))
+                    MenuItem('~C~olors...', AppCommands.cmColorCmd, kbNoKey, HelpContexts.hcOColors) +
+                    MenuItem('~W~allpaper', AppCommands.cmLoadWallpaperCmd, kbNoKey, HelpContexts.hcWallpaper))
 
         subMenu5 = (SubMenu('~R~esolution', 0, hcNoContext) +
                     MenuItem('~1~ 80x25', AppCommands.cmTest80x25, kbNoKey, hcNoContext) +
@@ -190,6 +251,8 @@ class VindaugaDemo(Application):
                     self.colors()
                 elif emc == AppCommands.cmDialogCmd:
                     self.newDialog()
+                elif emc == AppCommands.cmLoadWallpaperCmd:
+                    self.loadWallpaper()
                 elif AppCommands.cmTest80x25 <= emc <= AppCommands.cmTest160x60:
                     self.testMode(emc)
             elif emc == cmTile:
@@ -198,6 +261,49 @@ class VindaugaDemo(Application):
             elif emc == cmCascade:
                 self.clearEvent(event)
                 self.cascade()
+
+    def loadWallpaper(self):
+        fileSpec = "*"
+        wallpapers = Path(__file__).parent / 'wallpapers'
+        with pushd(wallpapers):
+            d = FileDialog(fileSpec, 'Load Wallpaper Image', '~N~ame', fdOpenButton, 110)
+            if d and self.desktop.execView(d) != cmCancel:
+                filename = d.getFilename()
+                # Validate that the selected file is an image
+                if not self._is_image_file(filename):
+                    messageBox("Please select an image file.\n\n"
+                               "Supported formats:\n"
+                               "PNG, JPG, JPEG, GIF",
+                               mfError, (mfOKButton,))
+                    self.destroy(d)
+                    return
+
+                # Find the wallpaper background and set the new image
+                wallpaper_bg = self.desktop._background
+                if isinstance(wallpaper_bg, WallpaperBackground):
+                    try:
+                        wallpaper_bg.set_image(filename)
+                        logger.info("Successfully loaded new wallpaper: %s", filename)
+                    except Exception as e:
+                        logger.error("Failed to load wallpaper image %s: %s", filename, e)
+                        messageBox(f"Failed to load image:\n{filename}\n\n"
+                                   f"Error: {str(e)}",
+                                   mfError, (mfOKButton,))
+                else:
+                    messageBox("Internal error: Could not find wallpaper background to update.",
+                               mfError, (mfOKButton,))
+
+                self.destroy(d)
+
+    def _is_image_file(self, filename: str) -> bool:
+        """Check if filename has a supported image extension."""
+        if not filename:
+            return False
+
+        # Convert to lowercase for case-insensitive comparison
+        lower_filename = filename.lower()
+        image_extensions = ['.png', '.jpg', '.jpeg', '.gif']
+        return any(lower_filename.endswith(ext) for ext in image_extensions)
 
     def testMode(self, mode):
         width, height = (int(i) for i in mode.name.replace('cmTest', '').split('x'))
@@ -387,10 +493,10 @@ class VindaugaDemo(Application):
         mouseCage = self.validView(MouseDialog())
         if mouseCage:
             mouseCage.helpCtx = HelpContexts.hcOMMouseDBox
-            mouseCage.setData([EventQueue.mouseReverse])
+            mouseCage.setData([event_queue.mouseReverse])
             if self.desktop.execView(mouseCage) != cmCancel:
                 data = mouseCage.getData()
-                EventQueue.mouseReverse = data[0].value
+                event_queue.mouseReverse = data[0].value
             self.destroy(mouseCage)
 
     def openFile(self, fileSpec):
@@ -410,7 +516,8 @@ def run():
 
 
 if __name__ == '__main__':
-    setupLogging()
+    setupLogging('vindauga')
+
     try:
         run()
     except:

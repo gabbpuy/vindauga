@@ -14,8 +14,8 @@ from vindauga.constants.std_dialog_commands import (cmFileOpen, cmFileReplace, c
                                                     cmFileInit)
 from vindauga.dialogs.message_box import messageBox
 from vindauga.events.event import Event
-from vindauga.misc.util import (isRelativePath, isWild, splitPath, isValidFileName, getCurDir, isDirectory, fexpand,
-                                nameLength)
+from vindauga.utilities.filesystem.path_utils import (isRelativePath, isWild, splitPath, isValidFileName, getCurDir, isDirectory, fexpand)
+from vindauga.utilities.text.string_utils import nameLength
 from vindauga.types.rect import Rect
 from vindauga.widgets.button import Button
 from vindauga.widgets.dialog import Dialog
@@ -169,6 +169,7 @@ class FileDialog(Dialog):
 
     def _readCurrentDirectory(self):
         self.directory = getCurDir()
+        self.fileList.select()
         self.fileList.readDirectory(self.directory, self.wildCard)
 
     def checkDirectory(self, path: Union[str, pathlib.Path]) -> bool:

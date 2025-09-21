@@ -3,8 +3,8 @@ from __future__ import annotations
 import copy
 from dataclasses import dataclass
 from enum import Enum, auto
-import logging
 from itertools import cycle, islice
+import logging
 from typing import Optional, List, Any
 
 from vindauga.constants.command_codes import cmCancel, hcNoContext, cmReleasedFocus, cmLoseFocus
@@ -15,7 +15,6 @@ from vindauga.constants.state_flags import (sfVisible, sfActive, sfSelected, sfF
                                             sfExposed)
 from vindauga.events.event import Event
 
-from .draw_buffer import BufferArray
 from .point import Point
 from .rect import Rect
 from .screen import Screen
@@ -185,6 +184,7 @@ class Group(View):
             v.options = saveOptions
             View.TheTopView = saveTopView
             self.setCommands(saveCommands)
+        return cmCancel
 
     def execute(self) -> int:
         stillExecuting = True
@@ -312,11 +312,16 @@ class Group(View):
             else:
                 self.forEach(self.doHandleEvent, hs)
 
-    @staticmethod
-    def drawSubViews(start: View, bottom: View = None):
-        while start and start is not bottom:
-            start.drawView()
-            start = start.nextView()
+    def drawSubViews(self, start: View, bottom: View = None):
+        idx = 0
+        last = None
+        if start:
+            idx = self.children.index(start)
+        if bottom:
+            last = self.children.index(bottom)
+
+        for view in islice(self.children, idx, last):
+            view.drawView()
 
     def changeBounds(self, bounds):
         d = Point()
@@ -423,7 +428,7 @@ class Group(View):
     def getBuffer(self):
         if self.state & sfExposed:
             if (self.options & ofBuffered) and not self.buffer:
-                self.buffer = BufferArray()
+                self.buffer = []
 
     def insert(self, p):
         self.insertBefore(p, self.first)

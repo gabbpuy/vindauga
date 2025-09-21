@@ -6,7 +6,7 @@ from typing import Sequence
 from vindauga.constants.event_codes import evMouseDown, evBroadcast, evKeyDown, meDoubleClick
 from vindauga.constants.keys import kbEnter
 from vindauga.events.event import Event
-from vindauga.misc.message import message
+from vindauga.utilities.message import message
 from vindauga.types.rect import Rect
 
 from .grid_view import GridView, cmListItemSelected

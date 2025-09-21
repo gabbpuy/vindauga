@@ -5,9 +5,11 @@ from typing import Union, List
 
 from vindauga.constants.grow_flags import gfGrowHiX
 from vindauga.constants.option_flags import ofPreProcess
-from vindauga.misc.util import nameLength
+from vindauga.utilities.text.string_utils import nameLength
+from vindauga.utilities.colours.attribute_pair import AttributePair
 from vindauga.types.draw_buffer import DrawBuffer
 from vindauga.types.rect import Rect
+
 
 from .menu import Menu
 from .menu_item import MenuItem
@@ -59,7 +61,7 @@ class MenuBar(MenuView):
         self.growMode = gfGrowHiX
         self.options |= ofPreProcess
 
-    def _chooseColor(self, p: MenuItem) -> int:
+    def _chooseColor(self, p: MenuItem) -> AttributePair:
         cNormal = self.getColor(0x0301)
         cSelect = self.getColor(0x0604)
         cNormDisabled = self.getColor(0x0202)

@@ -10,9 +10,9 @@ from vindauga.constants.option_flags import ofSelectable, ofFirstClick
 from vindauga.constants.state_flags import sfVisible, sfActive, sfSelected
 from vindauga.constants.key_mappings import showMarkers
 from vindauga.events.event import Event
-from vindauga.misc.character_codes import SPECIAL_CHARS
-from vindauga.misc.message import message
-from vindauga.misc.util import ctrlToArrow
+from vindauga.utilities.input.character_codes import SPECIAL_CHARS
+from vindauga.utilities.message import message
+from vindauga.utilities.input.key_utils import ctrlToArrow
 from vindauga.types.draw_buffer import DrawBuffer
 from vindauga.types.palette import Palette
 from vindauga.types.rect import Rect
@@ -142,8 +142,8 @@ class ListViewer(View):
 
                     b.moveStr(curCol + 1, text, color)
                     if showMarkers:
-                        b.putChar(curCol, SPECIAL_CHARS[scOff])
-                        b.putChar(curCol + colWidth - 2, SPECIAL_CHARS[scOff + 1])
+                        b.putChar(curCol, SPECIAL_CHARS[scOff], color)
+                        b.putChar(curCol + colWidth - 2, SPECIAL_CHARS[scOff + 1], color)
                 elif i == 0 and j == 0:
                     b.moveStr(curCol + 1, self.emptyText, self.getColor(1))
 

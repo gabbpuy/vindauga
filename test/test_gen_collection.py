@@ -15,7 +15,7 @@ class Test_GenCollection(TestCase):
         t.insert(2, '2')
         t.insert(3, '4')
 
-        assert t == ['1', '2', '3']
+        assert t == ['1', '2', '4']
 
     def test_gen_collection_text_length(self):
         t = GenCollection()

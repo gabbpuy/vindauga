@@ -6,7 +6,7 @@ import wcwidth
 from vindauga.constants.event_codes import evKeyDown
 from vindauga.constants.keys import kbTab
 from vindauga.events.event import Event
-from vindauga.types.draw_buffer import BufferArray
+# BufferArray no longer needed - using strings for buffers now
 from vindauga.types.palette import Palette
 from vindauga.types.records.data_record import DataRecord
 
@@ -40,7 +40,8 @@ class Memo(Editor):
         return rec
 
     def setData(self, rec: MemoData):
-        self.buffer = BufferArray(ord(c) for c in rec.buffer)
+        # Use string directly now instead of BufferArray
+        self.buffer = rec.buffer
         self.setBufLen(rec.length)
 
     def getPalette(self) -> Palette:

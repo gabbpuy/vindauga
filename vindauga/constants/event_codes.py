@@ -17,6 +17,9 @@ evMouseMove = 0x0004
 # @see Event::what
 evMouseAuto = 0x0008
 
+# Mouse wheel rotated
+evMouseWheel = 0x0020
+
 # Key pressed.
 # @see Event::what
 evKeyDown = 0x0010
@@ -50,10 +53,17 @@ evMessage = 0xFF00
 # Mouse button state masks
 mbLeftButton = 0x01
 mbRightButton = 0x02
+mbMiddleButton = 0x04
+
+mwUp = 0x01
+mwDown = 0x02
+mwLeft = 0x04
+mwRight = 0x08
 
 # Mouse event flags
 meMouseMoved = 0x01
 meDoubleClick = 0x02
+meTripleClick = 0x04
 
 #  Event masks
 # Defines the event classes that are positional events.
@@ -71,3 +81,6 @@ positionalEvents = evMouse
 # focusedEvents or @ref positionalEvents, it is treated as a broadcast
 # event.
 focusedEvents = evKeyboard | evCommand
+
+# A UTF-8-encoded character is up to 4 bytes long.
+maxCharSize = 4

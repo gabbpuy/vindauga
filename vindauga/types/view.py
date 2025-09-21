@@ -1,5 +1,7 @@
 # -*- coding: utf-8 -*-
 from __future__ import annotations
+import copy
+import itertools
 import logging
 import sys
 from typing import List, Optional, Set, Union
@@ -20,16 +22,22 @@ from vindauga.constants.option_flags import ofSelectable, ofTopSelect, ofFirstCl
 from vindauga.constants.state_flags import (sfVisible, sfCursorVis, sfCursorIns, sfShadow, sfSelected,
                                             sfFocused, sfDragging, sfDisabled, sfModal, sfExposed)
 from vindauga.events.event import Event
-from vindauga.misc.message import message
-from vindauga.misc.util import clamp
+from vindauga.utilities.message import message
+from vindauga.utilities.math_utils import clamp
+from vindauga.utilities.colours.colour_attribute import ColourAttribute, reverse_attribute, get_style, set_style, get_back
+from vindauga.utilities.colours.attribute_pair import AttributePair
+from vindauga.utilities.platform.system_interface import systemInterface
+from vindauga.utilities.screen.screen_cell import ScreenCell, set_cell, set_attr
 
 from .command_set import CommandSet
-from .draw_buffer import DrawBuffer, BufferArray, LINE_WIDTH
+from .cursor import Cursor
+from .draw_buffer import DrawBuffer, LINE_WIDTH
 from .palette import Palette
 from .point import Point
 from .rect import Rect
 from .screen import Screen
 from .vindauga_object import VindaugaObject
+from vindauga.utilities.colours.style_mask import StyleMask
 
 logger = logging.getLogger(__name__)
 
@@ -216,8 +224,6 @@ class View(VindaugaObject):
             View.disableCommands(commands)
 
     def doRefresh(self):
-        if Screen.screen.lockRefresh:
-            return
         if self.owner and self.owner.lockFlag:
             return
         Screen.screen.refresh()
@@ -568,21 +574,21 @@ class View(VindaugaObject):
                     if left >= right:
                         return False
 
-    def exposedParent(self, left: int, right: int, item):
-        if not (item.state & sfVisible):
+    def exposedParent(self, left: int, right: int, child: View):
+        if not (child.state & sfVisible):
             return False
 
-        if (not item.owner) or item.owner.buffer:
+        if (not child.owner) or child.owner.buffer:
             return True
 
         with self.context as context:
-            context.y += item.origin.y
+            context.y += child.origin.y
 
-            left += item.origin.x
-            right += item.origin.x
-            context.target = item
+            left += child.origin.x
+            right += child.origin.x
+            context.target = child
 
-            group = item.owner
+            group = child.owner
             # Is my parent overlapping me?
             if not group.clip.topLeft.y <= context.y < group.clip.bottomRight.y:
                 return False
@@ -741,48 +747,10 @@ class View(VindaugaObject):
 
     def resetCursor(self):
         """
-        Resets the cursor
+        Resets the cursor using the Cursor class
         """
-        screen = Screen.screen
-
-        if self.state & (sfVisible | sfCursorVis | sfFocused) == (sfVisible | sfCursorVis | sfFocused):
-            p = self
-            cur = Point()
-            cur.x = self.cursor.x
-            cur.y = self.cursor.y
-
-            while True:
-                if not (0 <= cur.x < p.size.x and 0 <= cur.y < p.size.y):
-                    break
-
-                cur.x += p.origin.x
-                cur.y += p.origin.y
-                p2 = p
-                owner = p.owner
-                if not owner:
-                    if self.state & sfCursorIns:
-                        screen.setBigCursor()
-                    else:
-                        screen.setSmallCursor()
-                    screen.moveCursor(cur.x, cur.y)
-                    screen.drawCursor(1)
-                    return
-
-                if not (owner.state & sfVisible):
-                    break
-
-                for p in owner.children:
-                    if p == p2:
-                        p = p.owner
-                        # continue outer loop
-                        break
-
-                    if ((p.state & sfVisible) and
-                            p.origin.x <= cur.x < p.size.x + p.origin.x and
-                            p.origin.y <= cur.y < p.size.y + p.origin.y):
-                        screen.drawCursor(0)
-                        return
-        screen.drawCursor(0)
+        cursor_instance = Cursor()
+        cursor_instance.reset_cursor(self)
 
     def setCursor(self, x: int, y: int):
         """
@@ -898,6 +866,13 @@ class View(VindaugaObject):
         if self.owner:
             self.owner.putEvent(event)
 
+    def unputEvent(self, event: Event):
+        """
+        Puts the event given by `event` to the front of the event queue
+        """
+        if self.owner:
+            self.owner.unputEvent(event)
+
     def endModal(self, command: int):
         """
         Calls `TopView()` to seek the top most modal view. If there is none
@@ -925,7 +900,7 @@ class View(VindaugaObject):
         """
         return cmCancel
 
-    def getColor(self, color) -> int:
+    def getColor(self, color) -> AttributePair:
         """
         Maps the palette indices in the low and high bytes of `color` into
         physical character attributes by tracing through the palette of the
@@ -934,11 +909,17 @@ class View(VindaugaObject):
         :param color: Color to map
         :return: Color pair
         """
-        colorPair = (color >> 8) & 0xFF
-        if colorPair:
-            colorPair = self.mapColor(colorPair) << 8
-        colorPair |= self.mapColor(color & 0xFF)
-        return colorPair
+        # Extract high byte (highlight attribute) and low byte (normal attribute)
+        high_index = (color >> 8) & 0xFF
+        low_index = color & 0xFF
+
+        # Map both indices through the palette system
+        high_attr = self.mapColor(high_index) if high_index != 0 else ColourAttribute()
+        low_attr = self.mapColor(low_index)
+
+        # Create AttributePair with mapped colors
+        return AttributePair(pair=(low_attr, high_attr))
+
 
     def getPalette(self) -> Palette:
         """
@@ -954,9 +935,9 @@ class View(VindaugaObject):
 
         :return: `Palette` object
         """
-        return Palette('')
+        return Palette([])
 
-    def mapColor(self, color: int) -> int:
+    def mapColor(self, index: int) -> ColourAttribute:
         """
         Maps the given color to an offset into the current palette. `mapColor()`
         works by calling `getPalette()` for each owning group in the chain.
@@ -970,20 +951,21 @@ class View(VindaugaObject):
         :param color: Color to map
         :return: Color
         """
-        if not color:
-            return self.errorAttr
+        palette = self.getPalette()
+        color = ColourAttribute()
 
-        current = self
-        while current:
-            palette = current.getPalette()
-            paletteLen = len(palette)
-            if paletteLen:
-                if color > paletteLen:
-                    return self.errorAttr
-                color = palette[color]
-                if color == 0:
-                    return self.errorAttr
-            current = current.owner
+        if len(palette):
+            if 0 < index <= len(palette):
+                color = palette[index]
+            else:
+                return ColourAttribute.from_bios(self.errorAttr)
+        else:
+            color = ColourAttribute.from_bios(index)
+
+        if int(color) == 0:
+            return ColourAttribute.from_bios(self.errorAttr)
+        if self.owner:
+            return self.owner.mapColor(int(color))  # .to_bios())
         return color
 
     def getState(self, state) -> bool:
@@ -1213,14 +1195,9 @@ class View(VindaugaObject):
         :param h: Height
         :param buf: Buffer
         """
-
-        Screen.screen.lockRefresh += 1
-        try:
-            for row in range(h):
-                self.__writeView(x, x + w, y + row, buf[row * w: w * (row + 1)])
-        finally:
-            Screen.screen.lockRefresh -= 1
-        self.doRefresh()
+        for row in range(h):
+            self.__writeView(x, x + w, y + row, buf[row * w: w * (row + 1)])
+        # self.doRefresh()
 
     def writeChar(self, x: int, y: int, c: int, color: int, count: int):
         """
@@ -1234,15 +1211,13 @@ class View(VindaugaObject):
         :param color: color
         :param count: count
         """
-        if x < 0:
-            x = 0
-
-        if x + count > LINE_WIDTH:
+        if count <= 0:
             return
 
-        b = DrawBuffer()
-        b.moveChar(0, c, self.mapColor(color), count)
-        self.__writeView(x, x + count, y, b)
+        cell = ScreenCell()
+        set_cell(cell, x, y, self.mapColor(color))
+        buf = [cell] * count
+        self.__writeView(x, x + count, y, buf)
 
     def writeLine(self, x: int, y: int, w: int, h: int, buf):
         """
@@ -1260,13 +1235,9 @@ class View(VindaugaObject):
         if not h:
             return
         width = x + w
-        Screen.screen.lockRefresh += 1
-        try:
-            for row in range(y, y + h):
-                self.__writeView(x, width, row, buf)
-        finally:
-            Screen.screen.lockRefresh -= 1
-        self.doRefresh()
+        for row in range(y, y + h):
+            self.__writeView(x, width, row, buf)
+        # self.doRefresh()
 
     def writeStr(self, x: int, y: int, text: str, color: int):
         """
@@ -1283,9 +1254,11 @@ class View(VindaugaObject):
             return
 
         textLen = wcwidth.wcswidth(text)
-        b = DrawBuffer()
-        b.moveStr(0, text, color)
-        self.__writeView(x, x + textLen, y, b)
+        attr = self.mapColor(color)
+        buf = [ScreenCell() for _ in range(textLen)]
+        for b, s in zip(buf, text):
+            set_cell(b, s, attr)
+        self.__writeView(x, x + textLen, y, buf)
 
     def at(self, index: int) -> View:
         return self.children[index]
@@ -1316,8 +1289,6 @@ class View(VindaugaObject):
         return point, size
 
     def __writeChildrenViewRec(self, left: int, right: int, children: List[View], shadowCounter: int, context: TargetContext):
-        screen = Screen.screen
-
         for i, view in enumerate(children):
             if view is context.target:
                 if view.owner.buffer:
@@ -1326,8 +1297,6 @@ class View(VindaugaObject):
                     else:  # Paint with shadow
                         self.__paintWithShadow(context, view, left, right)
 
-                    if view.owner.buffer is screen.screenBuffer:
-                        screen.drawMouse(True)
                 if not view.owner.lockFlag:
                     self.__writeViewRec2(left, right, view.owner, shadowCounter)
                 return
@@ -1384,7 +1353,7 @@ class View(VindaugaObject):
 
     def __writeViewRec2(self, left: int, right: int, view: View, shadowCounter: int):
         if not (view.state & sfVisible) or not view.owner:
-            return
+            return False
 
         with self.context as context:
             context.y += view.origin.y
@@ -1396,15 +1365,16 @@ class View(VindaugaObject):
             group = view.owner
 
             if not (group.clip.topLeft.y <= context.y < group.clip.bottomRight.y):
-                return
+                return False
 
             left = max(left, group.clip.topLeft.x)
             right = min(right, group.clip.bottomRight.x)
 
             if left >= right:
-                return
+                return False
 
             self.__writeChildrenViewRec(left, right, group.children, shadowCounter, context)
+            return True
 
     def __writeView(self, left: int, right: int, y: int, buf):
 
@@ -1422,8 +1392,8 @@ class View(VindaugaObject):
             context.y = y
 
             self.savedBuffer = buf
-            self.__writeViewRec2(left, right, self, 0)
-            self.doRefresh()
+            if self.__writeViewRec2(left, right, self, 0):
+                self.doRefresh()
 
     def __moveGrow(self, point: Point, size: Point, limits: Rect, minSize: Point, maxSize: Point, mode: int):
         size.x = min(max(size.x, minSize.x), maxSize.x)
@@ -1448,29 +1418,36 @@ class View(VindaugaObject):
         self.locate(r)
 
     def __paintWithoutShadow(self, context, view: View, left: int, right: int):
-        screen = Screen.screen
-        width = (right - left)
+        width = right - left
         pOwner = view.owner
         offset = context.offset
         soff = left - offset
-        if pOwner.buffer is screen.screenBuffer:
+        if pOwner.buffer is Screen.screen.screenBuffer:
             # Write something to the screen.
-            screen.writeRow(left, context.y, self.savedBuffer[soff: soff + width], width)
+            systemInterface.screenWrite(left, context.y, self.savedBuffer[soff: soff + width], width)
 
         poff = pOwner.size.x * context.y + left
-        pOwner.buffer[poff: poff + width] = BufferArray(self.savedBuffer[soff: soff + width])
+        # Use individual assignments instead of slice assignment to avoid buffer size corruption
+        for i in range(width):
+            if poff + i < len(pOwner.buffer) and soff + i < len(self.savedBuffer):
+                pOwner.buffer[poff + i] = copy.deepcopy(self.savedBuffer[soff + i])
 
     def __paintWithShadow(self, context, view: View, left: int, right: int):
-        screen = Screen.screen
-
         width = right - left
         dst1 = view.owner.size.x * context.y + left
         start = left - context.offset
-        src = self.savedBuffer[start: start + width]
+        src = itertools.islice(self.savedBuffer, start, start + width)
         for offset, d in enumerate(src):
-            d = d & DrawBuffer.CHAR_MASK | (SHADOW_ATTR << DrawBuffer.CHAR_WIDTH)
-            if view.owner.buffer is screen.screenBuffer:
-                screen.writeRow(offset + left, context.y, [d], 1)
+            # Create shadow cell - keep character, set shadow attribute
+            shadow_cell: ScreenCell = copy.deepcopy(d)
+            # special handling for the wallpaper character...
+            if shadow_cell.char == '▄':
+                shadow_cell.char = '▒'
+
+            set_attr(shadow_cell, SHADOW_ATTR)
+            d = shadow_cell
+            if view.owner.buffer is Screen.screen.screenBuffer:
+                systemInterface.screenWrite(offset + left, context.y, [d], 1)
             view.owner.buffer[dst1 + offset] = d
 
     def __handleMouseDownDrag(self, event: Event, mode: int, limits: Rect, minSize: Point, maxSize: Point):
@@ -1478,25 +1455,31 @@ class View(VindaugaObject):
         Handle mouse down event
         """
         if mode & dmDragMove:
-            point = self.origin - event.mouse.where
+            initialMousePos = event.mouse.where
+            initialOrigin = self.origin
+            point = initialOrigin - initialMousePos
             working = True
             while working:
-                event.mouse.where += point
-                self.__moveGrow(event.mouse.where, self.size, limits, minSize, maxSize, mode)
+                # Calculate new origin based on current mouse position and initial offset
+                newOrigin = event.mouse.where + point
+                self.__moveGrow(newOrigin, self.size, limits, minSize, maxSize, mode)
                 working = self.mouseEvent(event, evMouseMove)
             # Pop the window to the mouse-up coords
-            event.mouse.where += point
-            self.__moveGrow(event.mouse.where, self.size, limits, minSize, maxSize, mode)
+            newOrigin = event.mouse.where + point
+            self.__moveGrow(newOrigin, self.size, limits, minSize, maxSize, mode)
         else:
-            point = self.size - event.mouse.where
+            initialMousePos = event.mouse.where
+            initialSize = self.size
+            point = initialSize - initialMousePos
             working = True
             while working:
-                event.mouse.where += point
-                self.__moveGrow(self.origin, event.mouse.where, limits, minSize, maxSize, mode)
+                # Calculate new size based on current mouse position and initial offset
+                newSize = event.mouse.where + point
+                self.__moveGrow(self.origin, newSize, limits, minSize, maxSize, mode)
                 working = self.mouseEvent(event, evMouseMove)
             # Grow to the mouse-up
-            event.mouse.where += point
-            self.__moveGrow(self.origin, event.mouse.where, limits, minSize, maxSize, mode)
+            newSize = event.mouse.where + point
+            self.__moveGrow(self.origin, newSize, limits, minSize, maxSize, mode)
 
     def __handleKeyDownDrag(self, event: Event, mode: int, limits: Rect, minSize: Point, maxSize: Point):
         """

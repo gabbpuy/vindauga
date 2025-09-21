@@ -40,3 +40,4 @@ class HelpContexts(IntEnum):
     hcWTile = 21
     hcWZoom = 20
     hcWindows = 18
+    hcWallpaper = 40

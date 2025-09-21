@@ -10,7 +10,7 @@ from vindauga.constants.option_flags import ofSelectable, ofFirstClick
 from vindauga.constants.state_flags import sfCursorVis, sfCursorIns, sfActive, sfSelected, sfFocused
 from vindauga.constants.validation_constants import vtGetData, vtSetData, vsOK
 from vindauga.events.event import Event
-from vindauga.misc.util import ctrlToArrow
+from vindauga.utilities.input.key_utils import ctrlToArrow
 from vindauga.types.draw_buffer import DrawBuffer
 from vindauga.types.palette import Palette
 from vindauga.types.records.data_record import DataRecord

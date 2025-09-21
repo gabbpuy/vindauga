@@ -6,11 +6,12 @@ from vindauga.constants.buttons import bfDefault
 from vindauga.constants.event_codes import evBroadcast, evKeyDown, evCommand
 from vindauga.constants.keys import kbUp, kbDown, kbAltX, kbAltF3, kbAltN, kbAltI
 from vindauga.events.event import Event
+from vindauga.utilities.colours.colour_attribute import ColourAttribute
 from vindauga.types.collections.string_collection import StringCollection
 from vindauga.menus.sub_menu import SubMenu
 from vindauga.menus.menu_bar import MenuBar
 from vindauga.menus.menu_item import MenuItem
-from vindauga.misc.message import message
+from vindauga.utilities.message import message
 from vindauga.types.draw_buffer import DrawBuffer
 from vindauga.types.rect import Rect
 from vindauga.types.status_def import StatusDef
@@ -94,7 +95,7 @@ class TechInfoView(View):
     def draw(self):
         super().draw()
         b = DrawBuffer()
-        b.moveBuf(0, self.curMessage, self.getColor(1), len(self.curMessage))
+        b.moveBuf(0, self.curMessage, ColourAttribute.from_bios(self.getColor(1).as_bios()), len(self.curMessage))
         self.writeBuf(0, 0, len(self.curMessage), 1, b)
 
 

@@ -14,7 +14,7 @@ from vindauga.constants.std_dialog_commands import (cmChangeDir, cdHelpButton, c
                                                     cmDirSelection)
 from vindauga.dialogs.message_box import messageBox
 from vindauga.events.event import Event
-from vindauga.misc.util import getCurDir, fexpand
+from vindauga.utilities.filesystem.path_utils import getCurDir, fexpand
 from vindauga.types.records.data_record import DataRecord
 from vindauga.types.rect import Rect
 from vindauga.widgets.button import Button
@@ -136,5 +136,5 @@ class ChangeDirDialog(Dialog):
         try:
             os.chdir(path)
             return False
-        except Exception as e:
+        except Exception:
             return True

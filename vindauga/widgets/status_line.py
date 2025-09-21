@@ -6,7 +6,7 @@ from vindauga.constants.command_codes import cmCommandSetChanged, hcNoContext
 from vindauga.constants.grow_flags import gfGrowLoY, gfGrowHiX, gfGrowHiY
 from vindauga.constants.event_codes import evBroadcast, evMouseDown, evMouseMove, evCommand, evKeyDown
 from vindauga.constants.option_flags import ofPreProcess
-from vindauga.misc.util import nameLength
+from vindauga.utilities.text.string_utils import nameLength
 from vindauga.types.draw_buffer import DrawBuffer
 from vindauga.types.palette import Palette
 from vindauga.events.event import Event

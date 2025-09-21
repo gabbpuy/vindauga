@@ -39,31 +39,33 @@ cmCloseAll = 37
 cmSysRepaint = 38
 cmSysResize = 39
 cmSysWakeup = 40
-cmRecordHistory = 60
-cmLoseFocus = 61
+cmScreenChanged = 41
+cmRecordHistory = 42
+
 
 # Standard messages
 cmReceivedFocus = 50
 cmReleasedFocus = 51
-cmCommandSetChanged = 52
+cmLoseFocus = 52
+cmCommandSetChanged = 53
+cmTimerExpired = 54
 
 # ScrollBar messages
-cmScrollBarChanged = 53
-cmScrollBarClicked = 54
+cmScrollBarChanged = 55
+cmScrollBarClicked = 56
 
 # Window select messages
-cmSelectWindowNum = 55
+cmSelectWindowNum = 57
 
 #  ListViewer messages
-cmListItemSelected = 56
-cmListItemFocused = 61
-cmGrabDefault = 62
-cmReleaseDefault = 63
+cmListItemSelected = 58
+cmClosingWindow = 59
+cmClusterMovedTo = 60
+cmClusterPress = 61
 
-cmClosingWindow = 57
-cmClusterMovedTo = 58
-cmClusterPress = 59
-
+cmListItemFocused = 62
+cmGrabDefault = 63
+cmReleaseDefault = 64
 
 # No context specified.
 # @see View::helpCtx

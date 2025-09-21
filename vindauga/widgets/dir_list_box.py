@@ -10,7 +10,7 @@ from vindauga.types.collections.dir_collection import DirCollection, DirEntry
 from vindauga.constants.std_dialog_commands import cmChangeDir, cmDirSelection
 from vindauga.constants.event_codes import evCommand
 from vindauga.constants.state_flags import sfFocused
-from vindauga.misc.message import message
+from vindauga.utilities.message import message
 from vindauga.types.rect import Rect
 
 from .list_box import ListBox

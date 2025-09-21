@@ -1,15 +1,15 @@
 # -*- coding: utf-8 -*-
 from __future__ import annotations
 from enum import Enum, auto
-from typing import List
+import logging
+from typing import List, Optional, Union, Tuple
 
 from vindauga.constants.command_codes import cmMenu, hcNoContext, cmCommandSetChanged
-from vindauga.constants.event_codes import (evBroadcast, evMouseUp, evMouseMove, evMouseDown, evKeyDown, evCommand,
-                                            evNothing)
-from vindauga.constants.keys import kbEnter, kbEsc, kbNoKey
+import vindauga.constants.event_codes as event_codes
+import vindauga.constants.keys as keys
 from vindauga.events.event import Event
-from vindauga.misc.character_codes import getAltChar
-from vindauga.misc.util import *
+from vindauga.utilities.input.character_codes import getAltChar
+from vindauga.utilities.input.key_utils import ctrlToArrow
 from vindauga.types.palette import Palette
 from vindauga.types.point import Point
 from vindauga.types.rect import Rect
@@ -50,7 +50,7 @@ class MenuView(View):
         self._parentMenu = parent
         self._current = None
         self.menu = menu
-        self.eventMask |= evBroadcast
+        self.eventMask |= event_codes.evBroadcast
 
     @staticmethod
     def newSubView(bounds: Rect, menu, parentMenu) -> 'MenuBox':
@@ -79,7 +79,7 @@ class MenuView(View):
         autoSelect = False
         result = 0
         itemShown = None
-        e = Event(evNothing)
+        e = Event(event_codes.evNothing)
         self._current = self.menu.default
         action = MenuAction.doNothing
 
@@ -87,23 +87,23 @@ class MenuView(View):
             action = MenuAction.doNothing
             self.getEvent(e)
             what = e.what
-            if what == evMouseDown:
+            if what == event_codes.evMouseDown:
                 if self.mouseInView(e.mouse.where) or self.__mouseInOwner(e):
                     self.__trackMouse(e)
                     if self.size.y == 1:
                         autoSelect = True
                 else:
                     action = MenuAction.doReturn
-            elif what == evMouseUp:
+            elif what == event_codes.evMouseUp:
                 action = self.__handleMouseUp(action, e)
-            elif what == evMouseMove:
+            elif what == event_codes.evMouseMove:
                 if e.mouse.buttons:
                     self.__trackMouse(e)
                     if not (self.mouseInView(e.mouse.where) or self.__mouseInOwner(e)) and self.__mouseInMenus(e):
                         action = MenuAction.doReturn
-            elif what == evKeyDown:
+            elif what == event_codes.evKeyDown:
                 action, autoSelect, result = self.__handleEventKeyDown(action, autoSelect, e, result)
-            elif what == evCommand:
+            elif what == event_codes.evCommand:
                 if e.message.command == cmMenu:
                     autoSelect = False
                     if self._parentMenu:
@@ -123,7 +123,7 @@ class MenuView(View):
             else:
                 result = 0
 
-        if e.what != evNothing and (self._parentMenu or e.what == evCommand):
+        if e.what != event_codes.evNothing and (self._parentMenu or e.what == event_codes.evCommand):
             self.putEvent(e)
 
         if self._current:
@@ -195,7 +195,7 @@ class MenuView(View):
         self.putEvent(event)
         emc = self.owner.execView(self)
         if emc and self.commandEnabled(emc):
-            event.what = evCommand
+            event.what = event_codes.evCommand
             event.message.command = emc
             event.message.infoPtr = None
             self.putEvent(event)
@@ -204,23 +204,23 @@ class MenuView(View):
     def handleEvent(self, event: Event):
         if self.menu:
             what = event.what
-            if what == evMouseDown:
+            if what == event_codes.evMouseDown:
                 self.executeMenu(event)
-            elif what == evKeyDown:
+            elif what == event_codes.evKeyDown:
                 if self.findItem(getAltChar(event.keyDown.keyCode)):
                     self.executeMenu(event)
                 else:
                     p = self.hotKey(event.keyDown.keyCode)
                     if p and self.commandEnabled(p.command):
-                        event.what = evCommand
+                        event.what = event_codes.evCommand
                         event.message.command = p.command
                         event.message.infoPtr = None
                         self.putEvent(event)
                         self.clearEvent(event)
-            elif what == evCommand:
+            elif what == event_codes.evCommand:
                 if event.message.command == cmMenu:
                     self.executeMenu(event)
-            elif what == evBroadcast:
+            elif what == event_codes.evBroadcast:
                 if event.message.command == cmCommandSetChanged:
                     if self.updateMenu(self.menu):
                         self.drawView()
@@ -233,7 +233,7 @@ class MenuView(View):
                     T = self.findHotKey(p.subMenu.items, keyCode)
                     if T:
                         return T
-                elif (not p.disabled) and p.keyCode != kbNoKey and p.keyCode == keyCode:
+                elif (not p.disabled) and p.keyCode != keys.kbNoKey and p.keyCode == keyCode:
                     return p
         return None
 
@@ -267,28 +267,28 @@ class MenuView(View):
     def __handleEventKeyDown(self, action: MenuAction, autoSelect: bool, e: Event, 
                              result: int) -> Tuple[MenuAction, bool, int]:
         cta = ctrlToArrow(e.keyDown.keyCode)
-        if cta in {kbUp, kbDown}:
+        if cta in {keys.kbUp, keys.kbDown}:
             if self.size.y != 1:
-                self.__trackKey(cta == kbDown)
-            elif e.keyDown.keyCode == kbDown:
+                self.__trackKey(cta == keys.kbDown)
+            elif e.keyDown.keyCode == keys.kbDown:
                 autoSelect = True
-        elif cta in {kbLeft, kbRight}:
+        elif cta in {keys.kbLeft, keys.kbRight}:
             if not self._parentMenu:
-                self.__trackKey(cta == kbRight)
-            elif cta == kbRight and not self._current.command:
+                self.__trackKey(cta == keys.kbRight)
+            elif cta == keys.kbRight and not self._current.command:
                 action = MenuAction.doSelect
             else:
                 action = MenuAction.doReturn
-        elif cta in {kbHome, kbEnd}:
+        elif cta in {keys.kbHome, keys.kbEnd}:
             if self.size.y != 1:
                 self._current = self.menu.items
-                if e.keyDown.keyCode == kbEnd:
+                if e.keyDown.keyCode == keys.kbEnd:
                     self.__trackKey(False)
-        elif cta == kbEnter:
+        elif cta == keys.kbEnter:
             if self.size.y == 1:
                 autoSelect = True
             action = MenuAction.doSelect
-        elif cta == kbEsc:
+        elif cta == keys.kbEsc:
             action = MenuAction.doReturn
             if not self._parentMenu or (self._parentMenu.size.y != 1):
                 self.clearEvent(e)
@@ -320,7 +320,7 @@ class MenuView(View):
         if ((action == MenuAction.doSelect or (action == MenuAction.doNothing and autoSelect))
                 and (self._current and self._current.name)):
             if not self._current.command:
-                if e.what & (evMouseDown | evMouseMove):
+                if e.what & (event_codes.evMouseDown | event_codes.evMouseMove):
                     self.putEvent(e)
 
                 r = self.getItemRect(self._current)
