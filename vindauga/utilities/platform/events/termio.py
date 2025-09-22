@@ -16,7 +16,6 @@ from typing import TYPE_CHECKING, Callable
 from vindauga.constants.event_codes import (evKeyDown, evMouse, mbLeftButton, mbMiddleButton, mbRightButton, mwUp,
                                             mwDown, evNothing)
 import vindauga.constants.keys as Keys
-from vindauga.constants.key_mappings import kbMapKey, TALT
 from vindauga.events.event import Event
 from vindauga.events.key_down_event import KeyDownEvent
 from vindauga.events.modded_key_codes import moddedKeyCodes

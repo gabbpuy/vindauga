@@ -8,7 +8,6 @@ from vindauga.constants.keys import (kbUp, kbDown, kbLeft, kbRight, kbPgDn, kbPg
                                      kbCtrlPgUp)
 from vindauga.constants.option_flags import ofSelectable, ofFirstClick
 from vindauga.constants.state_flags import sfVisible, sfActive, sfSelected
-from vindauga.constants.key_mappings import showMarkers
 from vindauga.events.event import Event
 from vindauga.utilities.input.character_codes import SPECIAL_CHARS
 from vindauga.utilities.message import message
@@ -141,7 +140,7 @@ class ListViewer(View):
                     text = self.getText(item, colWidth + indent)[indent:indent + colWidth]
 
                     b.moveStr(curCol + 1, text, color)
-                    if showMarkers:
+                    if self.showMarkers:
                         b.putChar(curCol, SPECIAL_CHARS[scOff], color)
                         b.putChar(curCol + colWidth - 2, SPECIAL_CHARS[scOff + 1], color)
                 elif i == 0 and j == 0:

@@ -10,7 +10,6 @@ from vindauga.constants.command_codes import (cmReleasedFocus, cmCancel, cmSelec
 from vindauga.constants.event_codes import evNothing, evCommand, evKeyDown, evMouseDown, evBroadcast
 import vindauga.constants.keys
 from vindauga.constants.state_flags import sfVisible, sfSelected, sfFocused, sfModal, sfExposed
-import vindauga.constants.key_mappings as key_mappings
 from vindauga.events.event import Event
 from vindauga.events.event_queue import event_queue
 from vindauga.menus.menu_bar import MenuBar

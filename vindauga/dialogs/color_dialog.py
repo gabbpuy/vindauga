@@ -9,7 +9,6 @@ from vindauga.constants.command_codes import cmOK, cmCancel
 from vindauga.constants.colors import cmNewColorIndex, cmNewColorItem, cmSetColorIndex
 from vindauga.constants.event_codes import evBroadcast
 from vindauga.constants.option_flags import ofCentered
-from vindauga.constants.key_mappings import showMarkers
 from vindauga.events.event import Event
 from vindauga.types.color_group import ColorGroup
 from vindauga.types.palette import Palette
@@ -135,7 +134,7 @@ class ColorDialog(Dialog):
         self.colorIndexes = self.setIndexes(self.colorIndexes)
         self._display.setColor(palette.palette[self._groups.getGroupIndex(self.groupIndex)])
         self._groups.focusItem(self.groupIndex)
-        if showMarkers:
+        if self.showMarkers:
             self._forLabel.hide()
             self._forSel.hide()
             self._bakLabel.hide()
