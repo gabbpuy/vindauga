@@ -24,20 +24,21 @@ from vindauga.constants.state_flags import (sfVisible, sfCursorVis, sfCursorIns,
 from vindauga.events.event import Event
 from vindauga.utilities.message import message
 from vindauga.utilities.math_utils import clamp
-from vindauga.utilities.colours.colour_attribute import ColourAttribute, reverse_attribute, get_style, set_style, get_back
+from vindauga.utilities.colours.colour_attribute import ColourAttribute, reverse_attribute, get_style, set_style, \
+    get_back
 from vindauga.utilities.colours.attribute_pair import AttributePair
+from vindauga.utilities.colours.style_mask import StyleMask
 from vindauga.utilities.platform.system_interface import systemInterface
 from vindauga.utilities.screen.screen_cell import ScreenCell, set_cell, set_attr
 
 from .command_set import CommandSet
 from .cursor import Cursor
-from .draw_buffer import DrawBuffer, LINE_WIDTH
+from .draw_buffer import DrawBuffer
 from .palette import Palette
 from .point import Point
 from .rect import Rect
 from .screen import Screen
 from .vindauga_object import VindaugaObject
-from vindauga.utilities.colours.style_mask import StyleMask
 
 logger = logging.getLogger(__name__)
 
@@ -102,11 +103,11 @@ class View(VindaugaObject):
     errorAttr = 0x4F  # 0xCF
 
     MOVE_COMMANDS: dict[int, Point] = {kbLeft: Point(-1, 0),
-                     kbRight: Point(1, 0),
-                     kbUp: Point(0, -1),
-                     kbDown: Point(0, 1),
-                     kbCtrlLeft: (-8, 0),
-                     kbCtrlRight: (8, 0)}
+                                       kbRight: Point(1, 0),
+                                       kbUp: Point(0, -1),
+                                       kbDown: Point(0, 1),
+                                       kbCtrlLeft: (-8, 0),
+                                       kbCtrlRight: (8, 0)}
 
     TheTopView = None
 
@@ -920,7 +921,6 @@ class View(VindaugaObject):
         # Create AttributePair with mapped colors
         return AttributePair(pair=(low_attr, high_attr))
 
-
     def getPalette(self) -> Palette:
         """
         `getPalette()` returns `Palette` object representing the view's palette.
@@ -948,15 +948,16 @@ class View(VindaugaObject):
         If `color` is invalid (for example, out of range) for any of the
         palettes encountered in the chain, `mapColor()` returns `errorAttr`.
 
-        :param color: Color to map
+        :param index: Color to map
         :return: Color
         """
         palette = self.getPalette()
-        color = ColourAttribute()
 
         if len(palette):
             if 0 < index <= len(palette):
                 color = palette[index]
+                if isinstance(color, ColourAttribute) and color._style & StyleMask.Direct:
+                    return color
             else:
                 return ColourAttribute.from_bios(self.errorAttr)
         else:
@@ -1215,7 +1216,7 @@ class View(VindaugaObject):
             return
 
         cell = ScreenCell()
-        set_cell(cell, x, y, self.mapColor(color))
+        set_cell(cell, chr(c), self.mapColor(color))
         buf = [cell] * count
         self.__writeView(x, x + count, y, buf)
 
@@ -1288,7 +1289,8 @@ class View(VindaugaObject):
             size += delta
         return point, size
 
-    def __writeChildrenViewRec(self, left: int, right: int, children: List[View], shadowCounter: int, context: TargetContext):
+    def __writeChildrenViewRec(self, left: int, right: int, children: List[View], shadowCounter: int,
+                               context: TargetContext):
         for i, view in enumerate(children):
             if view is context.target:
                 if view.owner.buffer:

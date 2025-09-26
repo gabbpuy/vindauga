@@ -139,7 +139,11 @@ class Screen(_Display):
             pass  # Ignore if beep fails
 
     def __del__(self):
-        self.suspend()
+        try:
+            self.suspend()
+        except Exception as e:
+            # Fails on shutdown mostly
+            pass
 
     def resume(self):
         self.startupMode = self.getCrtMode()

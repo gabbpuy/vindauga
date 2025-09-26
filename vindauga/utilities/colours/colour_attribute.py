@@ -22,7 +22,7 @@ class ColourAttribute:
         self._bg: int = 0
 
     def __repr__(self):
-        return f'<ColourAttribute: fg={self._fg}, bg={self._bg}, style={self._style}>'
+        return f'<ColourAttribute: fg={self._fg:08x}, bg={self._bg:08x}, style={self._style:08x}>'
 
     @classmethod
     def from_bios(cls, bios: ColourBIOS | int) -> ColourAttribute:

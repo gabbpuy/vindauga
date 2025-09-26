@@ -8,6 +8,7 @@ from vindauga.types.draw_buffer import DrawBuffer
 from vindauga.types.palette import Palette
 from vindauga.types.rect import Rect
 from vindauga.types.view import View
+from vindauga.utilities.colours.attribute_pair import AttributePair
 
 logger = logging.getLogger(__name__)
 
@@ -22,7 +23,7 @@ class StaticText(View):
         self._text = text
         self.growMode |= gfFixed
 
-    def drawEmptyLine(self, y: int, color: int):
+    def drawEmptyLine(self, y: int, color: AttributePair):
         b = DrawBuffer()
         b.moveChar(0, ' ', color, self.size.x)
         self.writeLine(0, y, self.size.x, 1, b)

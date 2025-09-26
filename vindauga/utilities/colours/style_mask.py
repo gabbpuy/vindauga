@@ -13,3 +13,4 @@ class StyleMask(IntFlag):
     Reverse = 0x010
     Strike = 0x20
     NoShadow = 0x200
+    Direct = 0x400
