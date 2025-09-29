@@ -326,7 +326,7 @@ class NcursesInputAdapter(InputAdapter):
         """
         Process key event
         """
-        keys = [k]
+        keys = [k, 0, 0, 0]
         num_keys = 1
         event.what = evKeyDown
         alt = False
