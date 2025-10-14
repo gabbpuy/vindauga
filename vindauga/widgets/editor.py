@@ -16,7 +16,6 @@ from vindauga.constants.option_flags import ofSelectable
 from vindauga.constants.state_flags import sfVisible, sfCursorIns, sfActive, sfExposed
 from vindauga.events.event import Event
 from vindauga.utilities.screen.screen_cell import set_cell
-from vindauga.utilities.colours.colour_attribute import ColourAttribute
 from vindauga.utilities.text.text import Text
 from vindauga.types.command_set import CommandSet
 from vindauga.types.palette import Palette
@@ -132,6 +131,7 @@ class Editor(View):
         self.limit = Point(0, 0)
         self.curPos = Point(0, 0)
         self.vScrollBar = vScrollBar
+        self.hScrollBar = hScrollBar
         self.indicator = indicator
 
         self.bufLen = 0

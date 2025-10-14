@@ -56,6 +56,7 @@ class ListViewer(View):
         self.topItem = 0
         self.focused = 0
         self._range = 0
+        self._dirty = False
 
         self.options |= ofFirstClick | ofSelectable
         self.eventMask |= evBroadcast
@@ -75,6 +76,13 @@ class ListViewer(View):
 
         self.hScrollBar = hScrollBar
         self.vScrollBar = vScrollBar
+        self._dirty = True
+
+    def drawView(self):
+        if not self._dirty:
+            return
+        super().drawView()
+        self._dirty = False
 
     def changeBounds(self, bounds: Rect):
         """
@@ -84,6 +92,7 @@ class ListViewer(View):
 
         :param bounds: Bounds to set to
         """
+        self._dirty = True
         super().changeBounds(bounds)
 
         if self.hScrollBar:
@@ -157,6 +166,7 @@ class ListViewer(View):
 
         :param item: Item index to focus
         """
+        self._dirty = True
         self.focused = item
 
         if self.vScrollBar:
@@ -252,6 +262,7 @@ class ListViewer(View):
 
         :param range_: Number of items...
         """
+        self._dirty = True
         self._range = range_
 
         if self.focused >= range_:
@@ -277,9 +288,11 @@ class ListViewer(View):
         :param state: State to set
         :param enable: Enable or disable the state
         """
+        self._dirty = True
         super().setState(state, enable)
 
         if state & (sfSelected | sfActive | sfVisible):
+            self._dirty = True
             if self.hScrollBar:
                 if self.getState(sfActive) and self.getState(sfVisible):
                     self.hScrollBar.show()
@@ -306,6 +319,7 @@ class ListViewer(View):
                 item = self._range - 1
 
         if self._range != 0:
+            self._dirty = True
             self.focusItem(item)
 
     def shutdown(self):
@@ -348,7 +362,7 @@ class ListViewer(View):
             else:
                 return
         self.focusItemNum(newItem)
-        self.drawView()
+        # self.drawView()
         self.clearEvent(event)
 
     def __handleMouseEvent(self, event: Event, mouseAutosToSkip: int):
@@ -397,7 +411,7 @@ class ListViewer(View):
                 break
             mouseIsDown = (self.mouseEvent(event, evMouseMove | evMouseAuto))
         self.focusItemNum(newItem)
-        self.drawView()
+        # self.drawView()
         if event.mouse.eventFlags & meDoubleClick and self._range > newItem:
             self.selectItem(newItem)
         self.clearEvent(event)

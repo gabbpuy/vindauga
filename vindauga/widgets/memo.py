@@ -19,10 +19,14 @@ class MemoData:
 
     @property
     def length(self):
-        return wcwidth.wcswidth(self.buffer)
+        # wcwidth.wcswidth returns -1 for strings with control chars (like newlines)
+        # For memo data, just use the actual string length
+        return len(self.buffer) if self.buffer else 0
 
     def __len__(self):
-        return wcwidth.wcswidth(self.buffer)
+        # wcwidth.wcswidth returns -1 for strings with control chars (like newlines)
+        # For memo data, just use the actual string length
+        return len(self.buffer) if self.buffer else 0
 
 
 class Memo(Editor):
@@ -35,7 +39,10 @@ class Memo(Editor):
 
     def getData(self) -> DataRecord:
         rec = DataRecord()
-        data = MemoData(''.join(chr(c) for c in self.buffer))
+        # self.buffer is already a string, just use it directly
+        # Remove null terminators and trailing nulls
+        bufferStr = self.buffer.rstrip('\x00') if self.buffer else ''
+        data = MemoData(bufferStr)
         rec.value = data
         return rec
 
