@@ -1,10 +1,12 @@
 # -*- coding: utf-8 -*-
 import logging
 from typing import List, Union
+
 from vindauga.types.draw_buffer import DrawBuffer
 from vindauga.types.palette import Palette
 from vindauga.types.rect import Rect
 from vindauga.types.view import View
+from vindauga.utilities.colours.attribute_pair import AttributePair
 
 logger = logging.getLogger(__name__)
 
@@ -108,7 +110,7 @@ class Sparkline(View):
         charIndex = int(normalizedValue * (len(self.SPARK_CHARS) - 1))
         return self.SPARK_CHARS[charIndex]
 
-    def _drawSingleLine(self, buf: DrawBuffer, y: int, color: int):
+    def _drawSingleLine(self, buf: DrawBuffer, y: int, color: AttributePair):
         """
         Draw a single line of the sparkline.
 
