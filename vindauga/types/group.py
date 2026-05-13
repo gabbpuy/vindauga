@@ -213,7 +213,7 @@ class Group(View):
         if self.current is view:
             return
 
-        if self.state & sfFocused and not (not self.current or self.current.valid(cmLoseFocus)):
+        if self.state & sfFocused and self.current and not self.current.valid(cmLoseFocus):
             return
 
         self.lock()

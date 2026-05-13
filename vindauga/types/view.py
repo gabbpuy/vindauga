@@ -106,8 +106,8 @@ class View(VindaugaObject):
                                        kbRight: Point(1, 0),
                                        kbUp: Point(0, -1),
                                        kbDown: Point(0, 1),
-                                       kbCtrlLeft: (-8, 0),
-                                       kbCtrlRight: (8, 0)}
+                                       kbCtrlLeft: Point(-8, 0),
+                                       kbCtrlRight: Point(8, 0)}
 
     TheTopView = None
 
@@ -1051,10 +1051,10 @@ class View(VindaugaObject):
 
         :param event: Event to modify
         """
-        keyIsDown = True
-        while keyIsDown:
+        notKeyDown = True
+        while notKeyDown:
             self.getEvent(event)
-            keyIsDown = (event.what == evKeyDown)
+            notKeyDown = (event.what != evKeyDown)
 
     def mouseEvent(self, event: Event, mask: int) -> bool:
         """
