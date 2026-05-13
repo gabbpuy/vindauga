@@ -3,6 +3,7 @@ import logging
 import math
 import random
 import time
+from collections import deque
 from vindauga.constants.command_codes import cmQuit, hcNoContext
 from vindauga.constants.window_flags import wfClose
 from vindauga.constants.keys import kbAltF, kbAltX
@@ -58,10 +59,10 @@ class SparklineDialog(Dialog):
         # Initialize data
         self.randomWalkValue = 50
         self.stockValue = 100
-        self.sineData = []
-        self.randomData = []
-        self.stockData = []
-        self.multiData = []
+        self.sineData = deque(maxlen=100)
+        self.randomData = deque(maxlen=100)
+        self.stockData = deque(maxlen=100)
+        self.multiData = deque(maxlen=100)
 
         # Generate initial data
         for i in range(34):
@@ -85,31 +86,23 @@ class SparklineDialog(Dialog):
         # Update sine wave
         sineValue = 50 + 50 * math.sin(self.time * 0.2)
         self.sineData.append(sineValue)
-        if len(self.sineData) > 100:
-            self.sineData.pop(0)
         self.sparkSine.setData(self.sineData)
 
         # Update random walk
         self.randomWalkValue += random.uniform(-5, 5)
         self.randomWalkValue = max(0, min(100, self.randomWalkValue))
         self.randomData.append(self.randomWalkValue)
-        if len(self.randomData) > 100:
-            self.randomData.pop(0)
         self.sparkRandom.setData(self.randomData)
 
         # Update stock price
         change = random.uniform(-2, 2)
         self.stockValue *= (1 + change / 100)
         self.stockData.append(self.stockValue)
-        if len(self.stockData) > 100:
-            self.stockData.pop(0)
         self.sparkStock.setData(self.stockData)
 
         # Update multi-line data
         multiValue = 50 + 40 * math.sin(self.time * 0.3) + random.uniform(-10, 10)
         self.multiData.append(multiValue)
-        if len(self.multiData) > 100:
-            self.multiData.pop(0)
         self.sparkMulti3.setData(self.multiData)
         self.sparkMulti5.setData(self.multiData)
 
