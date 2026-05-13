@@ -2,7 +2,6 @@
 from __future__ import annotations
 import copy
 import itertools
-import logging
 import sys
 from typing import List, Optional, Set, Union
 
@@ -24,8 +23,7 @@ from vindauga.constants.state_flags import (sfVisible, sfCursorVis, sfCursorIns,
 from vindauga.events.event import Event
 from vindauga.utilities.message import message
 from vindauga.utilities.math_utils import clamp
-from vindauga.utilities.colours.colour_attribute import ColourAttribute, reverse_attribute, get_style, set_style, \
-    get_back
+from vindauga.utilities.colours.colour_attribute import ColourAttribute
 from vindauga.utilities.colours.attribute_pair import AttributePair
 from vindauga.utilities.colours.style_mask import StyleMask
 from vindauga.utilities.platform.system_interface import systemInterface
@@ -40,7 +38,6 @@ from .rect import Rect
 from .screen import Screen
 from .vindauga_object import VindaugaObject
 
-logger = logging.getLogger(__name__)
 
 SHADOW_SIZE = Point(2, 1)
 SHADOW_ATTR = 0x08

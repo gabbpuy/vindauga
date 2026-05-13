@@ -1,6 +1,5 @@
 # -*- coding: utf-8 -*-
 from gettext import gettext as _
-import logging
 import os
 import pathlib
 from typing import Union
@@ -25,7 +24,6 @@ from vindauga.widgets.input_line import InputLine
 from vindauga.widgets.label import Label
 from vindauga.widgets.scroll_bar import ScrollBar
 
-logger = logging.getLogger(__name__)
 
 
 class ChangeDirDialog(Dialog):

@@ -1,7 +1,5 @@
 # -*- coding: utf-8 -*-
-import time
 
-import logging
 
 from vindauga.utilities.colours.colour_attribute import ColourAttribute
 from vindauga.types.point import Point
@@ -13,7 +11,6 @@ from .termcap import TermCap
 from .writers import CSI
 
 
-logger = logging.getLogger(__name__)
 
 
 class ScreenWriter:
@@ -40,7 +37,7 @@ class ScreenWriter:
         def push(self, data: str):
             self.__data.append(data)  # Append string directly
 
-        def reserve(self, capacity):
+        def reserve(self, _capacity):
             pass
 
     def __init__(self, console_ctl, termcap: TermCap):

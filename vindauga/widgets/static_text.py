@@ -1,5 +1,4 @@
 # -*- coding: utf-8 -*-
-import logging
 import textwrap
 
 from vindauga.constants.grow_flags import gfFixed
@@ -10,7 +9,6 @@ from vindauga.types.rect import Rect
 from vindauga.types.view import View
 from vindauga.utilities.colours.attribute_pair import AttributePair
 
-logger = logging.getLogger(__name__)
 
 
 class StaticText(View):

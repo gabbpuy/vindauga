@@ -3,7 +3,7 @@ from __future__ import annotations
 from enum import Enum, auto
 import logging
 import string
-from typing import List, Optional, Union, Tuple
+from typing import Optional, Union
 
 import wcwidth
 

@@ -1,5 +1,4 @@
 # -*- coding: utf -8- -*-
-import logging
 
 from vindauga.constants.command_codes import cmCancel, cmDefault, cmOK, cmYes, cmNo
 from vindauga.constants.window_flags import wfMove, wfClose
@@ -12,7 +11,6 @@ from vindauga.types.rect import Rect
 
 from .window import Window
 
-logger = logging.getLogger(__name__)
 
 dpBlueDialog = 0
 dpCyanDialog = 1

@@ -28,7 +28,7 @@ class WakeUpEventSource(EventSource):
             if not self.signaled.is_set():
                 self.sys.signal()
                 self.signaled.set()
-        except Exception as e:
+        except Exception:
             logger.exception('signal failed:')
 
     def clear(self):

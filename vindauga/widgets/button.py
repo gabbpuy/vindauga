@@ -1,5 +1,4 @@
 # -*- coding: utf-8 -*-
-import logging
 
 from vindauga.constants.buttons import bfDefault, bfLeftJust, bfGrabFocus, bfBroadcast
 from vindauga.constants.command_codes import (cmDefault, cmCommandSetChanged, cmRecordHistory)
@@ -19,7 +18,6 @@ from vindauga.types.rect import Rect
 from vindauga.types.view import View
 
 
-logger = logging.getLogger(__name__)
 
 cmGrabDefault = 61
 cmReleaseDefault = 62

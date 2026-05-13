@@ -1,5 +1,4 @@
 # -*- coding: utf-8 -*-
-import logging
 import os
 
 from vindauga.types.collections.file_collection import FA_DIREC
@@ -7,13 +6,11 @@ from vindauga.constants.event_codes import evBroadcast
 from vindauga.constants.state_flags import sfSelected
 from vindauga.constants.std_dialog_commands import cmFileFocused
 from vindauga.events.event import Event
-from vindauga.utilities.filesystem.path_utils import fexpand
 from vindauga.types.rect import Rect
 
 from .input_line import InputLine
 
 
-logger = logging.getLogger(__name__)
 
 
 class FileInputLine(InputLine):

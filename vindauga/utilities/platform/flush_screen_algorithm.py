@@ -1,7 +1,6 @@
 # -*- coding: utf-8 -*-
 from __future__ import annotations
 
-import logging
 from typing import TYPE_CHECKING
 
 from vindauga.utilities.platform.adapters.display_adapter import DisplayAdapter
@@ -14,7 +13,6 @@ if TYPE_CHECKING:
     from vindauga.utilities.platform.display_buffer import DisplayBuffer
 
 
-logger = logging.getLogger(__name__)
 
 
 class FlushScreenAlgorithm:

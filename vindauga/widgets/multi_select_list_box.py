@@ -1,5 +1,4 @@
 # -*- coding: utf-8 -*-
-import logging
 from vindauga.constants.event_codes import evKeyDown, evMouseDown, mbLeftButton
 from vindauga.constants.keys import kbF7, kbF8, kbF9, kbEnter
 from vindauga.events.event import Event
@@ -7,7 +6,6 @@ from vindauga.types.rect import Rect
 
 from .list_box import ListBox, ListBoxRec
 
-logger = logging.getLogger(__name__)
 
 
 class MultiSelectListBox(ListBox):

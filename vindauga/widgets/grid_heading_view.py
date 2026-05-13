@@ -1,5 +1,4 @@
 # -*- coding: utf-8 -*-
-import logging
 from typing import Optional, Sequence
 
 from vindauga.constants.event_codes import evMouseDown, meDoubleClick
@@ -9,7 +8,6 @@ from vindauga.widgets.grid_view_box import GridViewBox
 
 from .grid_view import GridView
 
-logger = logging.getLogger(__name__)
 
 
 class GridHeadingView(GridView):

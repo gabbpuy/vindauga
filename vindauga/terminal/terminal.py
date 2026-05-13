@@ -1,5 +1,4 @@
 # -*- coding: utf-8 -*-
-import functools
 
 import atexit
 from copy import copy
@@ -13,7 +12,7 @@ import platform
 import select
 from signal import *
 import struct
-from typing import Tuple, Union
+from typing import Tuple
 
 from vindauga.utilities.text.text import Text
 from vindauga.utilities.screen.screen_cell import ScreenCell

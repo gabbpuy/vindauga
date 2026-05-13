@@ -13,7 +13,7 @@ reverse_on_off = '7', '27'
 strike_on_off = '9', '29'
 
 
-def write_flag(parts: list, attr: TermAttribute, last_attr: TermAttribute, mask: StyleMask, on_off: tuple[str]):
+def write_flag(parts: list, attr: TermAttribute, last_attr: TermAttribute, mask: StyleMask, on_off: tuple[str, str]):
     """
     Append flag change directly to the parts list
     """

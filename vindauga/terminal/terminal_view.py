@@ -4,7 +4,6 @@ import curses
 import logging
 import os
 
-import wcwidth
 
 from vindauga.constants.command_codes import cmPaste
 from vindauga.utilities.text.text import Text

@@ -8,7 +8,7 @@ from typing import Union
 from dataclasses import dataclass
 
 import vindauga.constants.keys as Keys
-from vindauga.constants.keys import kbAltShift, kbCtrlShift, kbNoKey
+from vindauga.constants.keys import kbAltShift
 
 
 @dataclass(frozen=True)

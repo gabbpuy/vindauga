@@ -1,5 +1,4 @@
 # -*- coding: utf-8 -*-
-import logging
 from typing import Sequence
 
 from vindauga.constants.command_codes import (hcNoContext)
@@ -19,7 +18,6 @@ from vindauga.types.records.data_record import DataRecord
 from vindauga.types.rect import Rect
 from vindauga.types.view import View
 
-logger = logging.getLogger(__name__)
 
 
 class Cluster(View):

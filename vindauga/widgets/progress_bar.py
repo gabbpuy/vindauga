@@ -1,11 +1,9 @@
 # -*- coding: utf-8 -*-
-import logging
 from vindauga.types.draw_buffer import DrawBuffer
 from vindauga.types.palette import Palette
 from vindauga.types.rect import Rect
 from vindauga.types.view import View
 
-logger = logging.getLogger(__name__)
 cmStartProgress = 1000
 
 

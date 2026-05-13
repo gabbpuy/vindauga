@@ -2,14 +2,11 @@
 from __future__ import annotations
 from typing import TYPE_CHECKING
 
-import logging
 from vindauga.constants.state_flags import sfVisible, sfCursorVis, sfFocused, sfCursorIns
 
 from vindauga.types.screen import Screen
 from vindauga.utilities.platform.system_interface import systemInterface
-from vindauga.utilities.platform.console_manager import ConsoleManager
 
-logger = logging.getLogger(__name__)
 
 if TYPE_CHECKING:
     from .view import View

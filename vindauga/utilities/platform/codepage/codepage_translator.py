@@ -1,12 +1,10 @@
 # -*- coding: utf-8 -*-
 from dataclasses import field, dataclass
-import logging
 import os
 from typing import Sequence, Dict
 
 from vindauga.utilities.platform.events.utf8_handler import utf8_bytes_left
 
-logger = logging.getLogger(__name__)
 
 cp437_to_utf8 = (
     "\0", "☺", "☻", "♥", "♦", "♣", "♠", "•", "◘", "○", "◙", "♂", "♀", "♪", "♫", "☼",

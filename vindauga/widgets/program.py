@@ -2,7 +2,6 @@
 from __future__ import annotations
 from gettext import gettext as _
 import logging
-import threading
 from typing import Any, Optional
 
 from vindauga.constants.command_codes import (cmReleasedFocus, cmCancel, cmSelectWindowNum, cmQuit, cmCommandSetChanged, cmMenu, cmClose, cmZoom,

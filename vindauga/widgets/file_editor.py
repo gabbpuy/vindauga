@@ -2,7 +2,7 @@
 import logging
 import os
 from pathlib import Path
-from typing import Optional, Union, IO
+from typing import Optional, Union
 
 from vindauga.constants.command_codes import *
 from vindauga.constants.edit_command_codes import *
@@ -107,7 +107,7 @@ class FileEditor(Editor):
                 after_gap_start = self.curPtr + self.gapLen
                 after_gap = self.buffer[after_gap_start:after_gap_start + (self.bufLen - self.curPtr)]
                 f.write(after_gap)
-        except Exception as e:
+        except Exception:
             logger.exception('saveFile')
             Editor.editorDialog(edCreateError, self.fileName)
             return False

@@ -1,6 +1,5 @@
 # -*- coding: utf-8 -*-
 from __future__ import annotations
-import logging
 
 from vindauga.events.mouse_event import MouseEvent
 import vindauga.constants.event_codes as event_codes
@@ -10,7 +9,6 @@ from vindauga.utilities.platform.system_interface import systemInterface
 from vindauga.utilities.text.text import Text
 from vindauga.types.screen import Screen
 
-logger = logging.getLogger(__name__)
 
 
 class EventQueue:

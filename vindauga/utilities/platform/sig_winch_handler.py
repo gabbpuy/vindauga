@@ -1,6 +1,5 @@
 # -*- coding: utf-8 -*-
 from __future__ import annotations
-import logging
 import signal
 
 from vindauga.constants.command_codes import cmScreenChanged
@@ -9,7 +8,6 @@ from vindauga.events.event import Event
 from vindauga.utilities.platform.events.sys_manual_event import Handle, SysManualEvent
 from vindauga.utilities.platform.events.wake_up_event_source import WakeUpEventSource
 
-logger = logging.getLogger(__name__)
 
 
 class SigWinchHandler(WakeUpEventSource):
@@ -22,7 +20,7 @@ class SigWinchHandler(WakeUpEventSource):
         SigWinchHandler.instance = self
 
     @staticmethod
-    def handleSignal(signalNumber: int, _frame=None) -> None:
+    def handleSignal(_signal_number: int, _frame=None) -> None:
         if instance := SigWinchHandler.instance:
             instance.signal()
 

@@ -1,9 +1,7 @@
 # -*- coding: utf-8 -*-
-import logging
 
 from .sorted_collection import SortedCollection
 
-logger = logging.getLogger(__name__)
 
 FA_DIREC = 0x02
 

@@ -1,12 +1,10 @@
 # -*- coding: utf-8 -*-
 from __future__ import annotations
-import logging
 from typing import Optional
 
 from vindauga.constants.command_codes import hcNoContext
 from vindauga.types.view import View
 
-logger = logging.getLogger(__name__)
 
 
 class MenuItem:

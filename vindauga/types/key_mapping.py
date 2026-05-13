@@ -1,12 +1,10 @@
 # -*- coding: utf-8 -*-
 import curses
-import logging
 import platform
 from typing import Union
 
 from vindauga.constants.keys import *
 
-logger = logging.getLogger(__name__)
 MALT = kbLeftAlt | kbRightAlt
 MCTRL = kbLeftCtrl | kbRightCtrl
 MSHIFT = kbLeftShift | kbRightShift
@@ -52,8 +50,7 @@ def get_key_mapping(code: Union[int, str]) -> Union[tuple[str, int], tuple[int, 
     if isinstance(code, str):
         return code, 0
 
-    s = curses.keyname(code)
-    s = str(s, encoding='utf-8')
+    s: str = str(curses.keyname(code), encoding='utf-8')
 
     if s in SHIFT_NAMES:
         return SHIFT_NAMES[s], MSHIFT

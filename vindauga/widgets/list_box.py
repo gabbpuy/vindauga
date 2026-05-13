@@ -1,6 +1,5 @@
 # -*- coding: utf-8 -*-
 from dataclasses import dataclass
-import logging
 from typing import Optional
 
 from vindauga.types.collections.collection import Collection
@@ -10,7 +9,6 @@ from .list_viewer import ListViewer
 from .scroll_bar import ScrollBar
 
 
-logger = logging.getLogger(__name__)
 
 
 @dataclass

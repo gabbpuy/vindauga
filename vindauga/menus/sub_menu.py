@@ -1,6 +1,5 @@
 # -*- coding: utf-8 -*-
 from __future__ import annotations
-import logging
 from typing import Union
 
 from vindauga.constants.command_codes import hcNoContext
@@ -8,7 +7,6 @@ from vindauga.constants.command_codes import hcNoContext
 from .menu import Menu
 from .menu_item import MenuItem
 
-logger = logging.getLogger(__name__)
 
 
 class SubMenu(MenuItem):

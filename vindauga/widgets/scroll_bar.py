@@ -1,5 +1,4 @@
 # -*- coding: utf-8 -*-
-import logging
 
 from vindauga.constants.command_codes import (cmScrollBarClicked, cmScrollBarChanged)
 from vindauga.constants.scrollbar_codes import (sbLeftArrow, sbRightArrow, sbPageLeft, sbPageRight, sbUpArrow,
@@ -18,7 +17,6 @@ from vindauga.types.palette import Palette
 from vindauga.types.rect import Rect
 from vindauga.types.view import View
 
-logger = logging.getLogger(__name__)
 
 
 class ScrollBar(View):

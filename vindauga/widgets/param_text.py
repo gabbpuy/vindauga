@@ -1,5 +1,4 @@
 # -*- coding: utf-8 -*-
-import logging
 
 import wcwidth
 from vindauga.types.rect import Rect
@@ -7,7 +6,6 @@ from vindauga.types.rect import Rect
 from .static_text import StaticText
 
 
-logger = logging.getLogger(__name__)
 
 
 class ParamText(StaticText):

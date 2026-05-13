@@ -1,11 +1,7 @@
 # -*- coding: utf-8 -*-
 from __future__ import annotations
 import logging
-import platform
-import subprocess
-import sys
 import threading
-import traceback
 
 from vindauga.utilities.platform.system_interface import systemInterface
 from vindauga.utilities.screen.screen_cell import ScreenCell
@@ -141,7 +137,7 @@ class Screen(_Display):
     def __del__(self):
         try:
             self.suspend()
-        except Exception as e:
+        except Exception:
             # Fails on shutdown mostly
             pass
 

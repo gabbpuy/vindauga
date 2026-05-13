@@ -1,7 +1,6 @@
 # -*- coding: utf-8 -*-
 from gettext import gettext as _
 import itertools
-import logging
 import textwrap
 
 import unicodedata
@@ -19,7 +18,6 @@ from .scroll_bar import ScrollBar
 from .scroller import Scroller
 
 
-logger = logging.getLogger(__name__)
 
 
 class FileViewer(Scroller):

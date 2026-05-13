@@ -2,7 +2,6 @@
 from __future__ import annotations
 
 from functools import singledispatch
-import logging
 
 from .attribute_pair import AttributePair
 from .colour_bios import ColourBIOS
@@ -10,7 +9,6 @@ from .desired_colour import DesiredColour, ColourType
 from .palettes import get_bios_rgb, get_xterm256_rgb
 from .style_mask import StyleMask
 
-logger = logging.getLogger(__name__)
 
 
 class ColourAttribute:

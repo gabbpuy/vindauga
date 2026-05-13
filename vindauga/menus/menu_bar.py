@@ -1,6 +1,5 @@
 # -*- coding: utf-8 -*-
 from __future__ import annotations
-import logging
 from typing import Union, List
 
 from vindauga.constants.grow_flags import gfGrowHiX
@@ -16,7 +15,6 @@ from .menu_item import MenuItem
 from .menu_view import MenuView
 from .sub_menu import SubMenu
 
-logger = logging.getLogger(__name__)
 
 
 class MenuBar(MenuView):

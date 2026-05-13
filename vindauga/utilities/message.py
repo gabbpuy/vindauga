@@ -1,12 +1,10 @@
 # -*- coding: utf-8 -*-
-import logging
 from threading import RLock
 from typing import Any
 
 from vindauga.constants.event_codes import evNothing
 from vindauga.events.event import Event
 
-logger = logging.getLogger(__name__)
 
 __message_lock = RLock()
 

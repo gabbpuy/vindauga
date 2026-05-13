@@ -1,7 +1,6 @@
 # -*- coding: utf-8 -*-
 from __future__ import annotations
 from enum import Enum, auto
-import logging
 from typing import List, Optional, Union, Tuple
 
 from vindauga.constants.command_codes import cmMenu, hcNoContext, cmCommandSetChanged
@@ -18,7 +17,6 @@ from .menu import Menu
 
 from .menu_item import MenuItem
 
-logger = logging.getLogger(__name__)
 
 
 class MenuAction(Enum):

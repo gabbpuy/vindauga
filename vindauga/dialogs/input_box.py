@@ -1,5 +1,4 @@
 # -*- coding: utf-8 -*-
-import logging
 from typing import Any, Tuple
 
 import wcwidth
@@ -14,7 +13,6 @@ from vindauga.widgets.program import getDesktopSize, execView
 
 from .message_box import MsgBoxText
 
-logger = logging.getLogger(__name__)
 
 
 def inputBoxRect(bounds: Rect, title: str, aLabel: str, datum: Any, limit: int) -> Tuple[int, Any]:

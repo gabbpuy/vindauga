@@ -165,4 +165,3 @@ def closestPrefix(i: Union[int, float]) -> Tuple[float, Prefix]:
 
 
 # Import prefixes to populate the metaclass indices
-from . import prefixes

@@ -1,5 +1,4 @@
 # -*- coding: utf-8 -*-
-import logging
 from typing import Optional
 
 import wcwidth
@@ -16,7 +15,6 @@ from vindauga.types.rect import Rect
 from .menu_view import MenuView
 
 
-logger = logging.getLogger(__name__)
 
 
 class MenuBox(MenuView):

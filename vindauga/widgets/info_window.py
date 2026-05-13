@@ -1,6 +1,5 @@
 # -*- coding: utf-8 -*-
 from dataclasses import dataclass
-import logging
 from typing import List, Optional
 
 from vindauga.constants.command_codes import wnNoNumber
@@ -19,7 +18,6 @@ from .static_text import StaticText
 from .window import Window
 
 
-logger = logging.getLogger(__name__)
 
 
 class InfoWindow(Window):

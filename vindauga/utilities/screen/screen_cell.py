@@ -1,6 +1,5 @@
 # -*- coding: utf-8 -*-
 from __future__ import annotations
-import copy
 
 from vindauga.utilities.colours.colour_attribute import ColourAttribute
 from vindauga.utilities.colours.colour_bios import ColourBIOS

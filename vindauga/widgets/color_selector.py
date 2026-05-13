@@ -1,6 +1,5 @@
 # -*- coding: utf-8 -*-
 from enum import IntEnum
-import logging
 
 from vindauga.constants.colors import cmColorForegroundChanged, cmColorBackgroundChanged, cmColorSet
 from vindauga.constants.event_codes import evBroadcast, evMouseDown, evKeyDown, evMouseMove
@@ -14,7 +13,6 @@ from vindauga.types.draw_buffer import DrawBuffer
 from vindauga.types.rect import Rect
 from vindauga.types.view import View
 
-logger = logging.getLogger(__name__)
 
 
 class ColorSel(IntEnum):

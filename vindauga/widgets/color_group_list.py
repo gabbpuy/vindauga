@@ -1,5 +1,4 @@
 # -*- coding: utf-8 -*-
-import logging
 
 from vindauga.constants.colors import cmNewColorItem, cmSaveColorIndex
 from vindauga.constants.event_codes import evBroadcast
@@ -10,7 +9,6 @@ from vindauga.types.rect import Rect
 from vindauga.widgets.list_viewer import ListViewer
 from vindauga.widgets.scroll_bar import ScrollBar
 
-logger = logging.getLogger(__name__)
 
 
 class ColorGroupList(ListViewer):

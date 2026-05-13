@@ -4,7 +4,6 @@ from __future__ import annotations
 import atexit
 import curses
 import logging
-from typing import Optional
 
 from vindauga.utilities.singleton import Singleton
 from vindauga.utilities.colours.colour_attribute import ColourAttribute

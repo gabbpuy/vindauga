@@ -1,7 +1,6 @@
 # -*- coding: utf-8 -*-
 import pathlib
 from gettext import gettext as _
-import logging
 import os
 from typing import Union
 
@@ -26,7 +25,6 @@ from vindauga.widgets.history import History
 from vindauga.widgets.label import Label
 from vindauga.widgets.scroll_bar import ScrollBar
 
-logger = logging.getLogger(__name__)
 
 ffOpen = 0x0001
 ffSaveAs = 0x0002

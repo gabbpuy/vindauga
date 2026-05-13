@@ -9,8 +9,6 @@ from vindauga.utilities.platform.adapters.display_adapter import DisplayAdapter
 from vindauga.utilities.platform.adapters.input_adapter import InputAdapter
 from vindauga.utilities.platform.events.input_state import InputState
 
-from .display_adapter import WindowsConsoleDisplayAdapter
-from .input_adapter import WindowsConsoleInputAdapter
 
 
 class WindowsConsoleAdapter(ConsoleAdapter):

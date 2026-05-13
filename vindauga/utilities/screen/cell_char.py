@@ -1,7 +1,6 @@
 # -*- coding: utf-8 -*-
 from enum import IntFlag
 from functools import singledispatchmethod
-import sys
 
 
 class CellFlags(IntFlag):
@@ -40,13 +39,10 @@ class CellChar:
 
     @move_multi_byte_char.register
     def _(self, mbc: int, wide: bool = False):
-        self._text = mbc.to_bytes(4)
+        char = chr(mbc)
+        self._text = list(char)
         self._flags = -int(wide) & CellFlags.Wide
-
-        if sys.byteorder == 'little':
-            self._textLength = 1 + (((mbc & 0xFF0000) != 0) + ((mbc & 0xFF00) != 0) + ((mbc & 0xFF) != 0))
-        else:
-            self._textLength = 1 + (((mbc & 0xFF00) != 0) + ((mbc & 0xFF0000) != 0) + ((mbc & 0xFF000000) != 0))
+        self._text_length = len(char)
 
     def move_wide_char_trail(self):
         self._flags |= CellFlags.Trail

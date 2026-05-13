@@ -1,7 +1,6 @@
 # -*- coding: utf-8 -*-
 from dataclasses import dataclass, field
 from gettext import gettext as _
-import logging
 from typing import Optional
 
 from vindauga.constants.buttons import bfNormal, bfDefault
@@ -23,7 +22,6 @@ from vindauga.widgets.label import Label
 from vindauga.widgets.mono_selector import MonoSelector
 from vindauga.widgets.scroll_bar import ScrollBar
 
-logger = logging.getLogger(__name__)
 
 
 @dataclass

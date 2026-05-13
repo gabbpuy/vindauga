@@ -4,13 +4,11 @@ Handles terminal input/output operations and escape sequence parsing
 """
 import base64
 
-import string
 
 import os
 
 import time
 
-import logging
 from typing import TYPE_CHECKING, Callable
 
 from vindauga.constants.event_codes import (evKeyDown, evMouse, mbLeftButton, mbMiddleButton, mbRightButton, mwUp,
@@ -36,7 +34,6 @@ from ..codepage.codepage_translator import CodepageTranslator
 if TYPE_CHECKING:
     from vindauga.utilities.platform.events.input_state import InputState
 
-logger = logging.getLogger(__name__)
 
 mmAlt = 0x08
 mmCtrl = 0x10

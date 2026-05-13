@@ -1,9 +1,7 @@
 # -*- coding: utf-8 -*-
-import logging
 from collections import defaultdict
 from typing import List
 
-logger = logging.getLogger(__name__)
 
 histories = defaultdict(list)
 

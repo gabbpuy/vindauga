@@ -1,6 +1,5 @@
 # -*- coding: utf-8 -*-
 from gettext import gettext as _
-import logging
 from typing import Optional, Sequence
 
 from vindauga.constants.command_codes import cmScrollBarClicked, cmScrollBarChanged, cmListItemSelected
@@ -21,7 +20,6 @@ from vindauga.types.rect import Rect
 from vindauga.types.view import View
 from vindauga.widgets.scroll_bar import ScrollBar
 
-logger = logging.getLogger(__name__)
 
 cmUpdateItemNumber = 901
 

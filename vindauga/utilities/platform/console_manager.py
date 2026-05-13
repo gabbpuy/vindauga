@@ -1,14 +1,11 @@
 # -*- coding: utf-8 -*-
-import logging
 import platform
 import sys
-import threading
 
 import wcwidth
 
 from vindauga.utilities.singleton import Singleton
 from vindauga.types.display import Display
-from vindauga.types.point import Point
 
 from .adapters.console_adapter import ConsoleAdapter
 from .adapters.console_ctl import ConsoleCtl
@@ -19,7 +16,6 @@ from .events.input_state import InputState
 from .events.signal_handler import SignalHandler
 from vindauga.utilities.screen.screen_cell import ScreenCell
 
-logger = logging.getLogger(__name__)
 
 
 class ConsoleManager(metaclass=Singleton):

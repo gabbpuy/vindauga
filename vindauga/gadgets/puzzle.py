@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 import random
+from gettext import gettext as _
 
 from vindauga.constants.command_codes import wnNoNumber
 from vindauga.constants.window_flags import wfGrow, wfZoom

@@ -2,7 +2,6 @@
 from __future__ import annotations
 
 from functools import singledispatchmethod
-import logging
 import math
 import time
 from typing import TYPE_CHECKING
@@ -18,7 +17,6 @@ from .wake_up_event_source import WakeUpEventSource
 if TYPE_CHECKING:
     from vindauga.events.event import Event
 
-logger = logging.getLogger(__name__)
 
 
 class EventWaiter:

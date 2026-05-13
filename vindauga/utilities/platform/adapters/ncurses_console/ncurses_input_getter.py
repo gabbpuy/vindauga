@@ -1,9 +1,7 @@
 # -*- coding: utf-8 -*-
 import curses
-import logging
 from vindauga.utilities.platform.events.input_getter import InputGetter
 
-logger = logging.getLogger(__name__)
 
 
 class NcursesInputGetter(InputGetter):

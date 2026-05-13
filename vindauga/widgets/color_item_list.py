@@ -1,5 +1,4 @@
 # -*- coding: utf-8 -*-
-import logging
 from typing import List
 
 from vindauga.constants.colors import cmSaveColorIndex, cmNewColorIndex, cmNewColorItem
@@ -12,7 +11,6 @@ from vindauga.types.rect import Rect
 from .list_viewer import ListViewer
 from .scroll_bar import ScrollBar
 
-logger = logging.getLogger(__name__)
 
 
 class ColorItemList(ListViewer):

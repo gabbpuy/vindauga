@@ -4,7 +4,6 @@ from __future__ import annotations
 import sys
 
 from dataclasses import dataclass
-from enum import Enum, auto
 import signal
 from typing import Callable
 

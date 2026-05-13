@@ -1,7 +1,6 @@
 # -*- coding: utf-8 -*-
 from gettext import gettext as _
 import fnmatch
-import logging
 import os
 from datetime import datetime
 from typing import Optional
@@ -18,7 +17,6 @@ from vindauga.types.rect import Rect
 from vindauga.widgets.scroll_bar import ScrollBar
 from vindauga.widgets.sorted_list_box import SortedListBox
 
-logger = logging.getLogger(__name__)
 
 
 class FileList(SortedListBox):

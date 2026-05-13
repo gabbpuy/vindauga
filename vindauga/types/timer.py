@@ -1,9 +1,7 @@
 # -*- coding: utf-8 -*-
-import logging
 from threading import Timer as _Timer, RLock
 from typing import Optional
 
-logger = logging.getLogger(__name__)
 
 
 class Timer:

@@ -193,12 +193,12 @@ class WindowsShell:
         except pywintypes.error as e:
             if e.winerror == 6:  # ERROR_INVALID_HANDLE
                 logger.info("PeekNamedPipe: handle became invalid (child process exited)")
-                raise BrokenPipeError
+                raise BrokenPipeError from e
             elif e.winerror == 109:  # ERROR_BROKEN_PIPE
                 logger.info("PeekNamedPipe: pipe broken (child process closed pipe)")
-                raise BrokenPipeError
+                raise BrokenPipeError from e
             logger.error("PeekNamedPipe failed: %s (code: %s)", e.strerror, e.winerror)
-            raise BrokenPipeError
+            raise BrokenPipeError from e
 
         if result == -1:
              lastError = win32api.GetLastError()
@@ -226,9 +226,9 @@ class WindowsShell:
             except pywintypes.error as e:
                 if e.winerror == 6:  # ERROR_INVALID_HANDLE
                     logger.debug("ReadFile: handle became invalid (child process likely exited)")
-                    raise BrokenPipeError
+                    raise BrokenPipeError from e
                 logger.debug("ReadFile failed: %s (code: %s)", e.strerror, e.winerror)
-                raise BrokenPipeError
+                raise BrokenPipeError from e
         
         return b''  # No data available
 
@@ -245,7 +245,7 @@ class WindowsShell:
         try:
             exit_code = win32process.GetExitCodeProcess(self.processHandle)
             return exit_code == win32con.STILL_ACTIVE
-        except:
+        except Exception:
             return False
 
     def read(self) -> bytes:

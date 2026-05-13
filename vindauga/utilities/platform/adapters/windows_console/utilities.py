@@ -4,7 +4,7 @@ import sys
 
 from vindauga.constants.event_codes import evKeyDown
 from vindauga.constants.keys import kbShift, kbCtrlShift, kbAltShift, kbScrollState, kbNumState, kbCapsState, \
-    kbEnhanced, kbCtrlZ, kbNoKey, kbLeft, kbLeftCtrl, kbRightAlt
+    kbEnhanced, kbCtrlZ, kbNoKey, kbLeftCtrl, kbRightAlt
 from vindauga.events.event import Event
 from vindauga.utilities.platform.codepage.codepage_translator import CodepageTranslator
 from vindauga.utilities.platform.events.input_state import InputState

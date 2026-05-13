@@ -1,5 +1,4 @@
 # -*- coding: utf-8 -*-
-import logging
 from enum import Enum, auto
 from typing import Optional
 
@@ -10,7 +9,6 @@ from vindauga.types.view import View
 
 from .background import Background
 
-logger = logging.getLogger(__name__)
 
 
 class GrowDirection(Enum):

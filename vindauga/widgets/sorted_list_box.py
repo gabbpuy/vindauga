@@ -1,5 +1,4 @@
 # -*- coding: utf-8 -*-
-import logging
 
 from vindauga.constants.command_codes import cmReleasedFocus
 from vindauga.constants.event_codes import evBroadcast, evKeyDown
@@ -12,7 +11,6 @@ from .list_box import ListBox
 from .scroll_bar import ScrollBar
 
 
-logger = logging.getLogger(__name__)
 
 
 def _equal(s1, s2, count):

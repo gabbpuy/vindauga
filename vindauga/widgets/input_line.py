@@ -1,5 +1,4 @@
 # -*- coding: utf-8 -*-
-import logging
 from typing import Optional
 
 from vindauga.constants.command_codes import cmCancel, cmValid
@@ -18,7 +17,6 @@ from vindauga.types.rect import Rect
 from vindauga.types.view import View
 from vindauga.types.validation.validator import Validator
 
-logger = logging.getLogger(__name__)
 
 
 class State:

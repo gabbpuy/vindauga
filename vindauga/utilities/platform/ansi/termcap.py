@@ -1,13 +1,11 @@
 # -*- coding: utf-8 -*-
 from dataclasses import dataclass
-import logging
 import os
 from typing import Any
 
 from .termcap_colours import TermCapColours
 from .quirks import TerminalQuirks
 
-logger = logging.getLogger(__name__)
 
 
 @dataclass

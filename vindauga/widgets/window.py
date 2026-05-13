@@ -1,5 +1,4 @@
 # -*- coding: utf-8 -*-
-import logging
 
 from vindauga.constants.command_codes import (wpBlueWindow, cmClose, cmResize, cmCancel, cmZoom,
                                               cmSelectWindowNum,
@@ -21,7 +20,6 @@ from .frame import Frame
 from .scroll_bar import ScrollBar
 from ..events.event import Event
 
-logger = logging.getLogger(__name__)
 minWinSize = Point(16, 6)
 
 

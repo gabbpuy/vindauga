@@ -1,9 +1,7 @@
 # -*- coding: utf-8 -*-
-import logging
 
 from .input_getter import InputGetter
 
-logger = logging.getLogger(__name__)
 
 
 class GetChBuf:

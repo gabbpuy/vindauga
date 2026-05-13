@@ -1,9 +1,8 @@
 # -*- coding: utf-8 -*-
-import logging
 
 import wcwidth
 
-from vindauga.constants.colors import cmColorBackgroundChanged, cmColorForegroundChanged, cmColorSet, cmSetColorIndex
+from vindauga.constants.colors import cmColorBackgroundChanged, cmColorForegroundChanged, cmColorSet
 from vindauga.constants.event_codes import evBroadcast
 from vindauga.events.event import Event
 from vindauga.utilities.message import message
@@ -12,7 +11,6 @@ from vindauga.types.draw_buffer import DrawBuffer
 from vindauga.types.rect import Rect
 from vindauga.types.view import View
 
-logger = logging.getLogger(__name__)
 
 
 class ColorDisplay(View):

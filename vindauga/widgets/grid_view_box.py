@@ -1,6 +1,5 @@
 # -*- coding: utf-8 -*-
 from dataclasses import dataclass
-import logging
 from typing import Sequence
 
 from vindauga.constants.event_codes import evMouseDown, evBroadcast, evKeyDown, meDoubleClick
@@ -13,7 +12,6 @@ from .grid_view import GridView, cmListItemSelected
 from .scroll_bar import ScrollBar
 
 
-logger = logging.getLogger(__name__)
 cmListKeyEnter = 59
 
 

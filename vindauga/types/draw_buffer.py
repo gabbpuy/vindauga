@@ -1,6 +1,5 @@
 # -*- coding: utf-8 -*-
 from __future__ import annotations
-import logging
 
 from vindauga.utilities.colours.attribute_pair import AttributePair
 from vindauga.utilities.colours.colour_attribute import ColourAttribute
@@ -9,7 +8,6 @@ from vindauga.utilities.text.text import Text
 
 from .screen import Screen
 
-logger = logging.getLogger(__name__)
 
 LINE_WIDTH = 1024
 

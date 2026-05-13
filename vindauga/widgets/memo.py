@@ -1,7 +1,6 @@
 # -*- coding: utf-8 -*-
 from dataclasses import dataclass
 
-import wcwidth
 
 from vindauga.constants.event_codes import evKeyDown
 from vindauga.constants.keys import kbTab

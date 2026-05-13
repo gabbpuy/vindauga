@@ -1,6 +1,5 @@
 # -*- coding: utf-8 -*-
 from collections import deque
-import logging
 import time
 from typing import TYPE_CHECKING
 
@@ -14,7 +13,6 @@ from vindauga.utilities.screen.screen_cell import ScreenCell
 if TYPE_CHECKING:
     from vindauga.events.event import Event
 
-logger = logging.getLogger(__name__)
 
 
 class SystemInterface:

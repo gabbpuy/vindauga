@@ -1,5 +1,4 @@
 # -*- coding: utf-8 -*-
-import logging
 from typing import Callable
 
 from vindauga.utilities.colours.colour_attribute import ColourAttribute, get_style, get_fore, get_back
@@ -14,7 +13,6 @@ from .termcap import TermCap
 from .termcap_colours import TermCapColours
 from .writers import write_attributes
 
-logger = logging.getLogger(__name__)
 
 # Pre-compute common enum values as integers to avoid enum operations
 _STYLE_ITALIC = int(StyleMask.Italic)
