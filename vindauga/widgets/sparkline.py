@@ -1,5 +1,4 @@
 # -*- coding: utf-8 -*-
-import logging
 from typing import List, Union
 
 from vindauga.types.draw_buffer import DrawBuffer
@@ -7,8 +6,6 @@ from vindauga.types.palette import Palette
 from vindauga.types.rect import Rect
 from vindauga.types.view import View
 from vindauga.utilities.colours.attribute_pair import AttributePair
-
-logger = logging.getLogger(__name__)
 
 
 class Sparkline(View):
@@ -37,7 +34,6 @@ class Sparkline(View):
         self.data = data or []
         self.minValue = None
         self.maxValue = None
-        self.autoScale = True
 
     def setData(self, data: List[Union[int, float]]):
         """
@@ -69,7 +65,6 @@ class Sparkline(View):
         """
         self.minValue = minValue
         self.maxValue = maxValue
-        self.autoScale = (minValue is None or maxValue is None)
         self.drawView()
 
     def clear(self):
@@ -78,8 +73,6 @@ class Sparkline(View):
         self.drawView()
 
     def _getScaleBounds(self) -> tuple[float, float]:
-        if self.autoScale:
-            return min(self.data), max(self.data)
         minVal = self.minValue if self.minValue is not None else min(self.data)
         maxVal = self.maxValue if self.maxValue is not None else max(self.data)
         return minVal, maxVal
