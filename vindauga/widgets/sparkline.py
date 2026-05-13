@@ -77,6 +77,13 @@ class Sparkline(View):
         self.data = []
         self.drawView()
 
+    def _getScaleBounds(self) -> tuple[float, float]:
+        if self.autoScale:
+            return min(self.data), max(self.data)
+        minVal = self.minValue if self.minValue is not None else min(self.data)
+        maxVal = self.maxValue if self.maxValue is not None else max(self.data)
+        return minVal, maxVal
+
     def _normalizeValue(self, value: Union[int, float], minVal: float, maxVal: float) -> float:
         """
         Normalize a value to 0-1 range based on min/max.
@@ -125,13 +132,7 @@ class Sparkline(View):
             self.writeLine(0, y, self.size.x, 1, buf)
             return
 
-        # Determine min/max for scaling
-        if self.autoScale:
-            minVal = min(self.data)
-            maxVal = max(self.data)
-        else:
-            minVal = self.minValue if self.minValue is not None else min(self.data)
-            maxVal = self.maxValue if self.maxValue is not None else max(self.data)
+        minVal, maxVal = self._getScaleBounds()
 
         # Get the portion of data to display (rightmost points that fit)
         displayData = self.data[-self.size.x:] if len(self.data) > self.size.x else self.data
@@ -149,31 +150,21 @@ class Sparkline(View):
         buf.moveStr(0, sparkStr, color)
         self.writeLine(0, y, self.size.x, 1, buf)
 
-    def _drawMultiLine(self):
+    def _drawMultiLine(self, color: AttributePair):
         """
         Draw a multi-line sparkline with vertical resolution.
         """
         if not self.data:
-            # Empty sparkline - fill with spaces
             for y in range(self.size.y):
                 buf = DrawBuffer()
-                color = self.getColor(1)
                 buf.moveChar(0, self.BACK_CHAR, color, self.size.x)
                 self.writeLine(0, y, self.size.x, 1, buf)
             return
 
-        # Determine min/max for scaling
-        if self.autoScale:
-            minVal = min(self.data)
-            maxVal = max(self.data)
-        else:
-            minVal = self.minValue if self.minValue is not None else min(self.data)
-            maxVal = self.maxValue if self.maxValue is not None else max(self.data)
+        minVal, maxVal = self._getScaleBounds()
 
         # Get the portion of data to display
         displayData = self.data[-self.size.x:] if len(self.data) > self.size.x else self.data
-
-        color = self.getColor(1)
 
         # For multi-line, we need to think in terms of vertical blocks
         # Each column represents one data point
@@ -198,8 +189,8 @@ class Sparkline(View):
                     # This line is fully filled
                     lineStr += self.SPARK_CHARS[-1]
                 elif heightInSegments > baseHeight:
-                    # Partial fill
-                    partialSegments = int(heightInSegments - baseHeight)
+                    # Partial fill — clamp to at least 1 so we never emit a space here
+                    partialSegments = max(1, int(heightInSegments - baseHeight))
                     lineStr += self.SPARK_CHARS[partialSegments]
                 else:
                     # Empty
@@ -212,14 +203,12 @@ class Sparkline(View):
 
     def draw(self):
         """Draw the sparkline widget."""
+        color = self.getColor(1)
         if self.size.y == 1:
-            # Single line sparkline
             buf = DrawBuffer()
-            color = self.getColor(1)
             self._drawSingleLine(buf, 0, color)
         else:
-            # Multi-line sparkline with vertical resolution
-            self._drawMultiLine()
+            self._drawMultiLine(color)
 
     def getPalette(self) -> Palette:
         """Get the color palette for the sparkline."""

@@ -45,7 +45,7 @@ class WallpaperBackground(Background):
     def draw(self):
         if self._drawLock:
             return
-        for y, line in enumerate(itertools.islice(self._char_lines, 0, max(len(self._char_lines), self.size.y))):
+        for y, line in enumerate(itertools.islice(self._char_lines, 0, min(len(self._char_lines), self.size.y))):
             self.writeLine(0, y, self.size.x, 1, line)
 
     def reload_image(self):
