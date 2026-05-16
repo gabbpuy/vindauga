@@ -1,6 +1,5 @@
 # -*- coding: utf-8 -*-
 from __future__ import annotations
-import logging
 
 from vindauga.utilities.colours.attribute_pair import AttributePair
 from vindauga.utilities.colours.colour_attribute import ColourAttribute
@@ -9,7 +8,6 @@ from vindauga.utilities.text.text import Text
 
 from .screen import Screen
 
-logger = logging.getLogger(__name__)
 
 LINE_WIDTH = 1024
 
@@ -73,10 +71,11 @@ class DrawBuffer:
         :return: Number of cells moved
         """
         attr = self._normalize_attribute(attr)
+        text_indent = strOffset or 0
         if maxWidth is not None:
-            return Text.draw_str(self.data[:indent + maxWidth], text, indent, strOffset, attr=attr)
+            return Text.draw_str(self.data[:indent + maxWidth], text, indent, text_indent, attr=attr)
         else:
-            return Text.draw_str(self.data, text, indent, strOffset or 0, attr=attr)
+            return Text.draw_str(self.data, text, indent, text_indent, attr=attr)
 
     def moveCStr(self, indent: int, text: str, attrs: AttributePair) -> int:
         """

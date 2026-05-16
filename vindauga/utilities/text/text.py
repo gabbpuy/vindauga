@@ -6,6 +6,7 @@ import unicodedata
 import wcwidth
 
 from vindauga.utilities.colours.colour_attribute import ColourAttribute
+from vindauga.utilities.screen.cell_char import CellFlags
 from vindauga.utilities.screen.screen_cell import ScreenCell, set_cell, set_char
 
 from .text_metrics import TextMetrics
@@ -274,12 +275,14 @@ class Text:
         else:
             set_char(cells[cell_index], char)
 
-        # Mark continuation cells for wide characters
-        for i in range(1, char_width):
-            if cell_index + i < len(cells):
-                cells[cell_index + i].char = ''  # Continuation
-                if attr:
-                    cells[cell_index + i].attr = attr
+        # Mark wide-character lead cell and continuation (trail) cells
+        if char_width >= 2:
+            cells[cell_index]._ch._flags |= CellFlags.Wide
+            for i in range(1, char_width):
+                if cell_index + i < len(cells):
+                    cells[cell_index + i]._ch.move_wide_char_trail()
+                    if attr:
+                        cells[cell_index + i].attr = attr
 
         return True, cell_index + char_width, new_text_index
 

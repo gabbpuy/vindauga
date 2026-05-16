@@ -1,7 +1,4 @@
 # -*- coding: utf-8 -*-
-import time
-
-import logging
 
 from vindauga.utilities.colours.colour_attribute import ColourAttribute
 from vindauga.types.point import Point
@@ -11,9 +8,6 @@ from .colour import TermColour
 from .conversions import convert_attributes
 from .termcap import TermCap
 from .writers import CSI
-
-
-logger = logging.getLogger(__name__)
 
 
 class ScreenWriter:
@@ -79,8 +73,13 @@ class ScreenWriter:
             
         buf, self.__last_attribute = convert_attributes(attribute, self.__last_attribute, self.__termcap, self.__buffer.data)
         self.__buffer.data = buf  # Update buffer with new data
-        self.__buffer.push(text)  # No need to encode text
-        self.__caret_pos = Point(pos.x + 1 + int(double_width), pos.y)
+        self.__buffer.push(text)
+        # If the cell text has combining chars (multi-codepoint), the terminal's
+        # cursor advance is unpredictable — force absolute position on next write.
+        if len(text) > 1:
+            self.__caret_pos = Point(-1, -1)
+        else:
+            self.__caret_pos = Point(pos.x + 1 + int(double_width), pos.y)
 
     def set_caret_pos(self, pos):
         self.__buf_write_CSI2(pos.y + 1, pos.x + 1, 'H')
