@@ -219,11 +219,11 @@ class Group(View):
         self.lock()
         try:
             self.__focusView(self.current, False)
-            if mode != self.enterSelect and self.current:
+            if mode != self.enterSelect and self.current is not None:
                 self.current.setState(sfSelected, False)
-            if view and mode != self.leaveSelect:
+            if view is not None and mode != self.leaveSelect:
                 view.setState(sfSelected, True)
-            if view and self.state & sfFocused:
+            if view is not None and self.state & sfFocused:
                 view.setState(sfFocused, True)
             self.current = view
         except Exception as e:
@@ -232,9 +232,9 @@ class Group(View):
             self.unlock()
 
     def selectNext(self, direction: bool):
-        if self.current:
+        if self.current is not None:
             p = self.__findNext(direction)
-            if p:
+            if p is not None:
                 p.select()
 
     def firstThat(self, func, *args) -> Optional[View]:
@@ -249,7 +249,7 @@ class Group(View):
 
     def focusNext(self, forwards: bool):
         p = self.__findNext(forwards)
-        if p:
+        if p is not None:
             return p.focus()
         return True
 
@@ -280,7 +280,7 @@ class Group(View):
                 self.unlock()
 
         if state & sfFocused:
-            if self.current:
+            if self.current is not None:
                 self.current.setState(sfFocused, enable)
 
         if state & sfExposed:
@@ -388,7 +388,7 @@ class Group(View):
                 self.drawView()
 
     def resetCursor(self):
-        if self.current:
+        if self.current is not None:
             self.current.resetCursor()
 
     def endModal(self, command: int):
@@ -404,7 +404,7 @@ class Group(View):
     def getHelpCtx(self) -> int:
         h = hcNoContext
 
-        if self.current:
+        if self.current is not None:
             h = self.current.getHelpCtx()
         if h == hcNoContext:
             h = super().getHelpCtx()
@@ -415,7 +415,7 @@ class Group(View):
             return True
 
         if command == cmReleasedFocus:
-            if self.current and (self.current.options & ofValidate):
+            if self.current is not None and (self.current.options & ofValidate):
                 return self.current.valid(command)
             return True
 
@@ -434,7 +434,11 @@ class Group(View):
         self.insertBefore(p, self.first)
 
     def insertBefore(self, view: View, target: View):
-        if view and not view.owner and (not target or target.owner is self):
+        # NB: these must be `is not None` checks, not truthiness checks --
+        # View subclasses (e.g. ParamText) can define __len__() and return 0
+        # for "empty" content, which makes a perfectly valid, ownerless View
+        # falsy and would cause it to be silently skipped here.
+        if view is not None and not view.owner and (target is None or target.owner is self):
             if view.options & ofCenterX:
                 view.origin.x = (self.size.x - view.size.x) // 2
 
@@ -456,14 +460,14 @@ class Group(View):
 
     def insertView(self, view: View, target: Optional[View] = None):
         view.owner = self
-        if target:
+        if target is not None:
             idx = self.children.index(target)
             self.children.insert(idx, view)
         else:
             self.children.append(view)
 
     def remove(self, view: View):
-        if not view:
+        if view is None:
             return
 
         saveState = view.state
