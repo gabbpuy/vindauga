@@ -6,6 +6,7 @@ cmFileInit = 1004  # Used by FileDialog internally
 cmChangeDir = 1005  #
 cmRevert = 1006  # Used by TChDirDialog internally
 cmDirSelection = 1007  # Used by TChDirDialog internally
+cmDirFocused = 1008  # A new directory was focused in the DirListBox
 cmFileFocused = 102  # A new file was focused in the FileList
 cmFileDoubleClicked = 103  # A file was selected in the FileList
 
