@@ -8,10 +8,11 @@ from typing import Union
 from vindauga.constants.buttons import bfDefault, bfNormal
 from vindauga.constants.command_codes import cmOK, cmHelp
 from vindauga.constants.message_flags import mfError, mfOKButton
-from vindauga.constants.event_codes import evCommand
+from vindauga.constants.event_codes import evCommand, evBroadcast
 from vindauga.constants.option_flags import ofCentered
+from vindauga.constants.state_flags import sfSelected
 from vindauga.constants.std_dialog_commands import (cmChangeDir, cdHelpButton, cdNoLoadDir, cmRevert,
-                                                    cmDirSelection)
+                                                    cmDirSelection, cmDirFocused)
 from vindauga.dialogs.message_box import messageBox
 from vindauga.events.event import Event
 from vindauga.utilities.filesystem.path_utils import getCurDir, fexpand
@@ -95,6 +96,14 @@ class ChangeDirDialog(Dialog):
             self.dirInput.setData(curDir)
             self.dirInput.drawView()
             self.dirList.select()
+            self.clearEvent(event)
+        elif event.what == evBroadcast and event.message.command == cmDirFocused:
+            if not (self.dirInput.state & sfSelected):
+                curDir = event.message.infoPtr.dir()
+                if curDir and curDir[-1] == os.sep:
+                    curDir = curDir[:-1]
+                self.dirInput.setData(curDir)
+                self.dirInput.drawView()
             self.clearEvent(event)
 
     def valid(self, command: int) -> bool:

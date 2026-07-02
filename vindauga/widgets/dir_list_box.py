@@ -7,8 +7,8 @@ import re
 from typing import List
 
 from vindauga.types.collections.dir_collection import DirCollection, DirEntry
-from vindauga.constants.std_dialog_commands import cmChangeDir, cmDirSelection
-from vindauga.constants.event_codes import evCommand
+from vindauga.constants.std_dialog_commands import cmChangeDir, cmDirSelection, cmDirFocused
+from vindauga.constants.event_codes import evCommand, evBroadcast
 from vindauga.constants.state_flags import sfFocused
 from vindauga.utilities.message import message
 from vindauga.types.rect import Rect
@@ -50,6 +50,11 @@ class DirListBox(ListBox):
 
     def isSelected(self, item: int) -> bool:
         return item is self.cur
+
+    def focusItem(self, item: int):
+        super().focusItem(item)
+        if self.dirList and 0 <= item < len(self.dirList):
+            message(self.owner, evBroadcast, cmDirFocused, self.dirList[item])
 
     def selectItem(self, item: int):
         message(self.owner, evCommand, cmChangeDir, self.dirList[item])
