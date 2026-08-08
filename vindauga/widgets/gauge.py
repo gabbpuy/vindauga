@@ -26,7 +26,7 @@ class Gauge(ParamText):
 
     def setValue(self, value: float):
         self.currentValue = clamp(value, 0, self.maxValue)
-        fill = self.currentValue * self.size.x / self.maxValue
+        fill = self.currentValue * self.size.x / self.maxValue if self.maxValue else 0
         dill = int(fill)
         diff = fill - dill
         buffer = self.FILL_CHAR * dill

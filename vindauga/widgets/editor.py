@@ -540,8 +540,10 @@ class Editor(View):
 
         self.selEnd = self.curPtr
 
-        self.bufLen += length - selLen
-        self.gapLen -= length - selLen
+        # The `length > 0` branch above already applied the insertion delta
+        # to bufLen/gapLen; only the deleted-selection delta remains here.
+        self.bufLen -= selLen
+        self.gapLen += selLen
 
         if allowUndo:
             self.delCount += delLen
@@ -601,7 +603,7 @@ class Editor(View):
         if self.autoIndent:
             p = self.lineStart(self.curPtr)
             i = p
-            while i < self.curPtr and chr(self.buffer[i]) in (' ', '\t'):
+            while i < self.curPtr and self.buffer[i] in (' ', '\t'):
                 i += 1
             self.insertText(self.buffer[p:], i - p, False)
 

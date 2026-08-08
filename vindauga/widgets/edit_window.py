@@ -25,7 +25,6 @@ class EditWindow(Window):
 
     def __init__(self, bounds: Rect, fileName: Optional[Union[str, Path]], windowNumber: int):
         super().__init__(bounds, '', windowNumber)
-        self.min = None
         self.options |= ofTileable
 
         self.hScrollBar = ScrollBar(Rect(18, self.size.y - 1, self.size.x - 2, self.size.y))
@@ -68,4 +67,5 @@ class EditWindow(Window):
 
     def sizeLimits(self, minLimit: Point, maxLimit: Point):
         super().sizeLimits(minLimit, maxLimit)
-        self.min = minEditWinSize
+        minLimit.x = minEditWinSize.x
+        minLimit.y = minEditWinSize.y

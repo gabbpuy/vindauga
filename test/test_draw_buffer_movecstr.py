@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 import unittest
-from unittest.mock import Mock
+from unittest.mock import Mock, patch
 
 from vindauga.types.draw_buffer import DrawBuffer
 from vindauga.types.rect import Rect
@@ -24,20 +24,17 @@ class TestDrawBufferMoveCStr(unittest.TestCase):
         mock_screen.screenWidth = 80
         mock_screen.screenHeight = 25
 
-        # Set the global screen instance
-        Screen.screen = mock_screen
+        # Patch the global screen instance; addCleanup guarantees this is
+        # restored even if setUp fails partway or the test raises, unlike a
+        # manual tearDown() which is skipped when setUp() itself errors.
+        patcher = patch.object(Screen, 'screen', mock_screen)
+        patcher.start()
+        self.addCleanup(patcher.stop)
 
         self.buffer = DrawBuffer()
         self.normal_attr = ColourAttribute.from_bios(0x17)  # White on blue
         self.highlight_attr = ColourAttribute.from_bios(0x1F)  # White on white
         self.attrs = AttributePair(pair=(self.normal_attr, self.highlight_attr))
-
-    def tearDown(self):
-        """
-        Clean up test fixtures
-        """
-        # Reset the global screen instance
-        Screen.screen = None
 
     def test_simple_text_no_tildes(self):
         """

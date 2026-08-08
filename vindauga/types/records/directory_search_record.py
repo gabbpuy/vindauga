@@ -63,6 +63,3 @@ class DirectorySearchRecord:
 
     def __eq__(self, other) -> bool:
         return self.attr == other.attr and self.name.lower() == other.name.lower()
-
-    def __gt__(self, other) -> bool:
-        return not self.__lt__(other)

@@ -92,11 +92,11 @@ def get_win32_key(key_event: KEY_EVENT_RECORD, event: Event, input_state: InputS
     elif key_event.wVirtualScanCode < 89:
         index = key_event.wVirtualScanCode
         key_code = 0
-        if event.keyDown.controlKeyState & kbAltShift and ALT_CVT[index]:
+        if event.keyDown.controlKeyState & kbAltShift and ALT_CVT.get(index):
             key_code = ALT_CVT[index]
-        elif event.keyDown.controlKeyState & kbCtrlShift and CTRL_CVT[index]:
+        elif event.keyDown.controlKeyState & kbCtrlShift and CTRL_CVT.get(index):
             key_code = CTRL_CVT[index]
-        elif event.keyDown.controlKeyState & kbShift and SHIFT_CVT[index]:
+        elif event.keyDown.controlKeyState & kbShift and SHIFT_CVT.get(index):
             key_code = SHIFT_CVT[index]
         elif not (event.keyDown.controlKeyState & (kbShift | kbCtrlShift | kbAltShift)) and NORMAL_CVT.get(index):
             key_code = NORMAL_CVT[index]
@@ -105,8 +105,8 @@ def get_win32_key(key_event: KEY_EVENT_RECORD, event: Event, input_state: InputS
             event.keyDown.keyCode = key_code
             if event.keyDown.charScan.charCode < ' ':
                 event.keyDown.textLength = 0
-            elif event.keyDown.charScan.charCode < 0x7F and not event.keyDown.textLength:
+            elif ord(event.keyDown.charScan.charCode) < 0x7F and not event.keyDown.textLength:
                 event.keyDown.textLength = 1
-                event.keyDown.text[0] = event.keyDown.charScan.charCode
+                event.keyDown.text[0] = ord(event.keyDown.charScan.charCode)
 
     return bool(event.keyDown.keyCode != kbNoKey or event.keyDown.textLength)

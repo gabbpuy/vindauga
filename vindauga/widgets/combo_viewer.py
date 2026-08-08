@@ -81,9 +81,6 @@ class ComboViewer(ListViewer):
         super().handleEvent(event)
 
     def newList(self, collection: Collection):
-        if self.collection:
-            self.destroy(self.collection)
-
         self.collection = collection
         self.setRange(len(self.collection))
 

@@ -45,13 +45,14 @@ class FileInfoPane(View):
         self.writeLine(0, 0, self.size.x, 1, b)
 
         b.moveChar(0, ' ', color, self.size.x)
-        b.moveStr(0, self.__fileBlock.name[:19], color)
+        if self.__fileBlock is not None:
+            b.moveStr(0, self.__fileBlock.name[:19], color)
 
-        if self.__fileBlock.name:
-            buf = self.getNiceSize(self.__fileBlock.size)
-            b.moveStr(26 - len(buf), buf, color)
-            dt = self.__fileBlock.time
-            b.moveStr(27, dt.strftime('%Y-%m-%d %I:%M %p'), color)
+            if self.__fileBlock.name:
+                buf = self.getNiceSize(self.__fileBlock.size)
+                b.moveStr(26 - len(buf), buf, color)
+                dt = self.__fileBlock.time
+                b.moveStr(27, dt.strftime('%Y-%m-%d %I:%M %p'), color)
 
         self.writeLine(0, 1, self.size.x, 1, b)
         b.moveChar(0, ' ', color, self.size.x)

@@ -2,8 +2,8 @@
 import logging
 import time
 
-from vindauga.constants.command_codes import cmMenu, cmQuit
-from vindauga.constants.event_codes import evCommand
+from vindauga.constants.command_codes import cmMenu, cmQuit, cmTimerExpired
+from vindauga.constants.event_codes import evBroadcast, evCommand
 from vindauga.constants.keys import kbF10, kbAltX
 from vindauga.constants.message_flags import mfInformation, mfOKButton
 from vindauga.dialogs.message_box import messageBox
@@ -21,6 +21,10 @@ cmTest = 101
 
 
 class MessageWindowApp(Application):
+
+    def __init__(self):
+        super().__init__()
+        self.testTimer = None
 
     def initStatusLine(self, bounds: Rect) -> StatusLine:
         bounds.topLeft.y = bounds.bottomRight.y - 1
@@ -40,22 +44,25 @@ class MessageWindowApp(Application):
                 self.About()
             elif emc == cmTest:
                 self.Test()
+        elif event.what == evBroadcast and event.message.command == cmTimerExpired:
+            if self.testTimer is not None and event.message.infoPtr is self.testTimer:
+                self.testTimer = None
+                logger.info('Sending "Pepe".')
+                postInfo(2, '   Pepe')
+                logger.info('Done.')
 
     @staticmethod
     def About():
         messageBox('\x03Dynamic Text Demo', mfInformation,  (mfOKButton,))
 
     def Test(self):
+        # Use the application's timer queue rather than a blocking sleep
+        # loop, which would freeze the whole single-threaded event loop for
+        # 10 seconds.
         logger.info('Sending "Chau"')
         postInfo(1, '   Chau')
         logger.info('Waiting 10 seconds.')
-        s = time.time()
-        while time.time() < s + 10:
-            self.idle()
-            time.sleep(0.1)
-        logger.info('Sending "Pepe".')
-        postInfo(2, '   Pepe')
-        logger.info('Done.')
+        self.testTimer = self.setTimer(10000, 0)
 
 
 class PostHandler(logging.Handler):
@@ -72,7 +79,7 @@ class PostHandler(logging.Handler):
 
 
 if __name__ == '__main__':
-    logging.basicConfig(level=logging.DEBUG)
+    logging.basicConfig(level=logging.INFO)
     logger = logging.getLogger('vindauga')
     logger.propagate = False
     handlers = logger.handlers

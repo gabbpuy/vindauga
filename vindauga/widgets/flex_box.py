@@ -84,7 +84,7 @@ class FlexBox(Group):
             self._repackCurrent(self.getBounds())
 
     def remove(self, view: View):
-        super().removeView(view)
+        super().remove(view)
         if self.owner:
             self._repackCurrent(self.getBounds())
 

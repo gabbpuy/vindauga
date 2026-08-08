@@ -71,7 +71,7 @@ class SortedListBox(ListBox):
                     if self.__searchPos == 0:
                         self._shiftState = event.keyDown.controlKeyState
 
-                    curString += event.keyDown.charScan.charCode
+                    curString = curString[:self.__searchPos] + event.keyDown.charScan.charCode
 
                 k = self._getKey(curString)
                 value = self.getList().search(k)
@@ -92,5 +92,5 @@ class SortedListBox(ListBox):
                 if self.__searchPos != oldPos or event.keyDown.charScan.charCode.isalpha():
                     self.clearEvent(event)
 
-    def _getKey(self, s: str) -> int:
-        return ord(s)
+    def _getKey(self, s: str) -> str:
+        return s

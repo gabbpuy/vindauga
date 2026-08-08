@@ -25,8 +25,15 @@ class EventQueue:
         self.downMouse = MouseEvent()
         self.downTicks = 0
         self.mouseReverse = False
-        self.doubleDelay = 8  # Double-click timing delay
-        self.repeatDelay = 8
+        # Tick-based thresholds (event.what temporarily holds a tick count
+        # from systemInterface.getTickCount() during mouse-state tracking --
+        # see getMouseState()/getMouseEvent() below). Derived from
+        # TICKS_PER_SECOND rather than hardcoded so they stay correct if the
+        # tick rate ever changes: ~440ms double-click window / initial
+        # repeat delay, ~55ms between subsequent auto-repeats.
+        self.doubleDelay = round(0.44 * systemInterface.TICKS_PER_SECOND)  # Double-click timing delay
+        self.repeatDelay = self.doubleDelay
+        self._repeatIntervalTicks = max(1, round(0.055 * systemInterface.TICKS_PER_SECOND))
         self.autoTicks = 0
         self.autoDelay = 0
 
@@ -111,7 +118,7 @@ class EventQueue:
 
             if event.mouse.buttons != 0 and event.what - self.autoTicks > self.autoDelay:
                 self.autoTicks = event.what
-                self.autoDelay = 1
+                self.autoDelay = self._repeatIntervalTicks
                 event.what = event_codes.evMouseAuto
                 self.lastMouse.copy(event.mouse)
                 return
@@ -148,16 +155,16 @@ class EventQueue:
             if (event.what == event_codes.evKeyDown and
                     (event.keyDown.controlKeyState & kbPaste) != 0 and
                     ((event.keyDown.textLength == 0 and event.keyDown.charScan.charCode == '\n') or
-                     (event.keyDown.textLength == 1 and event.keyDown.text and event.keyDown.text[0] == '\n'))):
+                     (event.keyDown.textLength == 1 and event.keyDown.text and event.keyDown.text[0] == ord('\n')))):
                 self.getKeyOrPasteEvent(event)
 
         if event.what == event_codes.evKeyDown and (event.keyDown.controlKeyState & kbPaste) != 0:
             if event.keyDown.textLength == 0:
-                event.keyDown.text[0] = chr(event.keyDown.charScan.charCode)
+                event.keyDown.text[0] = ord(event.keyDown.charScan.charCode)
                 event.keyDown.textLength = 1
             # Convert CR and CRLF into LF
-            if event.keyDown.textLength and event.keyDown.text[0] == '\r':
-                event.keyDown.text = '\n'
+            if event.keyDown.textLength and event.keyDown.text[0] == ord('\r'):
+                event.keyDown.text[0] = ord('\n')
                 self._shouldSkipLf = True
             event.keyDown.keyCode = 0
 
@@ -229,8 +236,10 @@ class EventQueue:
                     event.what = event_codes.evKeyDown
                     event.keyDown.keyCode = 0
                     event.keyDown.controlKeyState = kbPaste
-                    event.keyDown.text = char_sequence
-                    event.keyDown.textLength = len(char_sequence)
+                    char_bytes = char_sequence.encode('utf-8')
+                    text_len = min(len(char_bytes), len(event.keyDown.text))
+                    event.keyDown.text[:text_len] = char_bytes[:text_len]
+                    event.keyDown.textLength = text_len
                     self.pasteTextIndex += next_index
                     return True
 

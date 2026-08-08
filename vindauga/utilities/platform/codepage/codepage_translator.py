@@ -76,21 +76,30 @@ class CodepageTable:
 
 
 class CodepageTranslator:
+    # Built lazily, once per codepage, and shared across all instances --
+    # init_map() rebuilding a 256-entry table on every call was a real cost
+    # when hit per-keystroke.
+    _tablesCache: Dict[str, 'CodepageTable'] = {}
+
     def __init__(self):
         self.current_from_utf8 = {}
         self.current_to_utf8 = cp850_to_utf8
+        self._initializedCp = None
 
     def init(self):
         cp = os.environ.get('VINDAUGA_CODE_PAGE', '437')
-        tables = [
-            CodepageTable('437', cp437_to_utf8),
-            CodepageTable('850', cp850_to_utf8),
-        ]
-        for table in tables:
-            if table.cp == cp:
-                self.current_from_utf8 = table.from_utf_8
-                self.current_to_utf8 = table.to_utf_8
-                return
+        if self._initializedCp == cp:
+            return
+
+        if not CodepageTranslator._tablesCache:
+            CodepageTranslator._tablesCache['437'] = CodepageTable('437', cp437_to_utf8)
+            CodepageTranslator._tablesCache['850'] = CodepageTable('850', cp850_to_utf8)
+
+        table = CodepageTranslator._tablesCache.get(cp)
+        if table is not None:
+            self.current_from_utf8 = table.from_utf_8
+            self.current_to_utf8 = table.to_utf_8
+        self._initializedCp = cp
 
     def to_packed_utf8(self, c: str) -> int:
         return self.current_to_utf8[c]

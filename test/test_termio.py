@@ -244,8 +244,8 @@ class TestTermIO(unittest.TestCase):
             TestCase("\x1B", ParseResult.Rejected),
             # ESC followed by printable character (Alt+key)
             TestCase("\x1Ba", ParseResult.Rejected),  # Our implementation may reject this
-            # CSI sequences should be handled
-            TestCase("\x1B[A", ParseResult.Rejected),  # Up arrow - may not be fully implemented
+            # CSI sequences should be handled -- Up arrow is recognized and accepted
+            TestCase("\x1B[A", ParseResult.Accepted),
         ]
         
         for i, test_case in enumerate(test_cases):
@@ -256,8 +256,7 @@ class TestTermIO(unittest.TestCase):
                 state = InputState()
                 
                 result = self.term_io.parse_event(buf, event, state)
-                # For now, just verify the method doesn't crash
-                self.assertIn(result, [ParseResult.Accepted, ParseResult.Rejected, ParseResult.Ignored])
+                self.assertEqual(result, test_case.expected)
     
     def test_csi_data_reading(self):
         """
@@ -329,6 +328,6 @@ class TestTermIOIntegration(unittest.TestCase):
         state = InputState()
         
         result = term_io.parse_event(buf, event, state)
-        
-        # Should either accept or use key mapping
-        self.assertIn(result, [ParseResult.Accepted, ParseResult.Rejected, ParseResult.Ignored])
+
+        self.assertEqual(result, ParseResult.Rejected)
+        self.assertEqual(event.what, evNothing)

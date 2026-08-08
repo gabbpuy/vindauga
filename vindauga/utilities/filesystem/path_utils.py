@@ -40,15 +40,12 @@ def isValidFileName(fileName: str) -> bool:
     """Check if filename is valid and accessible."""
     if os.path.exists(fileName):
         return os.access(fileName, os.R_OK)
-    try:
-        with open(fileName, 'w'):
-            pass
-        os.remove(fileName)
-        return True
-    except IOError:
-        return False
+    # Non-existent file: verify it could be created here without actually
+    # creating/deleting anything on disk.
+    parent = os.path.dirname(fileName) or '.'
+    return os.path.isdir(parent) and os.access(parent, os.W_OK)
 
 
 def isDirectory(path) -> bool:
     """Check if path is a directory."""
-    return os.path.isdir(os.path.dirname(path))
+    return os.path.isdir(path)

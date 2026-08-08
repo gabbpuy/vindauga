@@ -71,24 +71,24 @@ class AttributePair:
         return hash((self._attrs[0], self._attrs[1]))
 
     def __le__(self, other):
-        if isinstance(other, int):
-            return int(self) <= other
-        return self <= other
+        if isinstance(other, AttributePair):
+            other = int(other)
+        return int(self) <= other
 
     def __ge__(self, other):
-        if isinstance(other, int):
-            return int(self) >= other
-        return self >= other
+        if isinstance(other, AttributePair):
+            other = int(other)
+        return int(self) >= other
 
     def __lt__(self, other):
-        if isinstance(other, int):
-            return int(self) < other
-        return self < other
+        if isinstance(other, AttributePair):
+            other = int(other)
+        return int(self) < other
 
     def __gt__(self, other):
-        if isinstance(other, int):
-            return int(self) > other
-        return self > other
+        if isinstance(other, AttributePair):
+            other = int(other)
+        return int(self) > other
 
     @property
     def attrs(self) -> tuple[ColourAttribute, ColourAttribute]:

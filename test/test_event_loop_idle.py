@@ -1,135 +1,90 @@
 # -*- coding: utf-8 -*-
 import unittest
+from unittest.mock import patch
 
 from vindauga.events.event import Event
-from vindauga.constants.event_codes import evNothing, evKeyDown
+from vindauga.events.event_queue import event_queue
+from vindauga.constants.event_codes import evNothing, evKeyDown, evMouseDown
 from vindauga.constants.keys import kbEnter
+from vindauga.widgets.program import Program
 
 
 class TestEventLoopIdle(unittest.TestCase):
     """
-Test that the event loop properly calls idle() method
-"""
+    Test that Program.getEvent() calls idle() exactly when no real event was
+    available. This exercises the actual Program.getEvent()/idle()
+    implementation (with the console I/O mocked out at the event_queue
+    singleton), rather than a reimplementation of its logic.
+    """
 
     def setUp(self):
-        """
-        Set up test fixtures
-        """
-        # We can't easily test Program directly due to Screen dependencies
-        # But we can test the event processing logic
-        self.idle_call_count = 0
-        
+        # Program() requires a real console/screen (systemInterface,
+        # initScreen, initDesktop, ...); build a bare instance instead and
+        # give it just enough state for getEvent() to run standalone.
+        self.program = Program.__new__(Program)
+        self.program.statusLine = None
+        Program.pending = Event(evNothing)
+
+        self.idle_calls = 0
+        self.program.idle = lambda: setattr(self, 'idle_calls', self.idle_calls + 1)
+
     def test_idle_called_when_no_events(self):
-        """
-        Test that idle() is called when getEvent returns evNothing
-        """
-        
-        # Create a mock program that tracks idle calls
-        class MockProgram:
-            def __init__(self):
-                self.idle_calls = 0
-                
-            def idle(self):
-                self.idle_calls += 1
-                
-            def getEvent_logic(self, event):
-                """
-                Simplified version of Program.getEvent logic
-                """
-                # Simulate no pending events
-                event.what = evNothing
-                
-                # Simulate no mouse events  
-                if event.what == evNothing:
-                    # Simulate no keyboard events
-                    if event.what == evNothing:
-                        self.idle()  # This should be called
-        
-        program = MockProgram()
-        event = Event(evNothing)
+        with patch.object(event_queue, 'waitForEvents'), \
+                patch.object(event_queue, 'getMouseEvent'), \
+                patch.object(event_queue, 'getKeyEvent'):
+            for _ in range(3):
+                event = Event(evNothing)
+                self.program.getEvent(event)
+                self.assertEqual(event.what, evNothing)
 
-        # Simulate multiple getEvent calls with no input
-        for _ in range(3):
-            program.getEvent_logic(event)
-            
-        self.assertEqual(program.idle_calls, 3, "idle() should be called when no events are available")
+        self.assertEqual(self.idle_calls, 3)
 
-    def test_idle_not_called_when_events_available(self):
-        """
-        Test that idle() is not called when events are available
-        """
-        
-        class MockProgram:
-            def __init__(self):
-                self.idle_calls = 0
-                
-            def idle(self):
-                self.idle_calls += 1
-                
-            def getEvent_logic_with_key(self, event):
-                """
-                Simulate getEvent with keyboard input
-                """
-                # Simulate key event available
-                event.what = evKeyDown
-                event.keyDown.keyCode = kbEnter
-                # idle() should NOT be called when events are available
-        
-        program = MockProgram()
-        event = Event(evNothing)
+    def test_idle_not_called_when_key_event_available(self):
+        def fakeGetKeyEvent(event):
+            event.what = evKeyDown
+            event.keyDown.keyCode = kbEnter
 
-        program.getEvent_logic_with_key(event)
-        
-        self.assertEqual(program.idle_calls, 0, "idle() should not be called when events are available")
+        with patch.object(event_queue, 'waitForEvents'), \
+                patch.object(event_queue, 'getMouseEvent'), \
+                patch.object(event_queue, 'getKeyEvent', side_effect=fakeGetKeyEvent):
+            event = Event(evNothing)
+            self.program.getEvent(event)
 
-    def test_event_processing_order(self):
-        """
-        Test the order of event processing matches Program.getEvent
-        """
-        
-        class MockProgram:
-            def __init__(self):
-                self.processing_order = []
-                
-            def idle(self):
-                self.processing_order.append("idle")
-                
-            def getEvent_simulation(self, event, has_pending=False, has_mouse=False, has_key=False):
-                """
-                Simulate the full getEvent logic
-                """
-                
-                if has_pending:
-                    event.what = evKeyDown  # Simulate pending event
-                    self.processing_order.append("pending")
-                    return
-                    
-                self.processing_order.append("waitForEvents")
-                
-                if has_mouse:
-                    event.what = evKeyDown  # Simulate mouse event
-                    self.processing_order.append("mouse")
-                    return
-                    
-                if has_key:
-                    event.what = evKeyDown  # Simulate key event  
-                    self.processing_order.append("key")
-                    return
-                    
-                # No events - should call idle
-                event.what = evNothing
-                self.idle()
-        
-        program = MockProgram()
-        event = Event(evNothing)
+        self.assertEqual(self.idle_calls, 0)
+        self.assertEqual(event.what, evKeyDown)
 
-        # Test no events scenario
-        program.getEvent_simulation(event)
-        expected = ["waitForEvents", "idle"]
-        self.assertEqual(program.processing_order, expected)
-        
-        # Test with key event
-        program.processing_order.clear()
-        program.getEvent_simulation(event, has_key=True)
-        expected = ["waitForEvents", "key"]
-        self.assertEqual(program.processing_order, expected)
+    def test_idle_not_called_when_mouse_event_available(self):
+        def fakeGetMouseEvent(event):
+            event.what = evMouseDown
+
+        with patch.object(event_queue, 'waitForEvents'), \
+                patch.object(event_queue, 'getMouseEvent', side_effect=fakeGetMouseEvent), \
+                patch.object(event_queue, 'getKeyEvent'):
+            event = Event(evNothing)
+            self.program.getEvent(event)
+
+        self.assertEqual(self.idle_calls, 0)
+        self.assertEqual(event.what, evMouseDown)
+
+    def test_pending_event_short_circuits_wait_and_idle(self):
+        pending = Event(evKeyDown)
+        pending.keyDown.keyCode = kbEnter
+        Program.pending = pending
+
+        with patch.object(event_queue, 'waitForEvents') as mockWait, \
+                patch.object(event_queue, 'getMouseEvent') as mockMouse, \
+                patch.object(event_queue, 'getKeyEvent') as mockKey:
+            event = Event(evNothing)
+            self.program.getEvent(event)
+
+        mockWait.assert_not_called()
+        mockMouse.assert_not_called()
+        mockKey.assert_not_called()
+        self.assertEqual(self.idle_calls, 0)
+        self.assertEqual(event.what, evKeyDown)
+        # Consuming the pending event clears it for the next call
+        self.assertEqual(Program.pending.what, evNothing)
+
+
+if __name__ == '__main__':
+    unittest.main()

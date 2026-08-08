@@ -153,7 +153,7 @@ class Button(View):
                     self._amDefault = event.message.command == cmReleaseDefault
                     self.drawView()
             elif command == cmCommandSetChanged:
-                self.setState(sfDisabled, not self.commandEnabled(command))
+                self.setState(sfDisabled, not self.commandEnabled(self._command))
                 self.drawView()
 
     def makeDefault(self, enable: bool):

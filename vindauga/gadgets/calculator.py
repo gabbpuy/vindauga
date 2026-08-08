@@ -49,11 +49,18 @@ class Calculator(View):
         color = self.getColor(1)
 
         buf = DrawBuffer()
-        i = self.size.x - len(self.number) - 2
+        # Clamp to the widget's actual width so a long display value (up to
+        # DISPLAY_LEN chars) can't push the start index negative and
+        # misrender into the wrong columns.
+        text = self.number
+        available = max(self.size.x - 3, 0)
+        if len(text) > available:
+            text = text[-available:] if available else ''
+        i = self.size.x - len(text) - 2
 
         buf.moveChar(0, ' ', color, self.size.x)
         buf.moveChar(1, self.sign, color, 1)
-        buf.moveStr(i + 1, self.number, color)
+        buf.moveStr(i + 1, text, color)
         self.writeLine(0, 0, self.size.x, 1, buf)
 
     def clear(self):

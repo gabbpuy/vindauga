@@ -441,7 +441,7 @@ class Terminal:
         n = self.getNumber()
 
         columns = self.cells[self.currRow]
-        for i in range(self.currCol, max(self.cols, self.currCol + n)):
+        for i in range(self.currCol, min(self.cols, self.currCol + n)):
             self._resetCell(columns[i])
 
     def do_ED(self):
@@ -510,7 +510,7 @@ class Terminal:
         n = self.getNumber()
         for i in range(self.scrollMax, self.currRow + n - 1, -1):
             self.cells[i] = copy(self.cells[i - n])
-        for i in range(self.currRow, max(self.scrollMax, self.currRow + n)):
+        for i in range(self.currRow, min(self.scrollMax + 1, self.currRow + n)):
             self._resetRow(i)
 
     def do_RESTORECUR(self):

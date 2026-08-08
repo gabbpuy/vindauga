@@ -10,6 +10,7 @@ dependencies = [
     "Pillow >= 10.0.0",
     # Windows
     "pywin32 >= 304; sys_platform == 'win32'",
+    "windows-curses >= 2.3.0; sys_platform == 'win32'",
 ]
 
 setup(
@@ -23,6 +24,7 @@ setup(
     author='Andrew Milton',
     author_email='vindauga@unyx.net',
     description='Cross Platform Text UI library',
+    python_requires='>=3.10',
     classifiers=[
         "Programming Language :: Python :: 3",
         "License :: OSI Approved :: BSD License",

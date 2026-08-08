@@ -47,7 +47,7 @@ class Dialog(Window):
         self.palette = dpGrayDialog
 
     def __enter__(self):
-        yield self
+        return self
 
     def __exit__(self, exc_type, exc_val, exc_tb):
         self.destroy(self)

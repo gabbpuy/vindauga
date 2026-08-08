@@ -391,7 +391,7 @@ class MenuView(View):
     def __mouseInMenus(self, e: Event) -> bool:
         p = self._parentMenu
         while p and not p.mouseInView(e.mouse.where):
-            p = p.parentMenu
+            p = p._parentMenu
         return p is not None
 
     def __topMenu(self) -> MenuView:

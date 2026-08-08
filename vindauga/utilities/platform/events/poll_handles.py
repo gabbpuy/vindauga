@@ -88,5 +88,5 @@ else:
                 states[i] = PollState.Disconnect
             return
 
-        for i, fd in enumerate(r):
-            states[i] = PollState.Ready
+        for fd in r:
+            states[fds.index(fd)] = PollState.Ready

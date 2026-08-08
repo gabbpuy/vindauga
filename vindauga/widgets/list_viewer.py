@@ -56,7 +56,6 @@ class ListViewer(View):
         self.topItem = 0
         self.focused = 0
         self._range = 0
-        self._dirty = False
 
         self.options |= ofFirstClick | ofSelectable
         self.eventMask |= evBroadcast
@@ -76,13 +75,6 @@ class ListViewer(View):
 
         self.hScrollBar = hScrollBar
         self.vScrollBar = vScrollBar
-        self._dirty = True
-
-    def drawView(self):
-        if not self._dirty:
-            return
-        super().drawView()
-        self._dirty = False
 
     def changeBounds(self, bounds: Rect):
         """
@@ -92,7 +84,6 @@ class ListViewer(View):
 
         :param bounds: Bounds to set to
         """
-        self._dirty = True
         super().changeBounds(bounds)
 
         if self.hScrollBar:
@@ -111,7 +102,7 @@ class ListViewer(View):
         focusedColor = 0
         b = DrawBuffer()
 
-        active_ = (self.state & sfSelected | sfActive) == (sfSelected | sfActive)
+        active_ = (self.state & (sfSelected | sfActive)) == (sfSelected | sfActive)
         if active_:
             normalColor = self.getColor(1)
             focusedColor = self.getColor(3)
@@ -166,14 +157,14 @@ class ListViewer(View):
 
         :param item: Item index to focus
         """
-        self._dirty = True
         self.focused = item
 
-        if self.vScrollBar:
-            self.vScrollBar.setValue(item)
-        else:
-            self.drawView()
-
+        # Update topItem (scroll position) before triggering any redraw --
+        # vScrollBar.setValue() below synchronously broadcasts
+        # cmScrollBarChanged, which can re-enter this view's handleEvent and
+        # trigger a nested drawView() call. That nested draw must see the
+        # scroll position already updated, or it renders against a stale
+        # topItem.
         if item < self.topItem:
             if self.numCols == 1:
                 self.topItem = item
@@ -185,6 +176,11 @@ class ListViewer(View):
                     self.topItem = item - self.size.y + 1
                 else:
                     self.topItem = item - item % self.size.y - (self.size.y * (self.numCols - 1))
+
+        if self.vScrollBar:
+            self.vScrollBar.setValue(item)
+        else:
+            self.drawView()
 
     def getPalette(self) -> Palette:
         palette = Palette(self.cpListViewer)
@@ -262,7 +258,6 @@ class ListViewer(View):
 
         :param range_: Number of items...
         """
-        self._dirty = True
         self._range = range_
 
         if self.focused >= range_:
@@ -288,11 +283,9 @@ class ListViewer(View):
         :param state: State to set
         :param enable: Enable or disable the state
         """
-        self._dirty = True
         super().setState(state, enable)
 
         if state & (sfSelected | sfActive | sfVisible):
-            self._dirty = True
             if self.hScrollBar:
                 if self.getState(sfActive) and self.getState(sfVisible):
                     self.hScrollBar.show()
@@ -319,7 +312,6 @@ class ListViewer(View):
                 item = self._range - 1
 
         if self._range != 0:
-            self._dirty = True
             self.focusItem(item)
 
     def shutdown(self):

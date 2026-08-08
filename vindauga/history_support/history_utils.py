@@ -29,7 +29,7 @@ def historyCount(historyId: int) -> int:
 
 def historyStr(historyId: int, index: int) -> str:
     history = histories[historyId]
-    if index > len(history):
+    if index >= len(history):
         return ''
     return history[index]
 
