@@ -149,8 +149,11 @@ class View(VindaugaObject):
 
     @staticmethod
     def commandEnabled(command: int) -> bool:
-        # return command > 255 or command in View.curCommandSet
-        return command in View.curCommandSet
+        # `curCommandSet` (see initCommands()) only tracks the ~256 standard
+        # TV command codes; application-defined commands above that range
+        # (e.g. a dialog's button commands) are never added to it and must
+        # always be considered enabled.
+        return command > 255 or command in View.curCommandSet
 
     @staticmethod
     def disableCommands(commands: Union[CommandSet, Set]):
@@ -1160,14 +1163,14 @@ class View(VindaugaObject):
         """
 
         if (self.owner and target is not self and target is not self.nextView() and
-                (not target or target.owner is self.owner)):
+                (target is None or target.owner is self.owner)):
 
             if not self.state & sfVisible:
                 self.owner.removeView(self)
                 self.owner.insertView(self, target)
             else:
                 lastView = self.nextView()
-                while lastView and lastView is not self:
+                while lastView is not None and lastView is not self:
                     lastView = lastView.nextView()
                 self.state &= ~sfVisible
 

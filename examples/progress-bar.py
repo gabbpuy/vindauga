@@ -99,7 +99,7 @@ class ProgressBarApplication(Application):
     def statusDialog(self):
         logger.error('Status Dialog -> IN')
         pd = Dialog(Rect(0, 0, 60, 15), 'Example Progress Bar')
-        pd.flags &= wfClose
+        pd.flags &= ~wfClose
         pd.options |= ofCentered
         pBar = ProgressBar(Rect(2, 2, pd.size.x - 2, 3), 300, self.backChar)
         pd.insert(pBar)

@@ -58,6 +58,7 @@ class FileList(SortedListBox):
         if wildcard:
             path = os.path.join(path, wildcard)
             self.readDirectory(path)
+            return
 
         if not path:
             raise RuntimeError
@@ -72,15 +73,16 @@ class FileList(SortedListBox):
         if directory:
             record = DirectorySearchRecord()
             nPath = os.path.realpath(os.path.join(directory, '..'))
-            s = os.stat(nPath)
-            if s:
-                record.setStatInfo('..', s)
-            else:
+            try:
+                s = os.stat(nPath)
+            except OSError:
                 record._name = '..'
                 record._size = 0
                 record._time = datetime.fromtimestamp(0x210000)
                 record._attr = FA_DIREC
                 record._stat_set = True
+            else:
+                record.setStatInfo('..', s)
             fileList.append(record)
 
         root, directories, files = next(os.walk(directory), (directory, [], []))

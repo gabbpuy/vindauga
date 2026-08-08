@@ -62,8 +62,9 @@ class InputRegex(InputLine):
         if command in {cmQuit, cmClose, cmOK}:
             if self.regex:
                 try:
-                    m = self.regex.match(self.getDataString())
-                    if m and m.string != self.getDataString():
+                    dataString = self.getDataString()
+                    m = self.regex.match(dataString)
+                    if not m or m.end() != len(dataString):
                         self.select()
                         return False
                 except Exception as e:

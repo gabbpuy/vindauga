@@ -551,7 +551,7 @@ class TermIO:
     def _read_until_bel_or_st(self, buf: GetChBuf) -> str:
         length: int = 0
         s = []
-        while c := buf.get_unbuffered() != -1:
+        while (c := buf.get_unbuffered()) != -1:
             if c == 0x07:
                 break
             if chr(c) == '\\' and s and s[-1] == 0x1b:

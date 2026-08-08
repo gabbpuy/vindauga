@@ -40,7 +40,7 @@ class SignalHandler:
                 for signo in SignalHandler.handledSignals:
                     handler = signal.signal(signo, SignalHandler.handle_signal)
                     SignalHandler.oldHandlers[signo] = HandleSignal(handler)
-                signal.callback = callback
+                SignalHandler.callback = callback
 
     @staticmethod
     def disable():

@@ -4,6 +4,7 @@ import io
 import itertools
 import logging
 import os
+import subprocess
 import time
 from typing import BinaryIO
 
@@ -41,8 +42,9 @@ class WindowsShell:
     BUFFER_SIZE = 128
 
     def __init__(self, cmdline):
-        #self.cmdline = ' '.join(shlex.quote(c) for c in cmdline)
-        self.cmdline = ' '.join(cmdline)
+        # Windows CreateProcess parses the command line itself; use the
+        # platform-correct quoting rules rather than POSIX shlex.quote.
+        self.cmdline = subprocess.list2cmdline(cmdline)
         self.hChildStdinWr = None
         self.hChildStdoutRd = None
         self.hChildStderrRd = None

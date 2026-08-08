@@ -38,6 +38,7 @@ class FileCollection(SortedCollection):
         return 1
 
     def search(self, key) -> int:
-        if any((file := i) for i, entry in enumerate(self) if entry == key):
-            return file
+        for i, entry in enumerate(self):
+            if entry == key:
+                return i
         return len(self) + 1

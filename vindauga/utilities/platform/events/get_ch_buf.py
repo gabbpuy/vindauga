@@ -80,7 +80,7 @@ class GetChBuf:
         digits = 0
         sign = 1
         k = self.get(True)
-        if k == '-':
+        if k == ord('-'):
             sign = -1
             k = self.get(True)
 

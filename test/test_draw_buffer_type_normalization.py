@@ -5,9 +5,8 @@ Unit tests for DrawBuffer type normalization functionality.
 Tests the  _normalize_attribute() method and enhanced type handling
 in moveChar(), moveStr(), and other DrawBuffer methods.
 """
-import time
 import unittest
-from unittest.mock import Mock
+from unittest.mock import Mock, patch
 
 from vindauga.utilities.colours.attribute_pair import AttributePair
 from vindauga.utilities.colours.colour_attribute import ColourAttribute
@@ -29,20 +28,17 @@ class TestDrawBufferTypeNormalization(unittest.TestCase):
         mock_screen.screenWidth = 80
         mock_screen.screenHeight = 25
 
-        # Set the global screen instance
-        Screen.screen = mock_screen
+        # Patch the global screen instance; addCleanup guarantees this is
+        # restored even if setUp fails partway or the test raises, unlike a
+        # manual tearDown() which is skipped when setUp() itself errors.
+        patcher = patch.object(Screen, 'screen', mock_screen)
+        patcher.start()
+        self.addCleanup(patcher.stop)
 
         self.buffer = DrawBuffer()
         self.attr_pair = AttributePair(0x1234)
         self.color_attr = ColourAttribute.from_bios(0x71)
         self.int_attr = 0x17
-
-    def tearDown(self):
-        """
-        Clean up test fixtures.
-        """
-        # Reset the global screen instance
-        Screen.screen = None
 
     def test_normalize_attribute_with_attribute_pair(self):
         """
@@ -221,25 +217,26 @@ class TestDrawBufferTypeNormalization(unittest.TestCase):
         # Note: current implementation doesn't check for negative indent
         self.assertGreaterEqual(count, 0)
 
-    def test_performance_impact(self):
+    def test_repeated_moveChar_is_stable_across_attribute_types(self):
         """
-        Test that type conversion doesn't significantly impact performance.
+        Test that repeated moveChar() calls behave the same whether given an
+        AttributePair (requiring conversion) or a plain ColourAttribute --
+        i.e. the type-normalization path doesn't corrupt state over many
+        calls. (Previously this asserted a wall-clock timing ratio, which is
+        inherently flaky under CI load; correctness is what actually matters
+        here.)
         """
-        # Test with large operations
-        start_time = time.time()
-        for i in range(100):
+        for _ in range(100):
             self.buffer.moveChar(0, 'P', self.attr_pair, 20)
-        conversion_time = time.time() - start_time
-        
-        # Reset buffer
+        cellsViaAttrPair = list(self.buffer.data[:20])
+
         self.buffer = DrawBuffer()
-        
-        # Compare with direct ColourAttribute usage
-        start_time = time.time()
-        for i in range(100):
+        for _ in range(100):
             self.buffer.moveChar(0, 'P', self.color_attr, 20)
-        direct_time = time.time() - start_time
-        
-        # Type conversion should not be more than 2x slower
-        self.assertLess(conversion_time, direct_time * 2.0,
-                        f"Type conversion too slow: {conversion_time:.4f}s vs {direct_time:.4f}s")
+        cellsViaColorAttr = list(self.buffer.data[:20])
+
+        self.assertEqual(len(cellsViaAttrPair), len(cellsViaColorAttr))
+        for cell in cellsViaAttrPair:
+            self.assertEqual(cell.char, 'P')
+        for cell in cellsViaColorAttr:
+            self.assertEqual(cell.char, 'P')

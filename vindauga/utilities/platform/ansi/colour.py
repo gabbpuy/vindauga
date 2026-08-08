@@ -25,7 +25,7 @@ class TermColour:
         return not self == other
 
     def from_int(self, val: int):
-        parts = val.to_bytes(byteorder=sys.byteorder)
+        parts = val.to_bytes(4, byteorder=sys.byteorder)
         self.idx = parts[0]
         self.bgr = (parts[1], parts[2], parts[3])
 

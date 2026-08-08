@@ -240,7 +240,7 @@ class InputLine(View):
     def makeVisible(self):
         if self.current.firstPos > self.current.pos:
             self.current.firstPos = self.current.pos
-        i = self.current.pos - self.size.x - 2
+        i = self.current.pos - self.size.x + 2
         if self.current.firstPos < i:
             self.current.firstPos = i
         self.drawView()

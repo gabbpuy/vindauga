@@ -47,7 +47,7 @@ class Calendar(View):
         current = 1 - dayOfWeek(1, self.month, self.year)
         days = daysInMonth[self.month]
         if self.month == 2:
-            if (self.year % 4) == 0:
+            if (self.year % 4) == 0 and ((self.year % 100) != 0 or (self.year % 400) == 0):
                 days += 1
 
         buf = DrawBuffer()
@@ -85,7 +85,7 @@ class Calendar(View):
     def handleEvent(self, event: Event):
         super().handleEvent(event)
         if self.state & sfSelected:
-            if (event.what & evMouse) and (evMouseDown or evMouseAuto):
+            if (event.what & evMouse) and (event.what & (evMouseDown | evMouseAuto)):
                 point = self.makeLocal(event.mouse.where)
                 if point.y == 0:
                     if point.x == 18:

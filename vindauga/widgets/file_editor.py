@@ -56,14 +56,14 @@ class FileEditor(Editor):
 
     def loadFile(self):
         try:
-            f = open(self.fileName, 'rt', encoding='utf-8')
+            with open(self.fileName, 'rt', encoding='utf-8') as f:
+                content = f.read()
         except OSError:
             logger.exception('Load File')
             self.setBufLen(0)
             return True
 
         # Read file content as string - matches new Editor string buffer
-        content = f.read()
         self.buffer = content
         self.setBufLen(len(self.buffer))
         return True

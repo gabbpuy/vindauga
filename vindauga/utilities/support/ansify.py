@@ -67,9 +67,10 @@ def find_256_color_index(r, g, b):
 
 
 def openFile(filename):
-    im = Image.open(filename)
-    im.draft("RGB", im.size)
-    return im
+    with Image.open(filename) as im:
+        im.draft("RGB", im.size)
+        im.load()
+        return im.copy()
 
 
 def wallpaper(filename, bounds: Rect, view: View):

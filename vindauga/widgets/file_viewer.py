@@ -54,13 +54,12 @@ class FileViewer(Scroller):
         self.fileLines = StringCollection()
 
         try:
-            fileToView = open(fName, 'rt', encoding='utf-8')
+            with open(fName, 'rt', encoding='utf-8') as fileToView:
+                lines = fileToView.readlines()
         except OSError:
             messageBox(_('Invalid drive or directory'), mfError, [mfOKButton,])
             self.isValid = False
             return
-
-        lines = fileToView.readlines()
         if self.wrap:
             wrapped = (
                 textwrap.wrap(line + '\n', self.size.x - 1, expand_tabs=True, tabsize=4)

@@ -39,42 +39,34 @@ class TestHardwareInfoEvents(unittest.TestCase):
         """
         Test that screen-related methods exist and are callable
         """
-        # These should not crash when called
-        try:
+        # Mock the underlying console manager so this exercises real code
+        # paths without touching an actual terminal. AttributeError/TypeError
+        # (wrong method name, wrong signature) are real bugs and must fail
+        # the test; they are not caught here.
+        with patch.object(self.hardware_info, '_SystemInterface__consoleManager'):
             self.hardware_info.getScreenRows()
             self.hardware_info.getScreenCols()
             self.hardware_info.flushScreen()
-        except Exception:
-            # Platform might not be initialized in test environment
-            pass
 
     def test_console_methods_exist(self):
         """
         Test that console setup/restore methods exist
         """
-        # These should not crash when called
-        try:
+        with patch.object(self.hardware_info, '_SystemInterface__consoleManager'):
             self.hardware_info.setupConsole()
             self.hardware_info.restoreConsole()
-        except Exception:
-            # Platform might not be initialized in test environment
-            pass
 
     def test_cursor_methods_exist(self):
         """
         Test that cursor methods exist and are callable
         """
-        # These should not crash when called
-        try:
+        with patch.object(self.hardware_info, '_SystemInterface__consoleManager'):
             self.hardware_info.cursorOn()
             self.hardware_info.cursorOff()
             self.hardware_info.setCaretSize(50)
             self.hardware_info.setCaretPosition(0, 0)
             self.hardware_info.getCaretSize()
             self.hardware_info.isCaretVisible()
-        except Exception:
-            # Platform might not be initialized in test environment
-            pass
 
     def test_getKeyEvent_with_no_events(self):
         """
@@ -83,7 +75,7 @@ class TestHardwareInfoEvents(unittest.TestCase):
         event = Event(evNothing)
 
         # Mock the platform to return no events
-        with patch.object(self.hardware_info, '_HardwareInfo__platform') as mock_platform:
+        with patch.object(self.hardware_info, '_SystemInterface__consoleManager') as mock_platform:
             mock_platform.get_event.return_value = False
 
             result = self.hardware_info.getKeyEvent(event)
@@ -95,7 +87,7 @@ class TestHardwareInfoEvents(unittest.TestCase):
         Test getMouseEvent when no events are available
         """
         # Mock the platform to return no events
-        with patch.object(self.hardware_info, '_HardwareInfo__platform') as mock_platform:
+        with patch.object(self.hardware_info, '_SystemInterface__consoleManager') as mock_platform:
             mock_platform.get_event.return_value = False
 
             result = self.hardware_info.getMouseEvent()
@@ -105,7 +97,7 @@ class TestHardwareInfoEvents(unittest.TestCase):
         """
         Test waitForEvents method
         """
-        with patch.object(self.hardware_info, '_HardwareInfo__platform') as mock_platform:
+        with patch.object(self.hardware_info, '_SystemInterface__consoleManager') as mock_platform:
             self.hardware_info.waitForEvents(100)
             mock_platform.wait_for_events.assert_called_once_with(100)
 
@@ -113,7 +105,7 @@ class TestHardwareInfoEvents(unittest.TestCase):
         """
         Test interruptEventWait method
         """
-        with patch.object(self.hardware_info, '_HardwareInfo__platform') as mock_platform:
+        with patch.object(self.hardware_info, '_SystemInterface__consoleManager') as mock_platform:
             self.hardware_info.interruptEventWait()
             mock_platform.interrupt_event_wait.assert_called_once()
 
@@ -121,7 +113,7 @@ class TestHardwareInfoEvents(unittest.TestCase):
         """
         Test clipboard methods
         """
-        with patch.object(self.hardware_info, '_HardwareInfo__platform') as mock_platform:
+        with patch.object(self.hardware_info, '_SystemInterface__consoleManager') as mock_platform:
             self.hardware_info.setClipboardText("test")
             mock_platform.set_clipboard_text.assert_called_once_with("test")
 

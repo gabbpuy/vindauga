@@ -156,9 +156,9 @@ class ScrollBar(View):
                         clickPart = sbPageUp
                     elif kc == kbPgDn:
                         clickPart = sbPageDown
-                    elif kbCtrlPgUp:
+                    elif kc == kbCtrlPgUp:
                         i = self.minVal
-                    elif kbCtrlPgDn:
+                    elif kc == kbCtrlPgDn:
                         i = self.maxVal
                     else:
                         return

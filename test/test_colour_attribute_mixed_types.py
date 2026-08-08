@@ -1,9 +1,10 @@
 # -*- coding: utf-8 -*-
 import unittest
-from unittest.mock import Mock
+from unittest.mock import Mock, patch
 
 from vindauga.utilities.colours.attribute_pair import AttributePair
 from vindauga.utilities.colours.colour_attribute import ColourAttribute
+from vindauga.types.screen import Screen
 
 
 class TestColourAttributeMixedTypes(unittest.TestCase):
@@ -20,17 +21,12 @@ class TestColourAttributeMixedTypes(unittest.TestCase):
         mock_screen.screenWidth = 80
         mock_screen.screenHeight = 25
 
-        # Set the global screen instance
-        from vindauga.types.screen import Screen
-        Screen.screen = mock_screen
-
-    def tearDown(self):
-        """
-        Clean up test fixtures.
-        """
-        # Reset the global screen instance
-        from vindauga.types.screen import Screen
-        Screen.screen = None
+        # Patch the global screen instance; addCleanup guarantees this is
+        # restored even if setUp fails partway or the test raises, unlike a
+        # manual tearDown() which is skipped when setUp() itself errors.
+        patcher = patch.object(Screen, 'screen', mock_screen)
+        patcher.start()
+        self.addCleanup(patcher.stop)
 
     def test_from_bios_with_int(self):
         """

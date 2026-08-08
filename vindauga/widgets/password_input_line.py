@@ -8,5 +8,7 @@ class PasswordInputLine(InputLine):
     def draw(self):
         password = self.current.data
         self.current.data = list('*' * len(password))
-        super().draw()
-        self.current.data = password
+        try:
+            super().draw()
+        finally:
+            self.current.data = password

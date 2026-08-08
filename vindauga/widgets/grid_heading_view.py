@@ -20,8 +20,8 @@ class GridHeadingView(GridView):
 
     def __init__(self, bounds: Rect, columnWidths: Sequence[int], cellText: Sequence[str], columns: int, rows: int,
                  widget: Optional[GridViewBox] = None):
-        self.headingMode = True
         super().__init__(bounds, None, None, columnWidths)
+        self.headingMode = True
         self.cellText = list((list(c) for c in cellText))
         self.setRange(columns, rows)
         self.widget = widget

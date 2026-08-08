@@ -206,7 +206,17 @@ class Group(View):
         self.forEach(self.doAwaken, None)
 
     def resetCurrent(self):
-        if not self.state & sfFocused or not self.current or self.current.valid(cmLoseFocus):
+        # Keep the existing current view as long as it's still visible --
+        # only pick a new one (via firstMatch) if there is no current view,
+        # or it's no longer visible. `setCurrent()` already has its own
+        # guard against changing focus while the group can't give it up
+        # (via valid(cmLoseFocus)); resetCurrent() must not unconditionally
+        # re-pick a "current" view every time any view becomes visible, or
+        # simply creating an unrelated new window silently steals focus
+        # away from whatever window was already active.
+        if self.current is not None and (self.current.state & sfVisible):
+            self.setCurrent(self.current, self.normalSelect)
+        else:
             self.setCurrent(self.firstMatch(sfVisible, ofSelectable), self.normalSelect)
 
     def setCurrent(self, view: View, mode: int):
@@ -305,7 +315,7 @@ class Group(View):
             self.phase = Phases.Focused
             if event.what & positionalEvents:
                 p = self.firstThat(self.hasMouse, event)
-                if p:
+                if p is not None:
                     self.doHandleEvent(p, hs)
                 elif event.what == evMouseDown:
                     Screen.screen.makeBeep()
@@ -315,9 +325,9 @@ class Group(View):
     def drawSubViews(self, start: View, bottom: View = None):
         idx = 0
         last = None
-        if start:
+        if start is not None:
             idx = self.children.index(start)
-        if bottom:
+        if bottom is not None:
             last = self.children.index(bottom)
 
         for view in islice(self.children, idx, last):

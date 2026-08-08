@@ -41,8 +41,9 @@ class Point:
             return self.x != other[0] or self.y != other[1]
 
     def __lt__(self, other: Point) -> bool:
-        # I am closer to 0, 0 than the other
-        return abs(self.x) < abs(other.x) or abs(self.y) < abs(other.y)
+        # I am closer to 0, 0 than the other (squared distance keeps this
+        # transitive, unlike comparing x/y independently with `or`)
+        return (self.x * self.x + self.y * self.y) < (other.x * other.x + other.y * other.y)
 
     def __iadd__(self, other: Point) -> Point:
         self.x += other.x

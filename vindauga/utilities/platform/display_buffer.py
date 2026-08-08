@@ -163,13 +163,17 @@ class DisplayBuffer:
 
     def screen_write(self, x: int, y: int, buf: list[ScreenCell], count: int):
         if self.__in_bounds(x, y):
-            _len = min(count, self.size.x - x)
+            # `buf` can legitimately be shorter than `count` (callers may
+            # pass an already-clipped slice, e.g. near the edge of a saved
+            # buffer while dragging/resizing a view), so the copy must be
+            # bounded by both the row width AND the actual data available.
+            _len = min(count, self.size.x - x, len(buf))
             dst = y * self.size.x + x
 
             if self._buffer is buf:
                 pass
             else:
-                for i in range(max(_len, len(buf))):
+                for i in range(_len):
                     self._buffer[dst + i] = buf[i]
 
             self.__set_dirty(x, y, _len)

@@ -126,10 +126,12 @@ class DirListBox(ListBox):
             return []
 
         size = kernel.GetLogicalDriveStringsW(0, None)
-        driveList = ctypes.create_string_buffer(size)
+        # `size` is a count of WCHARs, not bytes -- use a unicode buffer so
+        # ctypes allocates the correct (size * sizeof(wchar)) byte capacity.
+        driveList = ctypes.create_unicode_buffer(size)
         buffSize = kernel.GetLogicalDriveStringsW(size, driveList)
         # Ignore terminator
-        letters = driveList.raw[:buffSize].decode('utf-16-le')
+        letters = driveList.raw[:buffSize * ctypes.sizeof(ctypes.c_wchar)].decode('utf-16-le')
         letters = letters.split('\x00')
         return letters
 

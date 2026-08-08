@@ -139,11 +139,19 @@ class SystemInterface:
     def requestClipboardText(self):
         self.__consoleManager.request_clipboard_text()
         
+    TICKS_PER_SECOND = 60
+
     def getTickCount(self) -> float:
         """
-        Get tick count for timing
+        Get tick count for timing, at `TICKS_PER_SECOND` ticks per second.
+        `EventQueue`'s double-click/auto-repeat thresholds and
+        `TimerQueue.systemTimeMs()`'s ticks-to-milliseconds conversion both
+        assume this scale; returning raw `time.time()` (Unix epoch seconds)
+        here made every duration computed from it wrong by many orders of
+        magnitude. Uses a monotonic clock so it's unaffected by wall-clock
+        adjustments.
         """
-        return time.time()
+        return time.monotonic() * self.TICKS_PER_SECOND
 
     def resize(self, width: int, height: int):
         self.__consoleManager.resize(width, height)

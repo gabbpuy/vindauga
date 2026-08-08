@@ -196,10 +196,10 @@ class Text:
         Fill cells with the given character.
         """
         if attr:
-            template_cell = ScreenCell()
-            set_cell(template_cell, char, attr)
             for i in range(len(cells)):
-                cells[i] = template_cell
+                cell = ScreenCell()
+                set_cell(cell, char, attr)
+                cells[i] = cell
         else:
             # Just set character, preserve existing attributes
             for i in range(len(cells)):
