@@ -126,12 +126,17 @@ class DirListBox(ListBox):
             return []
 
         size = kernel.GetLogicalDriveStringsW(0, None)
-        # `size` is a count of WCHARs, not bytes -- use a unicode buffer so
-        # ctypes allocates the correct (size * sizeof(wchar)) byte capacity.
+        # `size` is a count of WCHARs, not bytes -- use a unicode buffer so ctypes allocates
+        # the correct (size * sizeof(wchar)) byte capacity. A plain create_string_buffer(size)
+        # allocates `size` *bytes*, half of what's needed for a UTF-16 string, and the
+        # GetLogicalDriveStringsW call below then overflows it -- a native access violation
+        # that crashes the whole process with no Python traceback.
         driveList = ctypes.create_unicode_buffer(size)
         buffSize = kernel.GetLogicalDriveStringsW(size, driveList)
-        # Ignore terminator
-        letters = driveList.raw[:buffSize * ctypes.sizeof(ctypes.c_wchar)].decode('utf-16-le')
+        # Slicing a ctypes c_wchar array already returns a decoded str; unlike
+        # create_string_buffer's result, a unicode buffer has no .raw attribute to decode by
+        # hand, and doesn't need one.
+        letters = driveList[:buffSize]
         letters = letters.split('\x00')
         return letters
 
